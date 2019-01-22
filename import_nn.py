@@ -73,7 +73,7 @@ class ImportNN():
         #return the outputs
         return self.sess.run(self.normY.inverse_transform(self.output_tf), feed_dict={self.input_tf: input, self.keep_prob: kp})
 
-    def derive(self, input, d, kp=1):
+    def differentiate(self, input, d, kp=1):
         """Returns derivative of neural network
 
         Parameters:
