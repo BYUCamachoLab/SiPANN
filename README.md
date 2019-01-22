@@ -1,2 +1,2 @@
 # SiP-ANN
-Artifical Neural Networks for use with Quantum Photonics
+Artifical Neural Networks for use with Silicon Photonics
