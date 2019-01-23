@@ -19,7 +19,7 @@ class ImportNN():
             directory (str): the directory where the model is stored
         """
         #import all graph info
-        with open(directory + 'Import.pkl', 'rb') as file:
+        with open(directory + '/Import.pkl', 'rb') as file:
             self.dict = pickle.load(file)
             self.normX = self.dict['normX']
             self.normY = self.dict['normY']
@@ -30,8 +30,8 @@ class ImportNN():
         self.sess = tf.Session(graph=self.graph)
         with self.graph.as_default():
             #Import graph
-            imported_meta = tf.train.import_meta_graph(directory + "model_iter-" + str(self.b_epoch) + ".meta")
-            imported_meta.restore(self.sess, directory +  "model_iter-" + str(self.b_epoch))
+            imported_meta = tf.train.import_meta_graph(directory + "/model_iter-" + str(self.b_epoch) + ".meta")
+            imported_meta.restore(self.sess, directory +  "/model_iter-" + str(self.b_epoch))
 
             #get all tensor names
             self.output_tf = self.graph.get_tensor_by_name('OUTPUT:0')

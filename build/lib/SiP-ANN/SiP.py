@@ -6,7 +6,7 @@ Changes                                       (Author) (Date)
   Initilization .............................. (AMH) - 22-01-2019
 
 Current devices:                              (Author)(Date last modified)
-  Strip waveguide (TE/TM) .................... (AMH) - 22-01-2019
+  Straight waveguide (TE/TM) ................. (AMH) - 22-01-2019
   Bent waveguide ............................. (AMH) - 22-01-2019
   Evanescent waveguide coupler ............... (AMH) - 22-01-2019
   Racetrack ring resonator ................... (AMH) - 22-01-2019
@@ -20,13 +20,81 @@ Current devices:                              (Author)(Date last modified)
 import import_nn
 
 # ---------------------------------------------------------------------------- #
+# Initialize ANNs
+# ---------------------------------------------------------------------------- #
+
+'''
+We initialize all of the ANNs as global objects for speed. This is especially
+useful for optimization routines and GUI's that need to make several ANN
+evaluations quickly.
+'''
+import sys
+print(sys.path)
+ANN_gapReal      = import_nn.ImportNN('ANN/GAP_SWEEP_REALS')
+ANN_straightReal = import_nn.ImportNN('ANN/STRAIGHT_SWEEP_REALS')
+
+# ---------------------------------------------------------------------------- #
 # Strip waveguide
 # ---------------------------------------------------------------------------- #
+
+'''
+straightWaveguide()
+
+Calculates the analytic scattering matrix of a simple, parallel waveguide
+directional coupler using the ANN.
+
+INPUTS:
+wavelength .............. [np array](N,) wavelength points to evaluate
+gap ..................... [scalar] gap in the coupler region in microns
+width ................... [scalar] width of the waveguides in microns
+thickness ............... [scalar] thickness of the waveguides in microns
+angle ................... [scalar] angle of the bent arc in radians
+
+OUTPUTS:
+S ....................... [np array](N,2,2) Scattering matrix
+
+'''
+def straightWaveguide(wavelength,width,thickness,gap,length):
+    # Pull effective indices from ANN
+    neff = 2.323
+
+    N = wavelength.shape[0]
+    S = np.zeros((N,2,2),dtype='complex128')
+    S[:,0,1] = np.exp(1j*2*np.pi*radius*neff*angle/wavelength)
+    S[:,1,0] = np.exp(1j*2*np.pi*radius*neff*angle/wavelength)
+    return S
+
 
 # ---------------------------------------------------------------------------- #
 # Bent waveguide
 # ---------------------------------------------------------------------------- #
+'''
+bentWaveguide()
 
+Calculates the analytic scattering matrix of a simple, parallel waveguide
+directional coupler using the ANN.
+
+INPUTS:
+wavelength .............. [np array](N,) wavelength points to evaluate
+gap ..................... [scalar] gap in the coupler region in microns
+width ................... [scalar] width of the waveguides in microns
+thickness ............... [scalar] thickness of the waveguides in microns
+length .................. [scalar] length of the waveguide in microns
+
+OUTPUTS:
+S ....................... [np array](N,2,2) Scattering matrix
+
+'''
+def bentWaveguide(wavelength,radius,width,thickness,gap,angle):
+
+    # Pull effective indices from ANN
+    neff = 2.323
+
+    N = wavelength.shape[0]
+    S = np.zeros((N,2,2),dtype='complex128')
+    S[:,0,1] = np.exp(1j*2*np.pi*radius*neff*angle/wavelength)
+    S[:,1,0] = np.exp(1j*2*np.pi*radius*neff*angle/wavelength)
+    return S
 # ---------------------------------------------------------------------------- #
 # Evanescent waveguide coupler
 # ---------------------------------------------------------------------------- #
@@ -54,11 +122,16 @@ def evWGcoupler(wavelength,width,thickness,gap,couplerLength):
 
     N = wavelength.shape[0]
 
+    # Get the fundamental mode of the waveguide itself
     n0 = 2.323
+    # Get the first fundamental mode of the coupler region
     n1 = 2.378022
+    # Get the second fundamental mode of the coupler region
     n2 = 2.317864
+    # Find the modal differences
     dn = n1 - n2
 
+    # -------- Formulate the S matrix ------------ #
     x =  np.exp(-1j*2*np.pi*n0*couplerLength/wavelength) * np.cos(np.pi*dn/wavelength*couplerLength)
     y =  1j * np.exp(-1j*2*np.pi*n0*couplerLength/wavelength) * np.sin(np.pi*dn/wavelength*couplerLength)
 
