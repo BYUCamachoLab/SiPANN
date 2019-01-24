@@ -1,8 +1,39 @@
 import pickle
-from SiPANN.history import TensorMinMax
-from SiPANN import history
 import tensorflow as tf
 import numpy as np
+
+class TensorMinMax():
+    def __init__(self, feature_range=(0,1), copy=True):
+        self.feature_range = feature_range
+        self.copy = copy
+        self.min_ = None
+        self.scale_ = None
+        self.data_min = None
+        self.data_max = None
+
+    def fit(self, X):
+        self.data_min = np.amin(X, axis=0)
+        self.data_max = np.amax(X, axis=0)
+        self.scale_ = ((self.feature_range[1] - self.feature_range[0]) / (self.data_max - self.data_min))
+        self.min_ = self.feature_range[0] - self.data_min * self.scale_
+
+    def transform(self, X, mode='numpy'):
+        if mode == 'numpy':
+            X *= self.scale_
+            X += self.min_
+        elif mode == 'tensor':
+            X = X * tf.constant(self.scale_, tf.float32) + tf.constant(self.min_, tf.float32)
+
+        return X
+
+    def inverse_transform(self, X, mode='numpy'):
+        if mode == 'numpy':
+            X -= self.min_
+            X /= self.scale_
+        elif mode == 'tensor':
+            X = (X -  tf.constant(self.min_, tf.float32)) /  tf.constant(self.scale_, tf.float32)
+
+        return X
 
 class ImportNN():
     """
@@ -26,14 +57,13 @@ class ImportNN():
             self.normX = self.dict['normX']
             self.normY = self.dict['normY']
             self.s_data = self.dict['s_data']
-            self.b_epoch = self.dict['b_epoch']
 
         self.graph = tf.Graph()
         self.sess = tf.Session(graph=self.graph)
         with self.graph.as_default():
             #Import graph
-            imported_meta = tf.train.import_meta_graph(directory + "/model_iter-" + str(self.b_epoch) + ".meta")
-            imported_meta.restore(self.sess, directory +  "/model_iter-" + str(self.b_epoch))
+            imported_meta = tf.train.import_meta_graph(directory + "/model.meta")
+            imported_meta.restore(self.sess, directory +  "/model")
 
             #get all tensor names
             self.output_tf = self.graph.get_tensor_by_name('OUTPUT:0')
