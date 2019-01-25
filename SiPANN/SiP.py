@@ -20,6 +20,8 @@ Current devices:                              (Author)(Date last modified)
 from SiPANN import import_nn
 import numpy as np
 import skrf as rf
+import pkg_resources
+
 
 # ---------------------------------------------------------------------------- #
 # Initialize ANNs
@@ -30,8 +32,12 @@ We initialize all of the ANNs as global objects for speed. This is especially
 useful for optimization routines and GUI's that need to make several ANN
 evaluations quickly.
 '''
-ANN_gapReal      = import_nn.ImportNN('SiPANN/ANN/GAP_SWEEP_REALS')
-ANN_straightReal = import_nn.ImportNN('SiPANN/ANN/STRAIGHT_SWEEP_REALS')
+
+gapReal_FILE = pkg_resources.resource_filename('SiPANN', 'ANN/GAP_SWEEP_REALS')
+ANN_gapReal      = import_nn.ImportNN(gapReal_FILE)
+
+straightReal_FILE = pkg_resources.resource_filename('SiPANN', 'ANN/STRAIGHT_SWEEP_REALS')
+ANN_straightReal = import_nn.ImportNN(straightReal_FILE)
 
 # ---------------------------------------------------------------------------- #
 # Helper functions
@@ -105,7 +111,10 @@ def straightWaveguide(wavelength,width,thickness,derivative=None):
     return TE0,TE1,TE2,TM0,TM1,TM2
 
 def straightWaveguide_S(wavelength,width,thickness,gap,length):
-    neff = 2.323
+
+    TE0,TE1,TE2,TM0,TM1,TM2 = straightWaveguide(wavelength,width,thickness)
+
+    neff = TE0
 
     N = wavelength.shape[0]
     S = np.zeros((N,2,2),dtype='complex128')
