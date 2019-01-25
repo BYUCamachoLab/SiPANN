@@ -18,6 +18,8 @@ Current devices:                              (Author)(Date last modified)
 # Import libraries
 # ---------------------------------------------------------------------------- #
 from SiPANN import import_nn
+import numpy as np
+import skrf as rf
 
 # ---------------------------------------------------------------------------- #
 # Initialize ANNs
@@ -32,6 +34,19 @@ ANN_gapReal      = import_nn.ImportNN('SiPANN/ANN/GAP_SWEEP_REALS')
 ANN_straightReal = import_nn.ImportNN('SiPANN/ANN/STRAIGHT_SWEEP_REALS')
 
 # ---------------------------------------------------------------------------- #
+# Helper functions
+# ---------------------------------------------------------------------------- #
+
+# Generalized N-dimensional products
+def cartesian_product(arrays):
+    la = len(arrays)
+    dtype = np.find_common_type([a.dtype for a in arrays], [])
+    arr = np.empty([len(a) for a in arrays] + [la], dtype=dtype)
+    for i, a in enumerate(np.ix_(*arrays)):
+        arr[..., i] = a
+    return arr.reshape(-1, la)
+
+# ---------------------------------------------------------------------------- #
 # Strip waveguide
 # ---------------------------------------------------------------------------- #
 
@@ -43,17 +58,53 @@ directional coupler using the ANN.
 
 INPUTS:
 wavelength .............. [np array](N,) wavelength points to evaluate
-gap ..................... [scalar] gap in the coupler region in microns
-width ................... [scalar] width of the waveguides in microns
-thickness ............... [scalar] thickness of the waveguides in microns
-angle ................... [scalar] angle of the bent arc in radians
+width ................... [np array](N,) width of the waveguides in microns
+thickness ............... [np array](N,) thickness of the waveguides in microns
 
 OUTPUTS:
 S ....................... [np array](N,2,2) Scattering matrix
 
 '''
-def straightWaveguide(wavelength,width,thickness,gap,length):
-    # Pull effective indices from ANN
+def straightWaveguide(wavelength,width,thickness,derivative=None):
+
+    # Santize the input
+    if type(wavelength) is np.ndarray:
+        wavelength = np.squeeze(wavelength)
+    else:
+        wavelength = np.array([wavelength])
+    if type(width) is np.ndarray:
+        width = np.squeeze(width)
+    else:
+        width = np.array([width])
+    if type(thickness) is np.ndarray:
+        thickness = np.squeeze(thickness)
+    else:
+        thickness = np.array([thickness])
+
+    # Run through neural network
+    INPUT  = cartesian_product([wavelength,width,thickness])
+
+    if derivative is None:
+        OUTPUT = ANN_straightReal.output(INPUT)
+    else:
+        numRows = INPUT.shape[0]
+        OUTPUT = np.zeros((numRows,6))
+        # Loop through the derivative of all the outputs
+        for k in range(6):
+            OUTPUT[:,k] = np.squeeze(ANN_straightReal.differentiate(INPUT,d=(k,0,derivative)))
+
+    # process the output
+    tensorSize = (wavelength.size,width.size,thickness.size)
+    TE0 = np.reshape(OUTPUT[:,0],tensorSize)
+    TE1 = np.reshape(OUTPUT[:,1],tensorSize)
+    TE2 = np.reshape(OUTPUT[:,2],tensorSize)
+    TM0 = np.reshape(OUTPUT[:,3],tensorSize)
+    TM1 = np.reshape(OUTPUT[:,4],tensorSize)
+    TM2 = np.reshape(OUTPUT[:,5],tensorSize)
+
+    return TE0,TE1,TE2,TM0,TM1,TM2
+
+def straightWaveguide_S(wavelength,width,thickness,gap,length):
     neff = 2.323
 
     N = wavelength.shape[0]
@@ -61,7 +112,6 @@ def straightWaveguide(wavelength,width,thickness,gap,length):
     S[:,0,1] = np.exp(1j*2*np.pi*radius*neff*angle/wavelength)
     S[:,1,0] = np.exp(1j*2*np.pi*radius*neff*angle/wavelength)
     return S
-
 
 # ---------------------------------------------------------------------------- #
 # Bent waveguide
@@ -182,23 +232,19 @@ def racetrackRR(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickness=
     N          = wavelength.shape[0]
 
     # Calculate coupling scattering matrix
-    couplerS = coupler(wavelength,width,thickness,gap,couplerLength)
+    couplerS = evWGcoupler(wavelength,width,thickness,gap,couplerLength)
 
     # Calculate bent scattering matrix
     bentS = bentWaveguide(wavelength,radius,width,thickness,gap,np.pi)
 
     # Cascade first bent waveguid
-    print(np.angle(couplerS[0,:,:]))
     S = rf.connect_s(couplerS, 2, bentS, 0)
 
     # Cascade second bent waveguide
     S = rf.connect_s(S, 3, bentS, 0)
-    print(np.angle(S[0,:,:]))
-    #quit()
 
     # Cascade final coupler
     S = rf.connect_s(S, 2, couplerS, 0)
-    print(np.angle(S[0,:,:]))
 
     S = rf.innerconnect_s(S, 2,3)
 
