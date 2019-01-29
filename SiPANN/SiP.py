@@ -33,17 +33,21 @@ useful for optimization routines and GUI's that need to make several ANN
 evaluations quickly.
 '''
 
-gapReal_FILE = pkg_resources.resource_filename('SiPANN', 'ANN/GAP_SWEEP_REALS')
-ANN_gapReal      = import_nn.ImportNN(gapReal_FILE)
+gap_FILE = pkg_resources.resource_filename('SiPANN', 'ANN/TIGHT_GAP')
+ANN_gap      = import_nn.ImportNN(gap_FILE)
 
-straightReal_FILE = pkg_resources.resource_filename('SiPANN', 'ANN/STRAIGHT_SWEEP_REALS')
-ANN_straightReal = import_nn.ImportNN(straightReal_FILE)
+straight_FILE = pkg_resources.resource_filename('SiPANN', 'ANN/TIGHT_STRAIGHT')
+ANN_straight = import_nn.ImportNN(straight_FILE)
+
+bent_FILE = pkg_resources.resource_filename('SiPANN', 'ANN/TIGHT_BENT')
+ANN_bent = import_nn.ImportNN(bent_FILE)
 
 # ---------------------------------------------------------------------------- #
 # Helper functions
 # ---------------------------------------------------------------------------- #
 
-# Generalized N-dimensional products
+# Generalized N-dimensional products. Useful for "vectorizing" the ANN calculations
+# with multiple inputs
 def cartesian_product(arrays):
     la = len(arrays)
     dtype = np.find_common_type([a.dtype for a in arrays], [])
@@ -59,16 +63,37 @@ def cartesian_product(arrays):
 '''
 straightWaveguide()
 
-Calculates the analytic scattering matrix of a simple, parallel waveguide
-directional coupler using the ANN.
+Calculates the first three effective index values of the TE and TM modes. Can also
+calculate derivatives with respect to any of the inputs. This is especially useful
+for calculating the group index, or running gradient based optimization routines.
+
+Each of the inputs can either be a one dimensional numpy array or a scalar. This
+is especially useful if you want to sweep over multiple parameters and include
+all of the possible permutations of the sweeps.
+
+The output is a multidimensional array. The size of each dimension corresponds with
+the size of each of the inputs, such that
+   DIM1 = size(wavelength)
+   DIM2 = size(width)
+   DIM3 = size(thickness)
+
+So if I swept 100 wavelength points, 1 width, and 10 possible thicknesses, then
+the dimension of each output effective index (or higher order derivative) would
+be: (100,1,10).
 
 INPUTS:
 wavelength .............. [np array](N,) wavelength points to evaluate
 width ................... [np array](N,) width of the waveguides in microns
 thickness ............... [np array](N,) thickness of the waveguides in microns
+derivative .............. [scalar] (default=None) Order of the derivative to take
 
 OUTPUTS:
-S ....................... [np array](N,2,2) Scattering matrix
+TE0 .................... [np array](N,M,P) First TE effective index (or derivative)
+TE1 .................... [np array](N,M,P) Second TE effective index (or derivative)
+TE2 .................... [np array](N,M,P) Third TE effective index (or derivative)
+TM0 .................... [np array](N,M,P) First TM effective index (or derivative)
+TM1 .................... [np array](N,M,P) Second TM effective index (or derivative)
+TM2 .................... [np array](N,M,P) Third TM effective index (or derivative)
 
 '''
 def straightWaveguide(wavelength,width,thickness,derivative=None):
@@ -91,25 +116,42 @@ def straightWaveguide(wavelength,width,thickness,derivative=None):
     INPUT  = cartesian_product([wavelength,width,thickness])
 
     if derivative is None:
-        OUTPUT = ANN_straightReal.output(INPUT)
+        OUTPUT = ANN_straight.output(INPUT)
     else:
         numRows = INPUT.shape[0]
-        OUTPUT = np.zeros((numRows,6))
+        OUTPUT = np.zeros((numRows,12))
         # Loop through the derivative of all the outputs
-        for k in range(6):
-            OUTPUT[:,k] = np.squeeze(ANN_straightReal.differentiate(INPUT,d=(k,0,derivative)))
+        for k in range(12):
+            OUTPUT[:,k] = np.squeeze(ANN_straight.differentiate(INPUT,d=(k,0,derivative)))
 
     # process the output
     tensorSize = (wavelength.size,width.size,thickness.size)
-    TE0 = np.reshape(OUTPUT[:,0],tensorSize)
-    TE1 = np.reshape(OUTPUT[:,1],tensorSize)
-    TE2 = np.reshape(OUTPUT[:,2],tensorSize)
-    TM0 = np.reshape(OUTPUT[:,3],tensorSize)
-    TM1 = np.reshape(OUTPUT[:,4],tensorSize)
-    TM2 = np.reshape(OUTPUT[:,5],tensorSize)
+    TE0 = np.reshape(OUTPUT[:,0],tensorSize) - 1j*np.reshape(OUTPUT[:,6],tensorSize)
+    TE1 = np.reshape(OUTPUT[:,1],tensorSize) - 1j*np.reshape(OUTPUT[:,7],tensorSize)
+    TE2 = np.reshape(OUTPUT[:,2],tensorSize) - 1j*np.reshape(OUTPUT[:,8],tensorSize)
+    TM0 = np.reshape(OUTPUT[:,3],tensorSize) - 1j*np.reshape(OUTPUT[:,9],tensorSize)
+    TM1 = np.reshape(OUTPUT[:,4],tensorSize) - 1j*np.reshape(OUTPUT[:,10],tensorSize)
+    TM2 = np.reshape(OUTPUT[:,5],tensorSize) - 1j*np.reshape(OUTPUT[:,11],tensorSize)
 
     return TE0,TE1,TE2,TM0,TM1,TM2
 
+'''
+straightWaveguide_S()
+
+Calculates the analytic scattering matrix of a simple straight waveguide with
+length L.
+
+INPUTS:
+wavelength .............. [np array](N,) wavelength points to evaluate
+width ................... [scalar] width of the waveguides in microns
+thickness ............... [scalar] thickness of the waveguides in microns
+L ....................... [scalar] length of the waveguide in microns
+
+OUTPUTS:
+S ....................... [np array](N,2,2) scattering matrix for each wavelength
+
+
+'''
 def straightWaveguide_S(wavelength,width,thickness,gap,length):
 
     TE0,TE1,TE2,TM0,TM1,TM2 = straightWaveguide(wavelength,width,thickness)
@@ -142,16 +184,58 @@ OUTPUTS:
 S ....................... [np array](N,2,2) Scattering matrix
 
 '''
-def bentWaveguide(wavelength,radius,width,thickness,gap,angle):
+def bentWaveguide(wavelength,width,thickness,radius,derivative=None):
+
+    # Santize the input
+    if type(wavelength) is np.ndarray:
+        wavelength = np.squeeze(wavelength)
+    else:
+        wavelength = np.array([wavelength])
+    if type(width) is np.ndarray:
+        width = np.squeeze(width)
+    else:
+        width = np.array([width])
+    if type(thickness) is np.ndarray:
+        thickness = np.squeeze(thickness)
+    else:
+        thickness = np.array([thickness])
+    if type(radius) is np.ndarray:
+        radius = np.squeeze(radius)
+    else:
+        radius = np.array([radius])
+
+    # Run through neural network
+    INPUT  = cartesian_product([wavelength,width,thickness,radius])
+
+    if derivative is None:
+        OUTPUT = ANN_bent.output(INPUT)
+    else:
+        numRows = INPUT.shape[0]
+        OUTPUT = np.zeros((numRows,2))
+        # Loop through the derivative of all the outputs
+        for k in range(2):
+            OUTPUT[:,k] = np.squeeze(ANN_bent.differentiate(INPUT,d=(k,0,derivative)))
+
+    # process the output
+    tensorSize = (wavelength.size,width.size,thickness.size,radius.size)
+    TE0 = np.reshape(OUTPUT[:,0],tensorSize) - 1j*np.reshape(OUTPUT[:,1],tensorSize)
+
+    return TE0
+
+def bentWaveguide_S(wavelength,radius,width,thickness,gap,angle):
 
     # Pull effective indices from ANN
-    neff = 2.323
+    TE0 = bentWaveguide(wavelength,width,thickness,radius)
+    neff = np.squeeze(TE0)
+    print(neff)
+    neff = 2.46
 
     N = wavelength.shape[0]
     S = np.zeros((N,2,2),dtype='complex128')
     S[:,0,1] = np.exp(1j*2*np.pi*radius*neff*angle/wavelength)
     S[:,1,0] = np.exp(1j*2*np.pi*radius*neff*angle/wavelength)
     return S
+
 # ---------------------------------------------------------------------------- #
 # Evanescent waveguide coupler
 # ---------------------------------------------------------------------------- #
@@ -173,21 +257,59 @@ S ....................... [np array](N,4,4) Scattering matrix
 
 '''
 
-def evWGcoupler(wavelength,width,thickness,gap,couplerLength):
+def evWGcoupler(wavelength,width,thickness,gap,derivative=None):
 
+    # Santize the input
+    if type(wavelength) is np.ndarray:
+        wavelength = np.squeeze(wavelength)
+    else:
+        wavelength = np.array([wavelength])
+    if type(width) is np.ndarray:
+        width = np.squeeze(width)
+    else:
+        width = np.array([width])
+    if type(thickness) is np.ndarray:
+        thickness = np.squeeze(thickness)
+    else:
+        thickness = np.array([thickness])
+    if type(gap) is np.ndarray:
+        gap = np.squeeze(gap)
+    else:
+        gap = np.array([gap])
+
+    # Run through neural network
+    INPUT  = cartesian_product([wavelength,width,thickness,gap])
+
+    if derivative is None:
+        OUTPUT = ANN_gap.output(INPUT)
+    else:
+        numRows = INPUT.shape[0]
+        OUTPUT = np.zeros((numRows,4))
+        # Loop through the derivative of all the outputs
+        for k in range(4):
+            OUTPUT[:,k] = np.squeeze(ANN_gap.differentiate(INPUT,d=(k,0,derivative)))
+
+    # process the output
+    tensorSize = (wavelength.size,width.size,thickness.size,gap.size)
+    TE0 = np.reshape(OUTPUT[:,0],tensorSize) - 1j*np.reshape(OUTPUT[:,2],tensorSize)
+    TE1 = np.reshape(OUTPUT[:,1],tensorSize) - 1j*np.reshape(OUTPUT[:,3],tensorSize)
+
+    return TE0,TE1
+
+def evWGcoupler_S(wavelength,width,thickness,gap,couplerLength):
     neff = 2
 
     N = wavelength.shape[0]
 
     # Get the fundamental mode of the waveguide itself
-    n0 = 2.323
-    # Get the first fundamental mode of the coupler region
-    n1 = 2.378022
-    # Get the second fundamental mode of the coupler region
-    n2 = 2.317864
-    # Find the modal differences
-    dn = n1 - n2
+    TE0,TE1,TE2,TM0,TM1,TM2 = straightWaveguide(wavelength,width,thickness)
+    n0 = np.squeeze(TE0)
 
+    # Get the modes of the coupler structure
+    cTE0,cTE1 = evWGcoupler(wavelength,width,thickness,gap)
+    n1 = np.squeeze(cTE0)     # Get the first mode of the coupler region
+    n2 = np.squeeze(cTE1)     # Get the second mode of the coupler region
+    dn = n1 - n2  # Find the modal differences
     # -------- Formulate the S matrix ------------ #
     x =  np.exp(-1j*2*np.pi*n0*couplerLength/wavelength) * np.cos(np.pi*dn/wavelength*couplerLength)
     y =  1j * np.exp(-1j*2*np.pi*n0*couplerLength/wavelength) * np.sin(np.pi*dn/wavelength*couplerLength)
@@ -207,7 +329,6 @@ def evWGcoupler(wavelength,width,thickness,gap,couplerLength):
     S[:,3,0] = y
     S[:,3,2] = x
     return S
-
 # ---------------------------------------------------------------------------- #
 # Racetrack Ring Resonator
 # ---------------------------------------------------------------------------- #
@@ -241,10 +362,10 @@ def racetrackRR(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickness=
     N          = wavelength.shape[0]
 
     # Calculate coupling scattering matrix
-    couplerS = evWGcoupler(wavelength,width,thickness,gap,couplerLength)
+    couplerS = evWGcoupler_S(wavelength,width,thickness,gap,couplerLength)
 
     # Calculate bent scattering matrix
-    bentS = bentWaveguide(wavelength,radius,width,thickness,gap,np.pi)
+    bentS = bentWaveguide_S(wavelength,radius,width,thickness,gap,np.pi)
 
     # Cascade first bent waveguid
     S = rf.connect_s(couplerS, 2, bentS, 0)
