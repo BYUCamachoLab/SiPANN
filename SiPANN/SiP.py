@@ -126,12 +126,12 @@ def straightWaveguide(wavelength,width,thickness,derivative=None):
 
     # process the output
     tensorSize = (wavelength.size,width.size,thickness.size)
-    TE0 = np.reshape(OUTPUT[:,0],tensorSize) - 1j*np.reshape(OUTPUT[:,6],tensorSize)
-    TE1 = np.reshape(OUTPUT[:,1],tensorSize) - 1j*np.reshape(OUTPUT[:,7],tensorSize)
-    TE2 = np.reshape(OUTPUT[:,2],tensorSize) - 1j*np.reshape(OUTPUT[:,8],tensorSize)
-    TM0 = np.reshape(OUTPUT[:,3],tensorSize) - 1j*np.reshape(OUTPUT[:,9],tensorSize)
-    TM1 = np.reshape(OUTPUT[:,4],tensorSize) - 1j*np.reshape(OUTPUT[:,10],tensorSize)
-    TM2 = np.reshape(OUTPUT[:,5],tensorSize) - 1j*np.reshape(OUTPUT[:,11],tensorSize)
+    TE0 = np.reshape(OUTPUT[:,0],tensorSize) + 1j*np.reshape(OUTPUT[:,6],tensorSize)
+    TE1 = np.reshape(OUTPUT[:,1],tensorSize) + 1j*np.reshape(OUTPUT[:,7],tensorSize)
+    TE2 = np.reshape(OUTPUT[:,2],tensorSize) + 1j*np.reshape(OUTPUT[:,8],tensorSize)
+    TM0 = np.reshape(OUTPUT[:,3],tensorSize) + 1j*np.reshape(OUTPUT[:,9],tensorSize)
+    TM1 = np.reshape(OUTPUT[:,4],tensorSize) + 1j*np.reshape(OUTPUT[:,10],tensorSize)
+    TM2 = np.reshape(OUTPUT[:,5],tensorSize) + 1j*np.reshape(OUTPUT[:,11],tensorSize)
 
     return TE0,TE1,TE2,TM0,TM1,TM2
 
@@ -152,16 +152,16 @@ S ....................... [np array](N,2,2) scattering matrix for each wavelengt
 
 
 '''
-def straightWaveguide_S(wavelength,width,thickness,gap,length):
+def straightWaveguide_S(wavelength,width,thickness,length):
 
     TE0,TE1,TE2,TM0,TM1,TM2 = straightWaveguide(wavelength,width,thickness)
 
-    neff = TE0
+    neff = np.squeeze(TE0)
 
     N = wavelength.shape[0]
     S = np.zeros((N,2,2),dtype='complex128')
-    S[:,0,1] = np.exp(1j*2*np.pi*radius*neff*angle/wavelength)
-    S[:,1,0] = np.exp(1j*2*np.pi*radius*neff*angle/wavelength)
+    S[:,0,1] = np.exp(1j*2*np.pi*length*neff/wavelength)
+    S[:,1,0] = np.exp(1j*2*np.pi*length*neff/wavelength)
     return S
 
 # ---------------------------------------------------------------------------- #
@@ -218,7 +218,7 @@ def bentWaveguide(wavelength,width,thickness,radius,derivative=None):
 
     # process the output
     tensorSize = (wavelength.size,width.size,thickness.size,radius.size)
-    TE0 = np.reshape(OUTPUT[:,0],tensorSize) - 1j*np.reshape(OUTPUT[:,1],tensorSize)
+    TE0 = np.reshape(OUTPUT[:,0],tensorSize) + 1j*np.reshape(OUTPUT[:,1],tensorSize)
 
     return TE0
 
@@ -227,8 +227,6 @@ def bentWaveguide_S(wavelength,radius,width,thickness,gap,angle):
     # Pull effective indices from ANN
     TE0 = bentWaveguide(wavelength,width,thickness,radius)
     neff = np.squeeze(TE0)
-    print(neff)
-    neff = 2.46
 
     N = wavelength.shape[0]
     S = np.zeros((N,2,2),dtype='complex128')
@@ -291,14 +289,12 @@ def evWGcoupler(wavelength,width,thickness,gap,derivative=None):
 
     # process the output
     tensorSize = (wavelength.size,width.size,thickness.size,gap.size)
-    TE0 = np.reshape(OUTPUT[:,0],tensorSize) - 1j*np.reshape(OUTPUT[:,2],tensorSize)
-    TE1 = np.reshape(OUTPUT[:,1],tensorSize) - 1j*np.reshape(OUTPUT[:,3],tensorSize)
+    TE0 = np.reshape(OUTPUT[:,0],tensorSize) + 1j*np.reshape(OUTPUT[:,2],tensorSize)
+    TE1 = np.reshape(OUTPUT[:,1],tensorSize) + 1j*np.reshape(OUTPUT[:,3],tensorSize)
 
     return TE0,TE1
 
 def evWGcoupler_S(wavelength,width,thickness,gap,couplerLength):
-    neff = 2
-
     N = wavelength.shape[0]
 
     # Get the fundamental mode of the waveguide itself
@@ -311,8 +307,13 @@ def evWGcoupler_S(wavelength,width,thickness,gap,couplerLength):
     n2 = np.squeeze(cTE1)     # Get the second mode of the coupler region
     dn = n1 - n2  # Find the modal differences
     # -------- Formulate the S matrix ------------ #
-    x =  np.exp(-1j*2*np.pi*n0*couplerLength/wavelength) * np.cos(np.pi*dn/wavelength*couplerLength)
-    y =  1j * np.exp(-1j*2*np.pi*n0*couplerLength/wavelength) * np.sin(np.pi*dn/wavelength*couplerLength)
+    #x =  np.exp(-1j*2*np.pi*n0*couplerLength/wavelength) * np.cos(np.pi*dn/wavelength*couplerLength)
+    #y =  1j * np.exp(-1j*2*np.pi*n0*couplerLength/wavelength) * np.sin(np.pi*dn/wavelength*couplerLength)
+
+    Beta1 = 2*np.pi*n1 / wavelength
+    Beta2 = 2*np.pi*n2 / wavelength
+    x = 1/np.sqrt(4) * (np.exp(1j*Beta1*couplerLength) + np.exp(1j*Beta2*couplerLength))
+    y = 1/np.sqrt(4) * (np.exp(1j*Beta1*couplerLength) + np.exp(1j*Beta2*couplerLength - 1j*np.pi))
 
     S = np.zeros((N,4,4),dtype='complex128')
 
@@ -355,7 +356,7 @@ OUTPUTS:
 S ....................... [np array](N,4,4) Scattering matrix
 
 '''
-def racetrackRR(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickness=0.2):
+def racetrack_AP_RR(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickness=0.2):
 
     # Sanitize the input
     wavelength = np.squeeze(wavelength)
@@ -367,20 +368,66 @@ def racetrackRR(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickness=
     # Calculate bent scattering matrix
     bentS = bentWaveguide_S(wavelength,radius,width,thickness,gap,np.pi)
 
-    # Cascade first bent waveguid
-    S = rf.connect_s(couplerS, 2, bentS, 0)
+    # Calculate straight scattering matrix
+    straightS = straightWaveguide_S(wavelength,width,thickness,couplerLength)
 
-    # Cascade second bent waveguide
-    S = rf.connect_s(S, 3, bentS, 0)
+    # Cascade all the waveguide sections
+    Sw = rf.connect_s(bentS, 1, straightS, 0)
+    Sw = rf.connect_s(Sw, 1, bentS, 0)
 
-    # Cascade final coupler
-    S = rf.connect_s(S, 2, couplerS, 0)
+    # Connect coupler to waveguide section
+    S = rf.connect_s(couplerS, 2, Sw, 0)
 
+    # Close the ring
     S = rf.innerconnect_s(S, 2,3)
+
+    ## Cascade final coupler
+    #S = rf.connect_s(S, 2, couplerS, 2)
+    #S = rf.innerconnect_s(S, 2,5)
 
     # Output final s matrix
     return S
 
+def racetrack_AP_RR_TF(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickness=0.2,loss=0,coupling=0):
+
+    # Sanitize the input
+    wavelength = np.squeeze(wavelength)
+    N          = wavelength.shape[0]
+
+    # calculate coupling
+    cTE0,cTE1 = evWGcoupler(wavelength,width,thickness,gap)
+    n1 = np.squeeze(cTE0)     # Get the first mode of the coupler region
+    n2 = np.squeeze(cTE1)     # Get the second mode of the coupler region
+    Beta1 = 2*np.pi*n1 / wavelength
+    Beta2 = 2*np.pi*n2 / wavelength
+    x = 0.5 * (np.exp(1j*Beta1*couplerLength) + np.exp(1j*Beta2*couplerLength))
+    y = 0.5 * (np.exp(1j*Beta1*couplerLength) + np.exp(1j*Beta2*couplerLength - 1j*np.pi))
+
+    r = np.abs(x) - coupling
+    k = np.abs(y)
+
+    # calculate bent waveguide
+    TE0_B = np.squeeze(bentWaveguide(wavelength,width,thickness,radius))
+
+    # calculate straight waveguide
+    TE0,TE1,TE2,TM0,TM1,TM2 = np.squeeze(straightWaveguide(wavelength,width,thickness))
+
+    # Calculate round trip length
+    L = 2*np.pi*radius + 2*couplerLength
+
+    # calculate total loss
+    alpha = np.squeeze(np.exp(- np.imag(TE0) * 2*couplerLength - np.imag(TE0_B)*2*np.pi*radius - loss*L))
+
+    # calculate total phase shift
+    BetaStraight = 2*np.pi*np.real(TE0) / wavelength
+    BetaBent     = 2*np.pi*np.real(TE0_B) / wavelength
+    phi          = np.squeeze( BetaStraight * 2*couplerLength + BetaBent*2*np.pi*radius)
+
+    ## Cascade final coupler
+    E = np.exp(1j*(np.pi+phi)) * (alpha - r*np.exp(-1j*phi))/(1-r*alpha*np.exp(1j*phi))
+
+    # Output final s matrix
+    return E
 # ---------------------------------------------------------------------------- #
 # Rectangular Ring Resonator
 # ---------------------------------------------------------------------------- #
