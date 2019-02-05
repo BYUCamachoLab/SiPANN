@@ -388,7 +388,7 @@ def racetrack_AP_RR(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickn
     # Output final s matrix
     return S
 
-def racetrack_AP_RR_TF(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickness=0.2,loss=0,coupling=0):
+def racetrack_AP_RR_TF(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickness=0.2,loss=[0],coupling=[0]):
 
     # Sanitize the input
     wavelength = np.squeeze(wavelength)
@@ -403,7 +403,11 @@ def racetrack_AP_RR_TF(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thi
     x = 0.5 * (np.exp(1j*Beta1*couplerLength) + np.exp(1j*Beta2*couplerLength))
     y = 0.5 * (np.exp(1j*Beta1*couplerLength) + np.exp(1j*Beta2*couplerLength - 1j*np.pi))
 
-    r = np.abs(x) - coupling
+
+    # Construct the coupling polynomial
+    couplingPoly = np.poly1d(coupling)
+
+    r = np.abs(x) - couplingPoly(wavelength)
     k = np.abs(y)
 
     # calculate bent waveguide
@@ -415,8 +419,11 @@ def racetrack_AP_RR_TF(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thi
     # Calculate round trip length
     L = 2*np.pi*radius + 2*couplerLength
 
+    # Construct the loss polynomial
+    lossPoly = np.poly1d(loss)
+
     # calculate total loss
-    alpha = np.squeeze(np.exp(- np.imag(TE0) * 2*couplerLength - np.imag(TE0_B)*2*np.pi*radius - loss*L))
+    alpha = np.squeeze(np.exp(- np.imag(TE0) * 2*couplerLength - np.imag(TE0_B)*2*np.pi*radius - lossPoly(wavelength)*L))
 
     # calculate total phase shift
     BetaStraight = 2*np.pi*np.real(TE0) / wavelength
