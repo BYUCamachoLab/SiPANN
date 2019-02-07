@@ -21,7 +21,8 @@ from SiPANN import import_nn
 import numpy as np
 import skrf as rf
 import pkg_resources
-
+from scipy.signal import find_peaks, peak_widths
+from scipy.interpolate import UnivariateSpline
 
 # ---------------------------------------------------------------------------- #
 # Initialize ANNs
@@ -388,7 +389,7 @@ def racetrack_AP_RR(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickn
     # Output final s matrix
     return S
 
-def racetrack_AP_RR_TF(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickness=0.2,loss=[0],coupling=[0]):
+def racetrack_AP_RR_TF(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickness=0.2,loss=[1],coupling=[0]):
 
     # Sanitize the input
     wavelength = np.squeeze(wavelength)
@@ -402,6 +403,11 @@ def racetrack_AP_RR_TF(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thi
     Beta2 = 2*np.pi*n2 / wavelength
     x = 0.5 * (np.exp(1j*Beta1*couplerLength) + np.exp(1j*Beta2*couplerLength))
     y = 0.5 * (np.exp(1j*Beta1*couplerLength) + np.exp(1j*Beta2*couplerLength - 1j*np.pi))
+
+    alpha_c = np.sqrt(np.abs(x) ** 2 + np.abs(y) ** 2)
+
+    t_c = x
+    k_c = y
 
 
     # Construct the coupling polynomial
@@ -419,22 +425,31 @@ def racetrack_AP_RR_TF(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thi
     # Calculate round trip length
     L = 2*np.pi*radius + 2*couplerLength
 
-    # Construct the loss polynomial
-    lossPoly = np.poly1d(loss)
-
     # calculate total loss
-    alpha = np.squeeze(np.exp(- np.imag(TE0) * 2*couplerLength - np.imag(TE0_B)*2*np.pi*radius - lossPoly(wavelength)*L))
+    #alpha = np.squeeze(np.exp(- np.imag(TE0) * 2*couplerLength - np.imag(TE0_B)*2*np.pi*radius - lossPoly(wavelength)*L))
+    alpha_t = (np.exp(-np.imag(TE0) * 2*couplerLength - np.imag(TE0_B)*2*np.pi*radius))
+    alpha_m  = np.squeeze(alpha_c * alpha_t)
+    offset = np.mean(alpha_m)
+    lossTemp = loss.copy()
+    lossTemp[-1] = loss[-1] - (1-offset)
+    lossPoly = np.poly1d(loss)
+    alpha = lossPoly(wavelength)
 
-    # calculate total phase shift
+    # calculate phase shifts
+    phi_c        = np.angle(t_c)
     BetaStraight = 2*np.pi*np.real(TE0) / wavelength
     BetaBent     = 2*np.pi*np.real(TE0_B) / wavelength
-    phi          = np.squeeze( BetaStraight * 2*couplerLength + BetaBent*2*np.pi*radius)
+    phi_r        = np.squeeze( BetaStraight * 2*couplerLength + BetaBent*2*np.pi*radius)
+    phi          = phi_r + phi_c
+
+    t = np.abs(t_c) / alpha_c
 
     ## Cascade final coupler
-    E = np.exp(1j*(np.pi+phi)) * (alpha - r*np.exp(-1j*phi))/(1-r*alpha*np.exp(1j*phi))
+    #E = np.exp(1j*(np.pi+phi)) * (alpha - r*np.exp(-1j*phi))/(1-r*alpha*np.exp(1j*phi))
+    E = (t - alpha * np.exp(1j*phi)) / (1-alpha*t*np.exp(1j*phi)) * (t_c / np.conj(t_c)) * alpha_c * np.exp(-1j * phi_c)
 
     # Output final s matrix
-    return E
+    return E, alpha, t
 # ---------------------------------------------------------------------------- #
 # Rectangular Ring Resonator
 # ---------------------------------------------------------------------------- #
@@ -469,3 +484,31 @@ def rectangularRR(wavelength,radius=5,couplerLength=5,sideLength=5,
 
     #
     return
+
+
+# ---------------------------------------------------------------------------- #
+# Loss and coupling extractor
+# ---------------------------------------------------------------------------- #
+
+from matplotlib import pyplot as plt
+
+def extractor(power,wavelength):
+    peakThreshold = 0.3
+
+    peaks, _ = find_peaks(1-power,height=peakThreshold)
+    results_half = peak_widths(1-power, peaks, rel_height=0.5)
+
+    FWHM = results_half[0][0:-1] * (wavelength[1] - wavelength[0])
+    FSR = np.diff(wavelength[peaks])
+
+    F = FSR / FWHM
+    E = 1 / (power[peaks[0:-1]])
+
+    A = np.cos(np.pi/F) / (1 + np.sin(np.pi/F))
+    B = 1 - 1/E * (1 - np.cos(np.pi/F))/(1 + np.cos(np.pi/F))
+
+    a = np.sqrt(A/B) + np.sqrt(A/B - A)
+    b = np.sqrt(A/B) - np.sqrt(A/B - A)
+
+    w = wavelength[peaks[0:-1]]
+    return a, b, w
