@@ -389,7 +389,7 @@ def racetrack_AP_RR(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickn
     # Output final s matrix
     return S
 
-def racetrack_AP_RR_TF(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickness=0.2,loss=[1],coupling=[0]):
+def racetrack_AP_RR_TF(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickness=0.2,loss=[0.99],coupling=[0]):
 
     # Sanitize the input
     wavelength = np.squeeze(wavelength)
