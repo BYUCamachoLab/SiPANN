@@ -434,6 +434,7 @@ def racetrack_AP_RR_TF(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thi
     lossTemp[-1] = loss[-1] - (1-offset)
     lossPoly = np.poly1d(loss)
     alpha = lossPoly(wavelength)
+    alpha_s = alpha - alpha_m
 
     # calculate phase shifts
     phi_c        = np.angle(t_c)
@@ -449,7 +450,7 @@ def racetrack_AP_RR_TF(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thi
     E = (t - alpha * np.exp(1j*phi)) / (1-alpha*t*np.exp(1j*phi)) * (t_c / np.conj(t_c)) * alpha_c * np.exp(-1j * phi_c)
 
     # Output final s matrix
-    return E, alpha, t
+    return E, alpha, t, alpha_s
 # ---------------------------------------------------------------------------- #
 # Rectangular Ring Resonator
 # ---------------------------------------------------------------------------- #
