@@ -495,8 +495,9 @@ from matplotlib import pyplot as plt
 
 def extractor(power,wavelength):
     peakThreshold = 0.3
-
-    peaks, _ = find_peaks(1-power,height=peakThreshold)
+    distanceThreshold = 4e-3 / (wavelength[1]-wavelength[0])
+    
+    peaks, _ = find_peaks(1-power,height=peakThreshold,distance=distanceThreshold)
     results_half = peak_widths(1-power, peaks, rel_height=0.5)
 
     FWHM = results_half[0][0:-1] * (wavelength[1] - wavelength[0])
