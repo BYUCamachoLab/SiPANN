@@ -34,13 +34,13 @@ useful for optimization routines and GUI's that need to make several ANN
 evaluations quickly.
 '''
 
-gap_FILE = pkg_resources.resource_filename('SiPANN', 'ANN/TIGHT_GAP')
+gap_FILE = pkg_resources.resource_filename('SiPANN', 'ANN/TIGHT_ANGLE_GAP')
 ANN_gap      = import_nn.ImportNN(gap_FILE)
 
-straight_FILE = pkg_resources.resource_filename('SiPANN', 'ANN/TIGHT_STRAIGHT')
+straight_FILE = pkg_resources.resource_filename('SiPANN', 'ANN/TIGHT_ANGLE_STRAIGHT')
 ANN_straight = import_nn.ImportNN(straight_FILE)
 
-bent_FILE = pkg_resources.resource_filename('SiPANN', 'ANN/TIGHT_BENT')
+bent_FILE = pkg_resources.resource_filename('SiPANN', 'ANN/TIGHT_ANGLE_BENT_RAND')
 ANN_bent = import_nn.ImportNN(bent_FILE)
 
 # ---------------------------------------------------------------------------- #
@@ -97,7 +97,7 @@ TM1 .................... [np array](N,M,P) Second TM effective index (or derivat
 TM2 .................... [np array](N,M,P) Third TM effective index (or derivative)
 
 '''
-def straightWaveguide(wavelength,width,thickness,derivative=None):
+def straightWaveguide(wavelength,width,thickness,angle,derivative=None):
 
     # Santize the input
     if type(wavelength) is np.ndarray:
@@ -112,9 +112,13 @@ def straightWaveguide(wavelength,width,thickness,derivative=None):
         thickness = np.squeeze(thickness)
     else:
         thickness = np.array([thickness])
+    if type(angle) is np.ndarray:
+        angle = np.squeeze(angle)
+    else:
+        angle = np.array([angle])
 
     # Run through neural network
-    INPUT  = cartesian_product([wavelength,width,thickness])
+    INPUT  = cartesian_product([wavelength,width,thickness,angle])
 
     if derivative is None:
         OUTPUT = ANN_straight.output(INPUT)
@@ -126,6 +130,7 @@ def straightWaveguide(wavelength,width,thickness,derivative=None):
             OUTPUT[:,k] = np.squeeze(ANN_straight.differentiate(INPUT,d=(k,0,derivative)))
 
     # process the output
+    '''
     tensorSize = (wavelength.size,width.size,thickness.size)
     TE0 = np.reshape(OUTPUT[:,0],tensorSize) + 1j*np.reshape(OUTPUT[:,6],tensorSize)
     TE1 = np.reshape(OUTPUT[:,1],tensorSize) + 1j*np.reshape(OUTPUT[:,7],tensorSize)
@@ -135,6 +140,10 @@ def straightWaveguide(wavelength,width,thickness,derivative=None):
     TM2 = np.reshape(OUTPUT[:,5],tensorSize) + 1j*np.reshape(OUTPUT[:,11],tensorSize)
 
     return TE0,TE1,TE2,TM0,TM1,TM2
+    '''
+    tensorSize = (wavelength.size,width.size,thickness.size)
+    TE0 = np.reshape(OUTPUT[:,0],tensorSize) + 1j*np.reshape(OUTPUT[:,1],tensorSize)
+    return TE0
 
 '''
 straightWaveguide_S()
@@ -185,7 +194,7 @@ OUTPUTS:
 S ....................... [np array](N,2,2) Scattering matrix
 
 '''
-def bentWaveguide(wavelength,width,thickness,radius,derivative=None):
+def bentWaveguide(wavelength,width,thickness,radius,angle,derivative=None):
 
     # Santize the input
     if type(wavelength) is np.ndarray:
@@ -204,9 +213,13 @@ def bentWaveguide(wavelength,width,thickness,radius,derivative=None):
         radius = np.squeeze(radius)
     else:
         radius = np.array([radius])
+    if type(angle) is np.ndarray:
+        angle = np.squeeze(angle)
+    else:
+        angle = np.array([angle])
 
     # Run through neural network
-    INPUT  = cartesian_product([wavelength,width,thickness,radius])
+    INPUT  = cartesian_product([wavelength,width,thickness,angle,radius])
 
     if derivative is None:
         OUTPUT = ANN_bent.output(INPUT)
@@ -256,7 +269,7 @@ S ....................... [np array](N,4,4) Scattering matrix
 
 '''
 
-def evWGcoupler(wavelength,width,thickness,gap,derivative=None):
+def evWGcoupler(wavelength,width,thickness,gap,angle,derivative=None):
 
     # Santize the input
     if type(wavelength) is np.ndarray:
@@ -275,9 +288,13 @@ def evWGcoupler(wavelength,width,thickness,gap,derivative=None):
         gap = np.squeeze(gap)
     else:
         gap = np.array([gap])
+    if type(angle) is np.ndarray:
+        angle = np.squeeze(angle)
+    else:
+        angle = np.array([angle])
 
     # Run through neural network
-    INPUT  = cartesian_product([wavelength,width,thickness,gap])
+    INPUT  = cartesian_product([wavelength,width,thickness,angle,gap])
 
     if derivative is None:
         OUTPUT = ANN_gap.output(INPUT)
@@ -389,14 +406,14 @@ def racetrack_AP_RR(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickn
     # Output final s matrix
     return S
 
-def racetrack_AP_RR_TF(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickness=0.2,loss=[0.99],coupling=[0]):
+def racetrack_AP_RR_TF(wavelength,angle=90,radius=12,couplerLength=4.5,gap=0.2,width=0.5,thickness=0.2,widthCoupler=0.5,loss=[0.99],coupling=[0]):
 
     # Sanitize the input
     wavelength = np.squeeze(wavelength)
     N          = wavelength.shape[0]
 
     # calculate coupling
-    cTE0,cTE1 = evWGcoupler(wavelength,width,thickness,gap)
+    cTE0,cTE1 = evWGcoupler(wavelength,widthCoupler,thickness,angle,gap)
     n1 = np.squeeze(cTE0)     # Get the first mode of the coupler region
     n2 = np.squeeze(cTE1)     # Get the second mode of the coupler region
     Beta1 = 2*np.pi*n1 / wavelength
@@ -417,10 +434,10 @@ def racetrack_AP_RR_TF(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thi
     k = np.abs(y)
 
     # calculate bent waveguide
-    TE0_B = np.squeeze(bentWaveguide(wavelength,width,thickness,radius))
+    TE0_B = np.squeeze(bentWaveguide(wavelength,width,thickness,angle,radius))
 
     # calculate straight waveguide
-    TE0,TE1,TE2,TM0,TM1,TM2 = np.squeeze(straightWaveguide(wavelength,width,thickness))
+    TE0 = np.squeeze(straightWaveguide(wavelength,width,thickness,angle))
 
     # Calculate round trip length
     L = 2*np.pi*radius + 2*couplerLength
@@ -440,7 +457,7 @@ def racetrack_AP_RR_TF(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thi
     phi_c        = np.angle(t_c)
     BetaStraight = 2*np.pi*np.real(TE0) / wavelength
     BetaBent     = 2*np.pi*np.real(TE0_B) / wavelength
-    phi_r        = np.squeeze( BetaStraight * 2*couplerLength + BetaBent*2*np.pi*radius)
+    phi_r        = np.squeeze( BetaStraight * couplerLength + BetaBent*2*np.pi*radius)
     phi          = phi_r + phi_c
 
     t = np.abs(t_c) / alpha_c
