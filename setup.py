@@ -128,7 +128,7 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['tensorflow'],  # Optional
+    install_requires=['tensorflow','sklearn'],  # Optional
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). Users will be able to install these using the "extras"
@@ -145,7 +145,7 @@ setup(
     # If using Python 2.6 or earlier, then these have to be included in
     # MANIFEST.in as well.
     apackage_data={  # Optional
-        'ANN': ['ANN/**/*']
+        'ANN': ['ANN/**/*','LR/*']
     }
 )
 '''

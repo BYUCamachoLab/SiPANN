@@ -23,6 +23,10 @@ import skrf as rf
 import pkg_resources
 from scipy.signal import find_peaks, peak_widths
 from scipy.interpolate import UnivariateSpline
+import joblib
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+from sklearn.pipeline import Pipeline
 
 # ---------------------------------------------------------------------------- #
 # Initialize ANNs
@@ -42,6 +46,19 @@ ANN_straight = import_nn.ImportNN(straight_FILE)
 
 bent_FILE = pkg_resources.resource_filename('SiPANN', 'ANN/TIGHT_ANGLE_BENT_RAND')
 ANN_bent = import_nn.ImportNN(bent_FILE)
+
+'''
+Let's initialize all of the linear regression functions.
+'''
+
+gap_FILE = pkg_resources.resource_filename('SiPANN', 'LR/R_gap.joblib')
+LR_gap = joblib.load(gap_FILE)
+
+straight_FILE = pkg_resources.resource_filename('SiPANN', 'LR/R_straight.joblib')
+LR_straight = joblib.load(straight_FILE)
+
+bent_FILE = pkg_resources.resource_filename('SiPANN', 'LR/R_bent.joblib')
+LR_bent = joblib.load(bent_FILE)
 
 # ---------------------------------------------------------------------------- #
 # Helper functions
@@ -121,7 +138,7 @@ def straightWaveguide(wavelength,width,thickness,angle,derivative=None):
     INPUT  = cartesian_product([wavelength,width,thickness,angle])
 
     if derivative is None:
-        OUTPUT = ANN_straight.output(INPUT)
+        OUTPUT = LR_straight.predict(INPUT)
     else:
         numRows = INPUT.shape[0]
         OUTPUT = np.zeros((numRows,12))
@@ -142,7 +159,7 @@ def straightWaveguide(wavelength,width,thickness,angle,derivative=None):
     return TE0,TE1,TE2,TM0,TM1,TM2
     '''
     tensorSize = (wavelength.size,width.size,thickness.size)
-    TE0 = np.reshape(OUTPUT[:,0],tensorSize) + 1j*np.reshape(OUTPUT[:,1],tensorSize)
+    TE0 = OUTPUT#np.reshape(OUTPUT[:,0],tensorSize)# + 1j*np.reshape(OUTPUT[:,1],tensorSize)
     return TE0
 
 '''
@@ -222,7 +239,7 @@ def bentWaveguide(wavelength,width,thickness,radius,angle,derivative=None):
     INPUT  = cartesian_product([wavelength,width,thickness,angle,radius])
 
     if derivative is None:
-        OUTPUT = ANN_bent.output(INPUT)
+        OUTPUT = LR_bent.predict(INPUT)
     else:
         numRows = INPUT.shape[0]
         OUTPUT = np.zeros((numRows,2))
@@ -232,7 +249,7 @@ def bentWaveguide(wavelength,width,thickness,radius,angle,derivative=None):
 
     # process the output
     tensorSize = (wavelength.size,width.size,thickness.size,radius.size)
-    TE0 = np.reshape(OUTPUT[:,0],tensorSize) + 1j*np.reshape(OUTPUT[:,1],tensorSize)
+    TE0 = OUTPUT#np.reshape(OUTPUT[:,0],tensorSize)# + 1j*np.reshape(OUTPUT[:,1],tensorSize)
 
     return TE0
 
@@ -297,7 +314,8 @@ def evWGcoupler(wavelength,width,thickness,gap,angle,derivative=None):
     INPUT  = cartesian_product([wavelength,width,thickness,angle,gap])
 
     if derivative is None:
-        OUTPUT = ANN_gap.output(INPUT)
+        OUTPUT0 = LR_gap[0].predict(INPUT)
+        OUTPUT1 = LR_gap[1].predict(INPUT)
     else:
         numRows = INPUT.shape[0]
         OUTPUT = np.zeros((numRows,4))
@@ -307,8 +325,8 @@ def evWGcoupler(wavelength,width,thickness,gap,angle,derivative=None):
 
     # process the output
     tensorSize = (wavelength.size,width.size,thickness.size,gap.size)
-    TE0 = np.reshape(OUTPUT[:,0],tensorSize) + 1j*np.reshape(OUTPUT[:,2],tensorSize)
-    TE1 = np.reshape(OUTPUT[:,1],tensorSize) + 1j*np.reshape(OUTPUT[:,3],tensorSize)
+    TE0 = OUTPUT0#np.reshape(OUTPUT0[:,0],tensorSize)# + 1j*np.reshape(OUTPUT[:,2],tensorSize)
+    TE1 = OUTPUT1#np.reshape(OUTPUT1[:,1],tensorSize)# + 1j*np.reshape(OUTPUT[:,3],tensorSize)
 
     return TE0,TE1
 
@@ -457,8 +475,8 @@ def racetrack_AP_RR_TF(wavelength,angle=90,radius=12,couplerLength=4.5,gap=0.2,w
     phi_c        = np.angle(t_c)
     BetaStraight = 2*np.pi*np.real(TE0) / wavelength
     BetaBent     = 2*np.pi*np.real(TE0_B) / wavelength
-    phi_r        = np.squeeze( BetaStraight * couplerLength + BetaBent*2*np.pi*radius)
-    phi          = phi_r + phi_c
+    phi_r        = np.squeeze( 2*BetaStraight * couplerLength + BetaBent*2*np.pi*radius)
+    phi          = phi_r# + phi_c
 
     t = np.abs(t_c) / alpha_c
 
