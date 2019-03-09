@@ -236,7 +236,7 @@ def bentWaveguide(wavelength,width,thickness,radius,angle,derivative=None):
         angle = np.array([angle])
 
     # Run through neural network
-    INPUT  = cartesian_product([wavelength,width,thickness,angle,radius])
+    INPUT  = cartesian_product([wavelength,width,thickness,radius,angle])
 
     if derivative is None:
         OUTPUT = LR_bent.predict(INPUT)
@@ -311,7 +311,7 @@ def evWGcoupler(wavelength,width,thickness,gap,angle,derivative=None):
         angle = np.array([angle])
 
     # Run through neural network
-    INPUT  = cartesian_product([wavelength,width,thickness,angle,gap])
+    INPUT  = cartesian_product([wavelength,width,thickness,gap,angle])
 
     if derivative is None:
         OUTPUT0 = LR_gap[0].predict(INPUT)
@@ -431,7 +431,7 @@ def racetrack_AP_RR_TF(wavelength,angle=90,radius=12,couplerLength=4.5,gap=0.2,w
     N          = wavelength.shape[0]
 
     # calculate coupling
-    cTE0,cTE1 = evWGcoupler(wavelength,widthCoupler,thickness,angle,gap)
+    cTE0,cTE1 = evWGcoupler(wavelength=wavelength,width=widthCoupler,thickness=thickness,angle=angle,gap=gap)
     n1 = np.squeeze(cTE0)     # Get the first mode of the coupler region
     n2 = np.squeeze(cTE1)     # Get the second mode of the coupler region
     Beta1 = 2*np.pi*n1 / wavelength
@@ -452,10 +452,10 @@ def racetrack_AP_RR_TF(wavelength,angle=90,radius=12,couplerLength=4.5,gap=0.2,w
     k = np.abs(y)
 
     # calculate bent waveguide
-    TE0_B = np.squeeze(bentWaveguide(wavelength,width,thickness,angle,radius))
+    TE0_B = np.squeeze(bentWaveguide(wavelength=wavelength,width=width,thickness=thickness,angle=angle,radius=radius))
 
     # calculate straight waveguide
-    TE0 = np.squeeze(straightWaveguide(wavelength,width,thickness,angle))
+    TE0 = np.squeeze(straightWaveguide(wavelength=wavelength,width=width,thickness=thickness,angle=angle))
 
     # Calculate round trip length
     L = 2*np.pi*radius + 2*couplerLength
@@ -475,8 +475,8 @@ def racetrack_AP_RR_TF(wavelength,angle=90,radius=12,couplerLength=4.5,gap=0.2,w
     phi_c        = np.angle(t_c)
     BetaStraight = 2*np.pi*np.real(TE0) / wavelength
     BetaBent     = 2*np.pi*np.real(TE0_B) / wavelength
-    phi_r        = np.squeeze( 2*BetaStraight * couplerLength + BetaBent*2*np.pi*radius)
-    phi          = phi_r# + phi_c
+    phi_r        = np.squeeze( BetaStraight * couplerLength + BetaBent*2*np.pi*radius)
+    phi          = phi_r + phi_c
 
     t = np.abs(t_c) / alpha_c
 
