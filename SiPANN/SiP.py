@@ -472,7 +472,7 @@ def racetrack_AP_RR_TF(wavelength,angle=90,radius=12,couplerLength=4.5,gap=0.2,w
     alpha_s = alpha - alpha_m
 
     # calculate phase shifts
-    phi_c        = np.angle(t_c)
+    phi_c        = np.unwrap(np.angle(t_c))
     BetaStraight = 2*np.pi*np.real(TE0) / wavelength
     BetaBent     = 2*np.pi*np.real(TE0_B) / wavelength
     phi_r        = np.squeeze( BetaStraight * couplerLength + BetaBent*2*np.pi*radius)
