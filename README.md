@@ -16,4 +16,16 @@ This development version allows you to make changes to this code directly (or pu
 
 You should then be able to run the examples and tutorials in the examples folder, or even call the package from any other python file.
 
+Bibtex citation:
+
+```
+@misc{SiP-ANN_2019,
+	title={SiP-ANN},
+	author={Alec M. Hammond, Easton Potokar, Ryan M. Camacho},
+	year={2019},
+	publisher={GitHub},
+	howpublished={{https://github.com/contagon/SiP-ANN}}
+}
+```
+
 
