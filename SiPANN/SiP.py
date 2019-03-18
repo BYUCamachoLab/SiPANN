@@ -472,11 +472,11 @@ def racetrack_AP_RR_TF(wavelength,angle=90,radius=12,couplerLength=4.5,gap=0.2,w
     alpha_s = alpha - alpha_m
 
     # calculate phase shifts
-    phi_c        = np.angle(t_c)
-    BetaStraight = 2*np.pi*np.real(TE0) / wavelength
-    BetaBent     = 2*np.pi*np.real(TE0_B) / wavelength
+    phi_c        = np.unwrap(np.angle(t_c))
+    BetaStraight = np.unwrap(2*np.pi*np.real(TE0) / wavelength)
+    BetaBent     = np.unwrap(2*np.pi*np.real(TE0_B) / wavelength)
     phi_r        = np.squeeze( BetaStraight * couplerLength + BetaBent*2*np.pi*radius)
-    phi          = phi_r + phi_c
+    phi          = np.unwrap(phi_r + phi_c)
 
     t = np.abs(t_c) / alpha_c
 
@@ -485,7 +485,7 @@ def racetrack_AP_RR_TF(wavelength,angle=90,radius=12,couplerLength=4.5,gap=0.2,w
     E = (t - alpha * np.exp(1j*phi)) / (1-alpha*t*np.exp(1j*phi)) * (t_c / np.conj(t_c)) * alpha_c * np.exp(-1j * phi_c)
 
     # Output final s matrix
-    return E, alpha, t, alpha_s
+    return E, alpha, t, alpha_s, phi
 # ---------------------------------------------------------------------------- #
 # Rectangular Ring Resonator
 # ---------------------------------------------------------------------------- #
