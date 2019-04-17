@@ -18,7 +18,7 @@ DC_coeffs = joblib.load(cross_file)
 """
 All the closed form solutions for Different Structures
 """
-def straight(wave, width, thickness, length):
+def straight(wave, width, thickness, length, gap):
     #clean everything
     wave, width, length = clean_inputs((wave, width, length))
     #get coefficients
@@ -48,12 +48,12 @@ def curved(wave, width, thickness, length, gap, H, V):
 
 def racetrack(wave, width, thickness, radius, gap, length):
     #clean everything
-    wave, width, radius, gap, length = clean_inputs((wave, width, radius, gap, length))
+    wave, width, thickness, radius, gap, length = clean_inputs((wave, width, thickness, radius, gap, length))
     #get coefficients
     ae, ao, ge, go = get_coeffs(wave, width, thickness)
     
     #calculate everything
-    B = lambda x: length*x/(R+width/2) + np.pi*x*np.exp(-x)*(special.iv(1,x) + special.modstruve(-1,x))
+    B = lambda x: length*x/(radius+width/2) + np.pi*x*np.exp(-x)*(special.iv(1,x) + special.modstruve(-1,x))
     xe = ge*(radius + width/2)
     xo = go*(radius + width/2)
 
@@ -68,6 +68,20 @@ def rr(wave, width, thickness, radius, gap):
     
     #calculate everything
     B = lambda x: np.pi*x*np.exp(-x)*(special.iv(1,x) + special.modstruve(-1,x))
+    xe = ge*(radius + width/2)
+    xo = go*(radius + width/2)
+
+    temp = ae*np.exp(-ge*gap)*B(xe)/ge + ao*np.exp(-go*gap)*B(xo)/go
+    return np.sin( temp*np.pi / wave )
+
+def double_rr(wave, width, thickness, radius, gap):
+    #clean everything
+    wave, width, thickness, radius, gap = clean_inputs((wave, width, thickness, radius, gap))
+    #get coefficients
+    ae, ao, ge, go = get_coeffs(wave, width, thickness)
+    
+    #calculate everything
+    B = lambda x: (np.pi*2*x*np.exp(-2*x)*(special.iv(1,2*x) + special.modstruve(-1,2*x)))/2
     xe = ge*(radius + width/2)
     xo = go*(radius + width/2)
 
