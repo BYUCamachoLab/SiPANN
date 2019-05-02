@@ -20,87 +20,104 @@ All the closed form solutions for Different Structures
 """
 def straight(wave, width, thickness, length, gap):
     #clean everything
-    wave, width, length = clean_inputs((wave, width, length))
+    wave, width, thickness, length, gap = clean_inputs((wave, width, thickness, length, gap))
     #get coefficients
-    ae, ao, ge, go = get_coeffs(wave, width, thickness)
+    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness)
     
-    #calculate everything
+    #set up closed form solutions
     B = lambda x: x
     xe = ge*length
     xo = go*length
+    z = length
 
-    temp = ae*np.exp(-ge*gap)*B(xe)/ge + ao*np.exp(-go*gap)*B(xo)/go
-    return np.sin( temp*np.pi / wave )
+    #get closed form solution
+    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap)
+  
+    
 
 def curved(wave, width, thickness, length, gap, H, V):
     #clean everything
-    wave, width, length, gap, H, V = clean_inputs((wave, width, length, gap, H, V))
+    wave, width, thickness, length, gap, H, V = clean_inputs((wave, width, thickness, length, gap, H, V))
     #get coefficients
-    ae, ao, ge, go = get_coeffs(wave, width, thickness)
+    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness)
     
     #calculate everything
     B = lambda x: x*(1 + 2*H*np.exp(-V*x/L)*special.iv(0,V*x/L)/L)
     xe = ge*length
     xo = go*length
+    z = 2*H + L
 
-    temp = ae*np.exp(-ge*gap)*B(xe)/ge + ao*np.exp(-go*gap)*B(xo)/go
-    return np.sin( temp*np.pi / wave )
+    #get closed form solution
+    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap)
+
+
 
 def racetrack(wave, width, thickness, radius, gap, length):
     #clean everything
     wave, width, thickness, radius, gap, length = clean_inputs((wave, width, thickness, radius, gap, length))
     #get coefficients
-    ae, ao, ge, go = get_coeffs(wave, width, thickness)
+    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness)
     
     #calculate everything
     B = lambda x: length*x/(radius+width/2) + np.pi*x*np.exp(-x)*(special.iv(1,x) + special.modstruve(-1,x))
     xe = ge*(radius + width/2)
     xo = go*(radius + width/2)
+    z = 2*(radius + width) + length
 
-    temp = ae*np.exp(-ge*gap)*B(xe)/ge + ao*np.exp(-go*gap)*B(xo)/go
-    return np.sin( temp*np.pi / wave )
+    #get closed form solution
+    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap)
+
+
 
 def rr(wave, width, thickness, radius, gap):
     #clean everything
     wave, width, thickness, radius, gap = clean_inputs((wave, width, thickness, radius, gap))
     #get coefficients
-    ae, ao, ge, go = get_coeffs(wave, width, thickness)
+    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness)
     
     #calculate everything
     B = lambda x: np.pi*x*np.exp(-x)*(special.iv(1,x) + special.modstruve(-1,x))
     xe = ge*(radius + width/2)
     xo = go*(radius + width/2)
+    z = 2*(radius + width)
 
-    temp = ae*np.exp(-ge*gap)*B(xe)/ge + ao*np.exp(-go*gap)*B(xo)/go
-    return np.sin( temp*np.pi / wave )
+    #get closed form solution
+    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap)
+
+
 
 def double_rr(wave, width, thickness, radius, gap):
     #clean everything
     wave, width, thickness, radius, gap = clean_inputs((wave, width, thickness, radius, gap))
     #get coefficients
-    ae, ao, ge, go = get_coeffs(wave, width, thickness)
+    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness)
     
     #calculate everything
     B = lambda x: (np.pi*2*x*np.exp(-2*x)*(special.iv(1,2*x) + special.modstruve(-1,2*x)))/2
     xe = ge*(radius + width/2)
     xo = go*(radius + width/2)
+    z = 2*(radius + width)
 
-    temp = ae*np.exp(-ge*gap)*B(xe)/ge + ao*np.exp(-go*gap)*B(xo)/go
-    return np.sin( temp*np.pi / wave )
+    #get closed form solution
+    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap)
+
+
 
 def pushed_rr(wave, width, thickness, radius, d, theta):
     #clean everything
-    wave, width, radius, d, theta = clean_inputs((wave, width, radius, d, theta))
+    wave, width, thickness, radius, d, theta = clean_inputs((wave, width, thickness, radius, d, theta))
     #get coefficients
-    ae, ao, ge, go = get_coeffs(wave, width, thickness)
+    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness)
     
     #calculate everything
     B = lambda x: x
     xe = ge*theta*(radius + width/2 + d/2)
     xo = go*theta*(radius + width/2 + d/2)
+    z = 2*(radius + width)
 
-    temp = ae*np.exp(-ge*gap)*B(xe)/ge + ao*np.exp(-go*gap)*B(xo)/go
-    return np.sin( temp*np.pi / wave )
+    #get closed form solution
+    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap)
+
 
 """
 The most important one, it takes in a function of gap size and a range to sweep over
@@ -110,22 +127,49 @@ def any_gap(wave, width, thickness, g, zmin, zmax):
     wave, width, thickness, _ = clean_inputs((wave, width, thickness, g(0)))
     n = len(wave)
     #get coefficients
-    ae, ao, ge, go = get_coeffs(wave, width, thickness)
+    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness)
     
     #if g has many lengths to sweep over
     if np.isscalar(g(0)):
-        ans = np.zeros(n)
+        mag = np.zeros(n)
+        phase = np.zeros(n)
         for i in range(n):
+            #get mag
             f = lambda z: ae[i]*np.exp(-ge[i]*g(z)) + ao[i]*np.exp(-go[i]*g(z))
-            ans[i] = np.sin( np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] )
-        return ans
+            mag[i] = np.sin( np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] )
+            #get phase
+            f = lambda z: ae[i]*np.exp(-ge[i]*g(z)) - ao[i]*np.exp(-go[i]*g(z)) + 2*neff
+            phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + np.pi/2
     else:
-        ans = np.zeros(n)
+        mag = np.zeros(n)
+        phase = np.zeros(n)
         for i in range(n):
+            #get mag
             f = lambda z: ae[i]*np.exp(-ge[i]*g(z)[i]) + ao[i]*np.exp(-go[i]*g(z)[i])
-            ans[i] = np.sin( np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] )
-        return ans
+            mag[i] = np.sin( np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] )
+            #get phase
+            f = lambda z: ae[i]*np.exp(-ge[i]*g(z)[i]) - ao[i]*np.exp(-go[i]*g(z)[i]) + 2*neff[i]
+            phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + np.pi/2
+    
+    return mag*np.exp(-1j*phase)
 
+"""
+HELPER FUNCTIONS
+"""
+    
+"""Plugs coeffs into actual closed form function"""
+def get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap):
+     #calculate magnitude
+    temp = ae*np.exp(-ge*gap)*B(xe)/ge + ao*np.exp(-go*gap)*B(xo)/go
+    mag =  np.sin( temp*np.pi / wave )
+    
+    #calculate phase
+    temp = ae*np.exp(-ge*gap)*B(xe)/ge - ao*np.exp(-go*gap)*B(xo)/go + 2*z*neff
+    phase = (temp*np.pi/wave + np.pi/2)
+    
+    return mag*np.exp(-1j*phase)
+    
+    
 """Returns all of the coefficients"""
 def get_coeffs(wave, width, thickness):
     #get coeffs from LR model - needs numbers in nm
@@ -135,8 +179,9 @@ def get_coeffs(wave, width, thickness):
     ao = coeffs[:,1]
     ge = coeffs[:,2]
     go = coeffs[:,3]
+    neff = coeffs[:,4]
     
-    return (ae, ao, ge, go)
+    return (ae, ao, ge, go, neff)
     
 
 """Makes all inputs as the same shape to allow passing arrays through"""
