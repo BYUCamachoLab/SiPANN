@@ -135,21 +135,24 @@ def any_gap(wave, width, thickness, g, zmin, zmax, term='k'):
         raise ValueError("Bad term parameter")
         
     #clean everything
-    wave, width, thickness, _ = clean_inputs((wave, width, thickness, g(0)))
+    if np.ndim(g(0)) == 0:
+        wave, width, thickness = clean_inputs((wave, width, thickness))
+    else:
+        wave, width, thickness, _ = clean_inputs((wave, width, thickness, g(0)))
     n = len(wave)
     #get coefficients
     ae, ao, ge, go, neff = get_coeffs(wave, width, thickness)
     
     #if g has many lengths to sweep over
-    if np.isscalar(g(0)):
+    if np.ndim(g(0)) == 0:
         mag = np.zeros(n)
         phase = np.zeros(n)
         for i in range(n):
             #get mag
-            f = lambda z: ae[i]*np.exp(-ge[i]*g(z)) + ao[i]*np.exp(-go[i]*g(z))
+            f = lambda z: float(ae[i]*np.exp(-ge[i]*g(z)) + ao[i]*np.exp(-go[i]*g(z)))
             mag[i] = trig( np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] )
             #get phase
-            f = lambda z: ae[i]*np.exp(-ge[i]*g(z)) - ao[i]*np.exp(-go[i]*g(z)) + 2*neff
+            f = lambda z: float(ae[i]*np.exp(-ge[i]*g(z)) - ao[i]*np.exp(-go[i]*g(z)) + 2*neff[i])
             phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + offset
     else:
         mag = np.zeros(n)
