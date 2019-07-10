@@ -18,7 +18,8 @@ DC_coeffs = joblib.load(cross_file)
 """
 All the closed form solutions for Different Structures
 """
-def straight(wave, width, thickness, length, gap, term='k'):
+#part terms can be mag, ph, or both
+def straight(wave, width, thickness, length, gap, term='k', part='mag'):
     #clean everything
     wave, width, thickness, length, gap = clean_inputs((wave, width, thickness, length, gap))
     #get coefficients
@@ -31,11 +32,11 @@ def straight(wave, width, thickness, length, gap, term='k'):
     z = length
 
     #get closed form solution
-    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term)
+    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term, part)
   
     
 
-def curved(wave, width, thickness, length, gap, H, V, term='k'):
+def curved(wave, width, thickness, length, gap, H, V, term='k', part='mag'):
     #clean everything
     wave, width, thickness, length, gap, H, V = clean_inputs((wave, width, thickness, length, gap, H, V))
     #get coefficients
@@ -48,11 +49,11 @@ def curved(wave, width, thickness, length, gap, H, V, term='k'):
     z = 2*H + L
 
     #get closed form solution
-    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term)
+    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term, part)
 
 
 
-def racetrack(wave, width, thickness, radius, gap, length, term='k'):
+def racetrack(wave, width, thickness, radius, gap, length, term='k', part='mag'):
     #clean everything
     wave, width, thickness, radius, gap, length = clean_inputs((wave, width, thickness, radius, gap, length))
     #get coefficients
@@ -65,11 +66,11 @@ def racetrack(wave, width, thickness, radius, gap, length, term='k'):
     z = 2*(radius + width) + length
 
     #get closed form solution
-    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term)
+    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term, part)
 
 
 
-def rr(wave, width, thickness, radius, gap, term='k'):
+def rr(wave, width, thickness, radius, gap, term='k', part='mag'):
     #clean everything
     wave, width, thickness, radius, gap = clean_inputs((wave, width, thickness, radius, gap))
     #get coefficients
@@ -83,11 +84,11 @@ def rr(wave, width, thickness, radius, gap, term='k'):
     #z += 2*np.pi*(radius + width/2)/4
 
     #get closed form solution
-    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term)
+    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term, part)
 
 
 
-def double_rr(wave, width, thickness, radius, gap, term='k'):
+def double_rr(wave, width, thickness, radius, gap, term='k', part='mag'):
     #clean everything
     wave, width, thickness, radius, gap = clean_inputs((wave, width, thickness, radius, gap))
     #get coefficients
@@ -100,11 +101,11 @@ def double_rr(wave, width, thickness, radius, gap, term='k'):
     z = 2*(radius + width)
 
     #get closed form solution
-    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term)
+    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term, part)
 
 
 
-def pushed_rr(wave, width, thickness, radius, d, theta, term='k'):
+def pushed_rr(wave, width, thickness, radius, d, theta, term='k', part='mag'):
     #clean everything
     wave, width, thickness, radius, d, theta = clean_inputs((wave, width, thickness, radius, d, theta))
     #get coefficients
@@ -117,13 +118,13 @@ def pushed_rr(wave, width, thickness, radius, d, theta, term='k'):
     z = 2*(radius + width)
 
     #get closed form solution
-    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term)
+    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term, part)
 
 
 """
 The most important one, it takes in a function of gap size and a range to sweep over
 """
-def any_gap(wave, width, thickness, g, zmin, zmax, term='k'):
+def any_gap(wave, width, thickness, g, zmin, zmax, term='k', part='mag'):
     #determine which parameter to get
     if term == 'k':
         trig = np.sin
@@ -149,22 +150,34 @@ def any_gap(wave, width, thickness, g, zmin, zmax, term='k'):
         phase = np.zeros(n)
         for i in range(n):
             #get mag
-            f = lambda z: float(ae[i]*np.exp(-ge[i]*g(z)) + ao[i]*np.exp(-go[i]*g(z)))
-            mag[i] = trig( np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] )
+            if part == 'mag' or part == 'both':
+                f = lambda z: float(ae[i]*np.exp(-ge[i]*g(z)) + ao[i]*np.exp(-go[i]*g(z)))
+                mag[i] = trig( np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] )
+
             #get phase
-            f = lambda z: float(ae[i]*np.exp(-ge[i]*g(z)) - ao[i]*np.exp(-go[i]*g(z)) + 2*neff[i])
-            phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + offset
+            if part == 'ph' or part == 'both':
+                f = lambda z: float(ae[i]*np.exp(-ge[i]*g(z)) - ao[i]*np.exp(-go[i]*g(z)) + 2*neff[i])
+                phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + offset
+
     else:
         mag = np.zeros(n)
         phase = np.zeros(n)
         for i in range(n):
             #get mag
-            f = lambda z: ae[i]*np.exp(-ge[i]*g(z)[i]) + ao[i]*np.exp(-go[i]*g(z)[i])
-            mag[i] = trig( np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] )
+            if part == 'mag' or part == 'both':
+                f = lambda z: ae[i]*np.exp(-ge[i]*g(z)[i]) + ao[i]*np.exp(-go[i]*g(z)[i])
+                mag[i] = trig( np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] )
+
             #get phase
-            f = lambda z: ae[i]*np.exp(-ge[i]*g(z)[i]) - ao[i]*np.exp(-go[i]*g(z)[i]) + 2*neff[i]
-            phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + offset
+            if part == 'ph' or part == 'both':
+                f = lambda z: ae[i]*np.exp(-ge[i]*g(z)[i]) - ao[i]*np.exp(-go[i]*g(z)[i]) + 2*neff[i]
+                phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + offset
     
+    if part == 'mag':
+        phase = 0
+    if part == 'ph':
+        mag = 1
+
     return mag*np.exp(-1j*phase)
 
 """
@@ -172,7 +185,7 @@ HELPER FUNCTIONS
 """
     
 """Plugs coeffs into actual closed form function"""
-def get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term='k'):
+def get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term='k', part='mag'):
     #determine which parameter to get
     if term == 'k':
         trig = np.sin
@@ -184,13 +197,20 @@ def get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term='k'):
         raise ValueError("Bad term parameter")
     
      #calculate magnitude
-    temp = ae*np.exp(-ge*gap)*B(xe)/ge + ao*np.exp(-go*gap)*B(xo)/go
-    mag =  trig( temp*np.pi / wave )
+    if part == 'mag' or part == 'both':
+        temp = ae*np.exp(-ge*gap)*B(xe)/ge + ao*np.exp(-go*gap)*B(xo)/go
+        mag =  trig( temp*np.pi / wave )
     
     #calculate phase
-    temp = ae*np.exp(-ge*gap)*B(xe)/ge - ao*np.exp(-go*gap)*B(xo)/go + 2*z*neff
-    phase = (temp*np.pi/wave + offset)
+    if part == 'ph' or part == 'both':
+        temp = ae*np.exp(-ge*gap)*B(xe)/ge - ao*np.exp(-go*gap)*B(xo)/go + 2*z*neff
+        phase = (temp*np.pi/wave + offset)
     
+    if part == 'mag':
+        phase = 0
+    if part == 'ph':
+        mag = 1
+
     return mag*np.exp(-1j*phase)
     
     
