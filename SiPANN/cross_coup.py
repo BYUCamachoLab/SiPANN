@@ -19,11 +19,11 @@ DC_coeffs = joblib.load(cross_file)
 All the closed form solutions for Different Structures
 """
 #part terms can be mag, ph, or both
-def straight(wave, width, thickness, length, gap, term='k', part='mag'):
+def straight(wave, width, thickness, length, gap, sw_angle=90, term='k', part='mag'):
     #clean everything
-    wave, width, thickness, length, gap = clean_inputs((wave, width, thickness, length, gap))
+    wave, width, thickness, length, gap = clean_inputs((wave, width, thickness, sw_angle, length, gap))
     #get coefficients
-    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness)
+    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness, sw_angle)
     
     #set up closed form solutions
     B = lambda x: x
@@ -36,11 +36,11 @@ def straight(wave, width, thickness, length, gap, term='k', part='mag'):
   
     
 
-def curved(wave, width, thickness, length, gap, H, V, term='k', part='mag'):
+def curved(wave, width, thickness, length, gap, H, V, sw_angle=90, term='k', part='mag'):
     #clean everything
-    wave, width, thickness, length, gap, H, V = clean_inputs((wave, width, thickness, length, gap, H, V))
+    wave, width, thickness, sw_angle, length, gap, H, V = clean_inputs((wave, width, thickness, sw_angle, length, gap, H, V))
     #get coefficients
-    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness)
+    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness, sw_angle)
     
     #calculate everything
     B = lambda x: x*(1 + 2*H*np.exp(-V*x/L)*special.iv(0,V*x/L)/L)
@@ -53,11 +53,11 @@ def curved(wave, width, thickness, length, gap, H, V, term='k', part='mag'):
 
 
 
-def racetrack(wave, width, thickness, radius, gap, length, term='k', part='mag'):
+def racetrack(wave, width, thickness, radius, gap, length, sw_angle=90, term='k', part='mag'):
     #clean everything
-    wave, width, thickness, radius, gap, length = clean_inputs((wave, width, thickness, radius, gap, length))
+    wave, width, thickness, sw_angle, radius, gap, length = clean_inputs((wave, width, thickness, sw_angle, radius, gap, length))
     #get coefficients
-    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness)
+    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness, sw_angle)
     
     #calculate everything
     B = lambda x: length*x/(radius+width/2) + np.pi*x*np.exp(-x)*(special.iv(1,x) + special.modstruve(-1,x))
@@ -70,11 +70,11 @@ def racetrack(wave, width, thickness, radius, gap, length, term='k', part='mag')
 
 
 
-def rr(wave, width, thickness, radius, gap, term='k', part='mag'):
+def rr(wave, width, thickness, radius, gap, sw_angle=90, term='k', part='mag'):
     #clean everything
-    wave, width, thickness, radius, gap = clean_inputs((wave, width, thickness, radius, gap))
+    wave, width, thickness, sw_angle, radius, gap = clean_inputs((wave, width, thickness, sw_angle, radius, gap))
     #get coefficients
-    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness)
+    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness, sw_angle)
     
     #calculate everything
     B = lambda x: np.pi*x*np.exp(-x)*(special.iv(1,x) + special.modstruve(-1,x))
@@ -88,11 +88,11 @@ def rr(wave, width, thickness, radius, gap, term='k', part='mag'):
 
 
 
-def double_rr(wave, width, thickness, radius, gap, term='k', part='mag'):
+def double_rr(wave, width, thickness, radius, gap, sw_angle=90, term='k', part='mag'):
     #clean everything
-    wave, width, thickness, radius, gap = clean_inputs((wave, width, thickness, radius, gap))
+    wave, width, thickness, sw_angle, radius, gap = clean_inputs((wave, width, thickness, sw_angle, radius, gap))
     #get coefficients
-    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness)
+    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness, sw_angle)
     
     #calculate everything
     B = lambda x: (np.pi*2*x*np.exp(-2*x)*(special.iv(1,2*x) + special.modstruve(-1,2*x)))/2
@@ -105,11 +105,11 @@ def double_rr(wave, width, thickness, radius, gap, term='k', part='mag'):
 
 
 
-def pushed_rr(wave, width, thickness, radius, d, theta, term='k', part='mag'):
+def pushed_rr(wave, width, thickness, radius, d, theta, sw_angle=90, term='k', part='mag'):
     #clean everything
-    wave, width, thickness, radius, d, theta = clean_inputs((wave, width, thickness, radius, d, theta))
+    wave, width, thickness, sw_angle, radius, d, theta = clean_inputs((wave, width, thickness, sw_angle, radius, d, theta))
     #get coefficients
-    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness)
+    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness, sw_angle)
     
     #calculate everything
     B = lambda x: x
@@ -124,7 +124,7 @@ def pushed_rr(wave, width, thickness, radius, d, theta, term='k', part='mag'):
 """
 The most important one, it takes in a function of gap size and a range to sweep over
 """
-def any_gap(wave, width, thickness, g, zmin, zmax, term='k', part='mag'):
+def any_gap(wave, width, thickness, g, zmin, zmax, sw_angle=90, term='k', part='mag'):
     #determine which parameter to get
     if term == 'k':
         trig = np.sin
@@ -137,12 +137,12 @@ def any_gap(wave, width, thickness, g, zmin, zmax, term='k', part='mag'):
         
     #clean everything
     if np.ndim(g(0)) == 0:
-        wave, width, thickness = clean_inputs((wave, width, thickness))
+        wave, width, thickness, sw_angle = clean_inputs((wave, width, thickness, sw_angle))
     else:
         wave, width, thickness, _ = clean_inputs((wave, width, thickness, g(0)))
     n = len(wave)
     #get coefficients
-    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness)
+    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness, sw_angle)
     
     #if g has many lengths to sweep over
     if np.ndim(g(0)) == 0:
@@ -215,9 +215,9 @@ def get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term='k', part
     
     
 """Returns all of the coefficients"""
-def get_coeffs(wave, width, thickness):
+def get_coeffs(wave, width, thickness, sw_angle):
     #get coeffs from LR model - needs numbers in nm
-    inputs = np.column_stack((wave, width, thickness))
+    inputs = np.column_stack((wave, width, thickness, sw_angle))
     coeffs = DC_coeffs.predict(inputs)
     ae = coeffs[:,0]
     ao = coeffs[:,1]
