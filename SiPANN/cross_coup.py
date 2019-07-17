@@ -14,12 +14,29 @@ Similarly to before, we initialize all ANN's and regressions as global objects t
 cross_file = pkg_resources.resource_filename('SiPANN','LR/DC_coeffs.joblib')
 DC_coeffs = joblib.load(cross_file)
 
+cross_file = pkg_resources.resource_filename('SiPANN','LR/R_bent_wide.joblib')
+R_bent = joblib.load(cross_file)
 
 """
 All the closed form solutions for Different Structures
 """
 #part terms can be mag, ph, or both
 def straight(wave, width, thickness, length, gap, sw_angle=90, term='k', part='mag'):
+    """Return coupling coefficients for a Racetrack Resonator
+    
+    Args:
+        wave      (float/np.ndarray): wavelength in nm (1450 - 1650nm)
+        width     (float/np.ndarray): width of waveguide in nm (400 - 600nm)
+        thickness (float/np.ndarray): thickness of waveguide in nm (180 - 240nm)
+        gap       (float/np.ndarray): gap between waveguides in nm (above 100nm)
+        length    (float/np.ndarray): Length of waveguides in nm
+        sw_angle  (float/np.ndarray): angle of waveguide walls in degrees (between 80 and 90)
+        term      (str): either 't' or 'k'
+        part      (str): 'mag', 'phase', or 'both'. Choose both if you want both phase and magnitude
+        
+    Returns:
+        (complex np.ndarray): The coupling coefficient"""
+        
     #clean everything
     wave, width, thickness, length, gap = clean_inputs((wave, width, thickness, sw_angle, length, gap))
     #get coefficients
@@ -37,6 +54,22 @@ def straight(wave, width, thickness, length, gap, sw_angle=90, term='k', part='m
     
 
 def curved(wave, width, thickness, length, gap, H, V, sw_angle=90, term='k', part='mag'):
+    """Return coupling coefficients for a Racetrack Resonator
+    
+    Args:
+        wave      (float/np.ndarray): wavelength in nm (1450 - 1650nm)
+        width     (float/np.ndarray): width of waveguide in nm (400 - 600nm)
+        thickness (float/np.ndarray): thickness of waveguide in nm (180 - 240nm)
+        H         (float/np.ndarray): horizontal distance of s-bend in nm
+        V         (float/np.ndarray): vertical distance of s-bend in nm
+        gap       (float/np.ndarray): gap between bus and ring in nm(above 100nm)
+        sw_angle  (float/np.ndarray): angle of waveguide walls in degrees (between 80 and 90)
+        term      (str): either 't' or 'k'
+        part      (str): 'mag', 'phase', or 'both'. Choose both if you want both phase and magnitude
+        
+    Returns:
+        (complex np.ndarray): The coupling coefficient"""
+        
     #clean everything
     wave, width, thickness, sw_angle, length, gap, H, V = clean_inputs((wave, width, thickness, sw_angle, length, gap, H, V))
     #get coefficients
@@ -51,13 +84,27 @@ def curved(wave, width, thickness, length, gap, H, V, sw_angle=90, term='k', par
     #get closed form solution
     return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term, part)
 
-
-
 def racetrack(wave, width, thickness, radius, gap, length, sw_angle=90, term='k', part='mag'):
+    """Return coupling coefficients for a Racetrack Resonator
+    
+    Args:
+        wave      (float/np.ndarray): wavelength in nm (1450 - 1650nm)
+        width     (float/np.ndarray): width of waveguide in nm (400 - 600nm)
+        thickness (float/np.ndarray): thickness of waveguide in nm (180 - 240nm)
+        radius    (float/np.ndarray): radius of ring in nm 
+        gap       (float/np.ndarray): gap between bus and ring in nm(above 100nm)
+        length    (float/np.ndarray): Length of straight portion of resonator in nm
+        sw_angle  (float/np.ndarray): angle of waveguide walls in degrees (between 80 and 90)
+        term      (str): either 't' or 'k'
+        part      (str): 'mag', 'phase', or 'both'. Choose both if you want both phase and magnitude 
+        
+    Returns:
+        (complex np.ndarray): The coupling coefficient"""
     #clean everything
     wave, width, thickness, sw_angle, radius, gap, length = clean_inputs((wave, width, thickness, sw_angle, radius, gap, length))
     #get coefficients
-    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness, sw_angle)
+    ae, ao, ge, go, neff_str = get_coeffs(wave, width, thickness, sw_angle)
+    neff_bent = R_bent.predict( np.column_stack((wave/1000, width/1000, thickness/1000, radius/1000, sw_angle)) )
     
     #calculate everything
     B = lambda x: length*x/(radius+width/2) + np.pi*x*np.exp(-x)*(special.iv(1,x) + special.modstruve(-1,x))
@@ -66,29 +113,114 @@ def racetrack(wave, width, thickness, radius, gap, length, sw_angle=90, term='k'
     z = 2*(radius + width) + length
 
     #get closed form solution
-    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term, part)
+    #determine which parameter to get
+    if term == 'k':
+        trig = np.sin
+        offset = np.pi/2
+        z_str = (radius + width/2 + length)
+        z_bent = np.pi*radius / 2
+    elif term == 't':
+        trig = np.cos
+        offset = 0
+        z_str = 2*(radius + width/2) + length
+        z_bent = 0
+    else:
+        raise ValueError("Bad term parameter")
+    
+     #calculate magnitude
+    if part == 'mag' or part == 'both':
+        temp = ae*np.exp(-ge*gap)*B(xe)/ge + ao*np.exp(-go*gap)*B(xo)/go
+        mag =  trig( temp*np.pi / wave )
+    
+    #calculate phase
+    if part == 'ph' or part == 'both':
+        temp = ae*np.exp(-ge*gap)*B(xe)/ge - ao*np.exp(-go*gap)*B(xo)/go + 2*(z_str*neff_str + z_bent*neff_bent)
+        phase = (temp*np.pi/wave + offset)
+    
+    if part == 'mag':
+        phase = 0
+    if part == 'ph':
+        mag = 1
 
+    return mag*np.exp(-1j*phase)
 
 
 def rr(wave, width, thickness, radius, gap, sw_angle=90, term='k', part='mag'):
+    """Return coupling coefficients for a Ring Resonator
+    
+    Args:
+        wave      (float/np.ndarray): wavelength in nm (1450 - 1650nm)
+        width     (float/np.ndarray): width of waveguide in nm (400 - 600nm)
+        thickness (float/np.ndarray): thickness of waveguide in nm (180 - 240nm)
+        radius    (float/np.ndarray): radius of ring in nm 
+        gap       (float/np.ndarray): gap between bus and ring (above 100nm)
+        sw_angle  (float/np.ndarray): angle of waveguide walls in degrees (between 80 and 90)
+        term      (str): either 't' or 'k'
+        part      (str): 'mag', 'phase', or 'both'. Choose both if you want both phase and magnitude
+        
+    Returns:
+        (complex np.ndarray): The coupling coefficient
+        """
     #clean everything
     wave, width, thickness, sw_angle, radius, gap = clean_inputs((wave, width, thickness, sw_angle, radius, gap))
     #get coefficients
-    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness, sw_angle)
+    ae, ao, ge, go, neff_str = get_coeffs(wave, width, thickness, sw_angle)
+    neff_bent = R_bent.predict( np.column_stack((wave/1000, width/1000, thickness/1000, radius/1000, sw_angle)) )
     
     #calculate everything
     B = lambda x: np.pi*x*np.exp(-x)*(special.iv(1,x) + special.modstruve(-1,x))
     xe = ge*(radius + width/2)
     xo = go*(radius + width/2)
-    z = 2*(radius + width/2)
-    #z += 2*np.pi*(radius + width/2)/4
 
     #get closed form solution
-    return get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term, part)
+    #determine which parameter to get
+    if term == 'k':
+        trig = np.sin
+        offset = np.pi/2
+        z_str = (radius + width/2)
+        z_bent = np.pi*radius / 2
+    elif term == 't':
+        trig = np.cos
+        offset = 0
+        z_str = 2*(radius + width/2)
+        z_bent = 0
+    else:
+        raise ValueError("Bad term parameter")
+    
+     #calculate magnitude
+    if part == 'mag' or part == 'both':
+        temp = ae*np.exp(-ge*gap)*B(xe)/ge + ao*np.exp(-go*gap)*B(xo)/go
+        mag =  trig( temp*np.pi / wave )
+    
+    #calculate phase
+    if part == 'ph' or part == 'both':
+        temp = ae*np.exp(-ge*gap)*B(xe)/ge - ao*np.exp(-go*gap)*B(xo)/go + 2*(z_str*neff_str + z_bent*neff_bent)
+        phase = (temp*np.pi/wave + offset)
+    
+    if part == 'mag':
+        phase = 0
+    if part == 'ph':
+        mag = 1
 
+    return mag*np.exp(-1j*phase)
 
 
 def double_rr(wave, width, thickness, radius, gap, sw_angle=90, term='k', part='mag'):
+    """Return coupling coefficients for a Racetrack Resonator
+    
+    Args:
+        wave      (float/np.ndarray): wavelength in nm (1450 - 1650nm)
+        width     (float/np.ndarray): width of waveguide in nm (400 - 600nm)
+        thickness (float/np.ndarray): thickness of waveguide in nm (180 - 240nm)
+        radius    (float/np.ndarray): radius of rings in nm 
+        gap       (float/np.ndarray): gap between rings in nm(above 100nm)
+        sw_angle  (float/np.ndarray): angle of waveguide walls in degrees (between 80 and 90)
+        term      (str): either 't' or 'k'
+        part      (str): 'mag', 'phase', or 'both'. Choose both if you want both phase and magnitude
+        
+    Returns:
+        (complex np.ndarray): The coupling coefficient"""
+        
     #clean everything
     wave, width, thickness, sw_angle, radius, gap = clean_inputs((wave, width, thickness, sw_angle, radius, gap))
     #get coefficients
@@ -106,6 +238,22 @@ def double_rr(wave, width, thickness, radius, gap, sw_angle=90, term='k', part='
 
 
 def pushed_rr(wave, width, thickness, radius, d, theta, sw_angle=90, term='k', part='mag'):
+    """Return coupling coefficients for a Racetrack Resonator
+    
+    Args:
+        wave      (float/np.ndarray): wavelength in nm (1450 - 1650nm)
+        width     (float/np.ndarray): width of waveguide in nm (400 - 600nm)
+        thickness (float/np.ndarray): thickness of waveguide in nm (180 - 240nm)
+        radius    (float/np.ndarray): radius of ring in nm 
+        d         (float/np.ndarray): gap between bus and ring in nm (above 100nm)
+        theta     (float/np.ndarray): total angle of pushed region
+        sw_angle  (float/np.ndarray): angle of waveguide walls in degrees (between 80 and 90)
+        term      (str): either 't' or 'k'
+        part      (str): 'mag', 'phase', or 'both'. Choose both if you want both phase and magnitude
+        
+    Returns:
+        (complex np.ndarray): The coupling coefficient"""
+        
     #clean everything
     wave, width, thickness, sw_angle, radius, d, theta = clean_inputs((wave, width, thickness, sw_angle, radius, d, theta))
     #get coefficients
@@ -125,6 +273,22 @@ def pushed_rr(wave, width, thickness, radius, d, theta, sw_angle=90, term='k', p
 The most important one, it takes in a function of gap size and a range to sweep over
 """
 def any_gap(wave, width, thickness, g, zmin, zmax, sw_angle=90, term='k', part='mag'):
+    """Return coupling coefficients for a Racetrack Resonator
+    
+    Args:
+        wave      (float/np.ndarray): wavelength in nm (1450 - 1650nm)
+        width     (float/np.ndarray): width of waveguide in nm (400 - 600nm)
+        thickness (float/np.ndarray): thickness of waveguide in nm (180 - 240nm)
+        g         (function): function that takes in a single float, and returns gap distance in nm
+        zmin      (float/np.ndarray): Initial point of directional coupler in nm
+        zmax      (float/np.ndarray): Final point of directional coupler in nm
+        sw_angle  (float/np.ndarray): angle of waveguide walls in degrees (between 80 and 90)
+        term      (str): either 't' or 'k'
+        part      (str): 'mag', 'phase', or 'both'. Choose both if you want both phase and magnitude
+        
+    Returns:
+        (complex np.ndarray): The coupling coefficient"""
+        
     #determine which parameter to get
     if term == 'k':
         trig = np.sin
@@ -134,12 +298,12 @@ def any_gap(wave, width, thickness, g, zmin, zmax, sw_angle=90, term='k', part='
         offset = 0
     else:
         raise ValueError("Bad term parameter")
-        
+
     #clean everything
     if np.ndim(g(0)) == 0:
         wave, width, thickness, sw_angle = clean_inputs((wave, width, thickness, sw_angle))
     else:
-        wave, width, thickness, _ = clean_inputs((wave, width, thickness, g(0)))
+        wave, width, thickness, sw_angle, _ = clean_inputs((wave, width, thickness, sw_angle, g(0)))
     n = len(wave)
     #get coefficients
     ae, ao, ge, go, neff = get_coeffs(wave, width, thickness, sw_angle)
@@ -247,21 +411,3 @@ def clean_inputs(inputs):
             inputs[i] = np.full((n), inputs[i][0])
             
     return tuple(inputs)
-
-
-"""Everything below here is temporary and used for testing"""
-def rr_450_220(wave, width, thickness, radius, gap):
-    #get coeffs from paper
-    ae = 0.177967
-    ao = 0.049910
-    ge = 0.011898
-    go = 0.006601
-    
-    #calculate everything
-    B = lambda x: np.pi*x*np.exp(-x)*(special.iv(1,x) + special.modstruve(-1,x))
-    
-    xe = ge*(radius + width/2)
-    xo = go*(radius + width/2)
-
-    temp = ae*np.exp(-ge*gap)*B(xe)/ge + ao*np.exp(-go*gap)*B(xo)/go
-    return np.sin( temp*np.pi / wave )
