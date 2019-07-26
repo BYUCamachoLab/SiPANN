@@ -411,3 +411,61 @@ def clean_inputs(inputs):
             inputs[i] = np.full((n), inputs[i][0])
             
     return tuple(inputs)
+
+
+"""EVERYTHING BELOW THIS IS FOR TESTING"""
+def any_gap_testing(wave, width, thickness, g, zmin, zmax, ph, sw_angle=90, term='k', part='mag'):
+    #determine which parameter to get
+    if term == 'k':
+        trig = np.sin
+        offset = np.pi/2
+    elif term == 't':
+        trig = np.cos
+        offset = 0
+    else:
+        raise ValueError("Bad term parameter")
+        
+    #clean everything
+    if np.ndim(g(0)) == 0:
+        wave, width, thickness, sw_angle, ph = clean_inputs((wave, width, thickness, sw_angle, ph))
+    else:
+        wave, width, thickness, _ = clean_inputs((wave, width, thickness, g(0)))
+    n = len(wave)
+    #get coefficients
+    ae, ao, ge, go, neff = get_coeffs(wave, width, thickness, sw_angle)
+    
+    #if g has many lengths to sweep over
+    if np.ndim(g(0)) == 0:
+        mag = np.zeros(n)
+        phase = np.zeros(n)
+        for i in range(n):
+            #get mag
+            if part == 'mag' or part == 'both':
+                f = lambda z: float(ae[i]*np.exp(-ge[i]*g(z)) + ao[i]*np.exp(-go[i]*g(z)))
+                mag[i] = trig( np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] )
+
+            #get phase
+            if part == 'ph' or part == 'both':
+                f = lambda z: float(ae[i]*np.exp(-ge[i]*g(z)) - ao[i]*np.exp(-go[i]*g(z)))
+                phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + 2*np.pi*ph[i]/wave[i] + offset
+
+    else:
+        mag = np.zeros(n)
+        phase = np.zeros(n)
+        for i in range(n):
+            #get mag
+            if part == 'mag' or part == 'both':
+                f = lambda z: ae[i]*np.exp(-ge[i]*g(z)[i]) + ao[i]*np.exp(-go[i]*g(z)[i])
+                mag[i] = trig( np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] )
+
+            #get phase
+            if part == 'ph' or part == 'both':
+                f = lambda z: ae[i]*np.exp(-ge[i]*g(z)[i]) - ao[i]*np.exp(-go[i]*g(z)[i]) + 2*neff[i]
+                phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + offset
+    
+    if part == 'mag':
+        phase = 0
+    if part == 'ph':
+        mag = 1
+
+    return mag*np.exp(-1j*phase)
