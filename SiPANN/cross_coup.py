@@ -411,3 +411,53 @@ def clean_inputs(inputs):
             inputs[i] = np.full((n), inputs[i][0])
             
     return tuple(inputs)
+
+
+"""EVERYTHING BELOW THIS IS FOR TESTING"""
+def any_gap_testing(wave, width, thickness, g, zmin, zmax, ph, sw_angle=90, term='k', part='mag'):
+    #determine which parameter to get
+    if term == 'k':
+        trig = np.sin
+        offset = np.pi/2
+    elif term == 't':
+        trig = np.cos
+        offset = 0
+    else:
+        raise ValueError("Bad term parameter")
+        
+    #clean everything
+    wave, thickness, sw_angle, ph = clean_inputs((wave, thickness, sw_angle, ph))
+    n = len(wave)
+    #get coefficients
+    #ae, ao, ge, go, neff = get_coeffs(wave, width, thickness, sw_angle)
+    
+    #if g has many lengths to sweep over
+    mag = np.zeros(n)
+    phase = np.zeros(n)
+    for i in range(n):
+        #get mag
+        print(i,end=' ')
+        if part == 'mag' or part == 'both':
+            def f(z):
+                w = width(z)
+                wl, w, t, swa = clean_inputs((wave[i], w, thickness[i], sw_angle[i]))
+                ae, ao, ge, go, neff = get_coeffs(wl, w, t, swa)
+                return float(ae[0]*np.exp(-ge[0]*g(z)) + ao[0]*np.exp(-go[0]*g(z)))
+
+            mag[i] = trig( np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] )
+
+        #get phase
+        if part == 'ph' or part == 'both':
+            def f(z):
+                w = width(z)
+                wl, w, t, swa = clean_inputs((wave[i], w, thickness[i], sw_angle[i]))
+                ae, ao, ge, go, neff = get_coeffs(wl, w, t, swa)
+                return float(ae[0]*np.exp(-ge[0]*g(z)) - ao[0]*np.exp(-go[0]*g(z)))
+            phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + 2*np.pi*ph[i]/wave[i] + offset
+
+    if part == 'mag':
+        phase = 0
+    if part == 'ph':
+        mag = 1
+    print(phase)
+    return mag*np.exp(-1j*phase)
