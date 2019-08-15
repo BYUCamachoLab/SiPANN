@@ -455,9 +455,5 @@ def any_gap_testing(wave, width, thickness, g, zmin, zmax, ph, sw_angle=90, term
                 return float(ae[0]*np.exp(-ge[0]*g(z)) - ao[0]*np.exp(-go[0]*g(z)))
             phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + 2*np.pi*ph[i]/wave[i] + offset
 
-    if part == 'mag':
-        phase = 0
-    if part == 'ph':
-        mag = 1
     print(phase)
     return mag*np.exp(-1j*phase)
