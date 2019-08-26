@@ -272,7 +272,7 @@ def pushed_rr(wave, width, thickness, radius, d, theta, sw_angle=90, term='k', p
 """
 The most important one, it takes in a function of gap size and a range to sweep over
 """
-def any_gap(wave, width, thickness, g, zmin, zmax, sw_angle=90, term='k', part='mag'):
+def any_gap(wave, width, thickness, g, dg, zmin, zmax, sw_angle=90, term='k', part='both'):
     """Return coupling coefficients for a Racetrack Resonator
     
     Args:
@@ -280,6 +280,7 @@ def any_gap(wave, width, thickness, g, zmin, zmax, sw_angle=90, term='k', part='
         width     (float/np.ndarray): width of waveguide in nm (400 - 600nm)
         thickness (float/np.ndarray): thickness of waveguide in nm (180 - 240nm)
         g         (function): function that takes in a single float, and returns gap distance in nm
+        dg        (function): function that takes in a single float, and returns derivative of gap
         zmin      (float/np.ndarray): Initial point of directional coupler in nm
         zmax      (float/np.ndarray): Final point of directional coupler in nm
         sw_angle  (float/np.ndarray): angle of waveguide walls in degrees (between 80 and 90)
@@ -308,6 +309,11 @@ def any_gap(wave, width, thickness, g, zmin, zmax, sw_angle=90, term='k', part='
     #get coefficients
     ae, ao, ge, go, neff = get_coeffs(wave, width, thickness, sw_angle)
     
+    #find arcLength if needed
+    if part == 'ph' or part == 'both':
+        arcFormula = lambda x: np.sqrt( 1 + dg(x)**2 )
+        arcL = integrate.quad(arcFormula, zmin, zmax)[0]    
+        
     #if g has many lengths to sweep over
     if np.ndim(g(0)) == 0:
         mag = np.zeros(n)
@@ -320,8 +326,8 @@ def any_gap(wave, width, thickness, g, zmin, zmax, sw_angle=90, term='k', part='
 
             #get phase
             if part == 'ph' or part == 'both':
-                f = lambda z: float(ae[i]*np.exp(-ge[i]*g(z)) - ao[i]*np.exp(-go[i]*g(z)) + 2*neff[i])
-                phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + offset
+                f = lambda z: float(ae[i]*np.exp(-ge[i]*g(z)) - ao[i]*np.exp(-go[i]*g(z)))
+                phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + 2*np.pi*neff[i]*arcL/wave[i] + offset
 
     else:
         mag = np.zeros(n)
@@ -335,7 +341,7 @@ def any_gap(wave, width, thickness, g, zmin, zmax, sw_angle=90, term='k', part='
             #get phase
             if part == 'ph' or part == 'both':
                 f = lambda z: ae[i]*np.exp(-ge[i]*g(z)[i]) - ao[i]*np.exp(-go[i]*g(z)[i]) + 2*neff[i]
-                phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + offset
+                phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + 2*np.pi*neff[i]*arcL/wave[i] + offset
     
     if part == 'mag':
         phase = 0
@@ -414,7 +420,7 @@ def clean_inputs(inputs):
 
 
 """EVERYTHING BELOW THIS IS FOR TESTING"""
-def any_gap_testing(wave, width, thickness, g, zmin, zmax, ph, sw_angle=90, term='k', part='mag'):
+def any_gap_testing(wave, width, thickness, g, zmin, zmax, arc, sw_angle=90, term='k', part='mag'):
     #determine which parameter to get
     if term == 'k':
         trig = np.sin
@@ -427,9 +433,9 @@ def any_gap_testing(wave, width, thickness, g, zmin, zmax, ph, sw_angle=90, term
         
     #clean everything
     if np.ndim(g(0)) == 0:
-        wave, width, thickness, sw_angle, ph = clean_inputs((wave, width, thickness, sw_angle, ph))
+        wave, width, thickness, sw_angle, arc = clean_inputs((wave, width, thickness, sw_angle, arc))
     else:
-        wave, width, thickness, _ = clean_inputs((wave, width, thickness, g(0)))
+        wave, width, thickness, arc, _ = clean_inputs((wave, width, thickness, arc, g(0)))
     n = len(wave)
     #get coefficients
     ae, ao, ge, go, neff = get_coeffs(wave, width, thickness, sw_angle)
@@ -447,7 +453,7 @@ def any_gap_testing(wave, width, thickness, g, zmin, zmax, ph, sw_angle=90, term
             #get phase
             if part == 'ph' or part == 'both':
                 f = lambda z: float(ae[i]*np.exp(-ge[i]*g(z)) - ao[i]*np.exp(-go[i]*g(z)))
-                phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + 2*np.pi*ph[i]/wave[i] + offset
+                phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + 2*np.pi*arc[i]*neff[i]/wave[i] + offset
 
     else:
         mag = np.zeros(n)
@@ -460,8 +466,8 @@ def any_gap_testing(wave, width, thickness, g, zmin, zmax, ph, sw_angle=90, term
 
             #get phase
             if part == 'ph' or part == 'both':
-                f = lambda z: ae[i]*np.exp(-ge[i]*g(z)[i]) - ao[i]*np.exp(-go[i]*g(z)[i]) + 2*neff[i]
-                phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + offset
+                f = lambda z: ae[i]*np.exp(-ge[i]*g(z)[i]) - ao[i]*np.exp(-go[i]*g(z)[i])
+                phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + 2*np.pi*arc[i]*neff[i]/wave[i] + offset
     
     if part == 'mag':
         phase = 0
