@@ -353,7 +353,15 @@ def any_gap(wave, width, thickness, g, dg, zmin, zmax, sw_angle=90, term='k', pa
 """
 HELPER FUNCTIONS
 """
+"""Return neff for a given wg profile"""
+def get_neff(wave, width, thickness, sw_angle=90):
+    #clean everything
+    wave, width, thickness, sw_angle = clean_inputs((wave, width, thickness, sw_angle))
+    #get coefficients
+    _, _, _, _, neff = get_coeffs(wave, width, thickness, sw_angle)
     
+    return neff
+
 """Plugs coeffs into actual closed form function"""
 def get_closed_ans(ae, ao, ge, go, neff, wave, B, xe, xo, z, gap, term='k', part='mag'):
     #determine which parameter to get
