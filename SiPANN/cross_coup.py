@@ -436,6 +436,8 @@ def any_gap_testing(wave, width, thickness, g, zmin, zmax, arc, sw_angle=90, ter
         wave, width, thickness, sw_angle, arc = clean_inputs((wave, width, thickness, sw_angle, arc))
     else:
         wave, width, thickness, arc, _ = clean_inputs((wave, width, thickness, arc, g(0)))
+
+        wave, thickness, sw_angle, ph = clean_inputs((wave, thickness, sw_angle, ph))
     n = len(wave)
     #get coefficients
     ae, ao, ge, go, neff = get_coeffs(wave, width, thickness, sw_angle)
