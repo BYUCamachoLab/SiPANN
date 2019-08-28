@@ -99,73 +99,87 @@ class DC(ABC):
                      ------
                 1---/      \---3     
     """
-    def __init__(self, wavelength, width, thickness, sw_angle=90):
-        self.wavelength = wavelength
+    def __init__(self, width, thickness, sw_angle=90):
         self.width      = width
         self.thickness  = thickness
         self.sw_angle   = sw_angle
         
-    def clean_args(self):
+    def clean_args(self, wavelength):
         """Makes sure all attributes are the same size"""
-        return clean_inputs((self.wavelength, self.width, self.thickness, self.sw_angle))
+        if wavelength is None:
+            return clean_inputs((self.width, self.thickness, self.sw_angle))
+        else:
+            return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle))
         
     def update(self, **kwargs):
         """Takes in any parameter defined by __init__ and changes it."""
         #apply them
-        self.wavelength = kwargs.get('wavelength', self.wavelength)
         self.width      = kwargs.get('width', self.width)
         self.thickness  = kwargs.get('thickness', self.thickness)
         self.sw_angle   = kwargs.get('sw_angle', self.sw_angle)
     
-    def sparams(self):
-    """Returns sparams
-    
-    Returns:
-        freq     (np.ndarray): frequency for s_matrix in Hz, size n (number of wavelength points)
-        s_matrix (np.ndarray): size (4,4,n) matrix of scattering parameters
+    def sparams(self, wavelength):
+        """Returns sparams
+        Args:
+            wavelength(float/np.ndarray): wavelengths to get sparams at
+        Returns:
+            freq     (np.ndarray): frequency for s_matrix in Hz, size n (number of wavelength points)
+            s_matrix (np.ndarray): size (4,4,n) complex matrix of scattering parameters
         """
-        n = len(self.clean_args()[0])
-        if n != 1 and len(self.wavelength) != n:
+        #get number of points to evaluate at
+        if np.isscalar(wavelength):
+            n = 1
+        else:
+            n = len(wavelength)
+
+        #check to make sure the geometry isn't an array    
+        if len(self.clean_args(None)[0]) != 1:
             raise ValueError("You have changing geometries, getting sparams doesn't make sense")
         s_matrix = np.zeros((4,4,n), dtype='complex')
         
         #calculate upper half of matrix
         for i in [3,4]:
-            s_matrix[1-1,i-1] = self.predict_port1(i)
-            s_matrix[2-1,i-1] = self.predict_port2(i)
+            s_matrix[1-1,i-1] = self.predict_port1(i, wavelength)
+            s_matrix[2-1,i-1] = self.predict_port2(i, wavelength)
             
         #apply symmetry (diagonal is also 0)
         s_matrix += np.transpose(s_matrix, (1,0,2))
-        freq = C/(self.wavelength*10**-9)
+        freq = C/(wavelength*10**-9)
         
         #flip them so frequency is increasing
-        return (C[::-1], s_matrix[:,:,::-1])
+        if n != 1:
+            freq = freq[::-1]
+            s_matrix = s_matrix[:,:,::-1]
+            
+        return (freq, s_matrix)
         
     @abstractmethod
-    def predict_port1(self, out_port):
-    """Predicts the output when light is put in the bottom left port (see diagram above)
-    
-    Args:
-        out_port (int): either 3 or 4, for bottom right and top right, respectively
-        
-    Returns:
-        k/t (complex np.ndarray): returns the value of the light coming through"""
+    def predict_port1(self, out_port, wavelength):
+        """Predicts the output when light is put in the bottom left port (see diagram above)
+
+        Args:
+            out_port                (int): either 3 or 4, for bottom right and top right, respectively
+            wavelength (float/np.ndarray): wavelength(s) to predict at
+
+        Returns:
+            k/t (complex np.ndarray): returns the value of the light coming through"""
         pass
     
     @abstractmethod
-    def predict_port2(self, out_port):
-    """Predicts the output when light is put in the top left port (see diagram above)
-    
-    Args:
-        out_port (int): either 3 or 4, for bottom right and top right, respectively
-        
-    Returns:
-        k/t (complex np.ndarray): returns the value of the light coming through"""
+    def predict_port2(self, out_port, wavelength):
+        """Predicts the output when light is put in the top left port (see diagram above)
+
+        Args:
+            out_port                (int): either 3 or 4, for bottom right and top right, respectively
+            wavelength (float/np.ndarray): wavelength(s) to predict at  
+
+        Returns:
+            k/t (complex np.ndarray): returns the value of the light coming through"""
         pass
         
     @abstractmethod
     def gds(self, filename, extra=0):
-    """Writes the geometry to the gds file"""
+        """Writes the geometry to the gds file"""
         pass
     
     
@@ -183,11 +197,14 @@ class GapFunc(DC):
         self.radius = kwargs.get('radius', self.radius)
         self.gap    = kwargs.get('gap', self.gap)
         
-    def clean_args(self):
-        return clean_inputs((self.wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap))
+    def clean_args(self, wavelength):
+        if wavelength is None:
+            return clean_inputs((self.width, self.thickness, self.sw_angle, self.radius, self.gap))
+        else:
+            return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap))
         
-    def predict_port1(self, out_port):
-        wavelength, width, thickness, sw_angle, radius, gap = self.clean_args()
+    def predict_port1(self, out_port, wavelength):
+        wavelength, width, thickness, sw_angle, radius, gap = self.clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
         
         #through port
@@ -207,7 +224,7 @@ class GapFunc(DC):
         xo = go*(radius + width/2)
         return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
     
-    def predict_port2(self, out_port):
+    def predict_port2(self, out_port, wavelength):
         wavelength, width, thickness, sw_angle, radius, gap = self.clean_args()
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)        
         #through port
@@ -232,8 +249,8 @@ class GapFunc(DC):
         
         
 class RR(DC):
-    def __init__(self, wavelength, width, thickness, radius, gap, sw_angle=90):
-        super().__init__(wavelength, width, thickness, sw_angle)
+    def __init__(self, width, thickness, radius, gap, sw_angle=90):
+        super().__init__(width, thickness, sw_angle)
         self.radius = radius
         self.gap    = gap
         
@@ -242,11 +259,13 @@ class RR(DC):
         self.radius = kwargs.get('radius', self.radius)
         self.gap    = kwargs.get('gap', self.gap)
         
-    def clean_args(self):
-        return clean_inputs((self.wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap))
-        
-    def predict_port1(self, out_port):
-        wavelength, width, thickness, sw_angle, radius, gap = self.clean_args()
+    def clean_args(self, wavelength):
+        if wavelength is None:
+            return clean_inputs((self.width, self.thickness, self.sw_angle, self.radius, self.gap))
+        else:
+            return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap))        
+    def predict_port1(self, out_port, wavelength):
+        wavelength, width, thickness, sw_angle, radius, gap = self.clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
         
         #through port
@@ -266,8 +285,8 @@ class RR(DC):
         xo = go*(radius + width/2)
         return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
     
-    def predict_port2(self, out_port):
-        wavelength, width, thickness, sw_angle, radius, gap = self.clean_args()
+    def predict_port2(self, out_port, wavelength):
+        wavelength, width, thickness, sw_angle, radius, gap = self.clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)        
         #through port
         if out_port == 4:
@@ -291,8 +310,8 @@ class RR(DC):
         
 
 class Racetrack(DC):
-    def __init__(self, wavelength, width, thickness, radius, gap, length,  sw_angle=90):
-        super().__init__(wavelength, width, thickness, sw_angle)
+    def __init__(self, width, thickness, radius, gap, length,  sw_angle=90):
+        super().__init__(width, thickness, sw_angle)
         self.radius = radius
         self.gap    = gap
         self.length = length
@@ -303,11 +322,13 @@ class Racetrack(DC):
         self.gap    = kwargs.get('gap', self.gap)
         self.length = kwargs.get('length', self.length)
         
-    def clean_args(self):
-        return clean_inputs((self.wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap, self.length))
-        
-    def predict_port1(self, out_port):
-        wavelength, width, thickness, sw_angle, radius, gap, length = self.clean_args()
+    def clean_args(self, wavelength):
+        if wavelength is None:
+            return clean_inputs((self.width, self.thickness, self.sw_angle, self.radius, self.gap, self.length))
+        else:
+            return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap, self.length))        
+    def predict_port1(self, out_port, wavelength):
+        wavelength, width, thickness, sw_angle, radius, gap, length = self.clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
         
         #through port
@@ -327,8 +348,8 @@ class Racetrack(DC):
         xo = go*(radius + width/2)
         return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
     
-    def predict_port2(self, out_port):
-        wavelength, width, thickness, sw_angle, radius, gap, length = self.clean_args()
+    def predict_port2(self, out_port, wavelength):
+        wavelength, width, thickness, sw_angle, radius, gap, length = self.clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)        
         #through port
         if out_port == 4:
