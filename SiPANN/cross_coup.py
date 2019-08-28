@@ -340,7 +340,7 @@ def any_gap(wave, width, thickness, g, dg, zmin, zmax, sw_angle=90, term='k', pa
 
             #get phase
             if part == 'ph' or part == 'both':
-                f = lambda z: ae[i]*np.exp(-ge[i]*g(z)[i]) - ao[i]*np.exp(-go[i]*g(z)[i]) + 2*neff[i]
+                f = lambda z: ae[i]*np.exp(-ge[i]*g(z)[i]) - ao[i]*np.exp(-go[i]*g(z)[i])
                 phase[i] = np.pi*integrate.quad(f, zmin, zmax)[0]/wave[i] + 2*np.pi*neff[i]*arcL/wave[i] + offset
     
     if part == 'mag':
