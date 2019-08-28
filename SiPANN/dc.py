@@ -112,7 +112,6 @@ class DC(ABC):
         
     def update(self, **kwargs):
         """Takes in any parameter defined by __init__ and changes it."""
-        #apply them
         self.width      = kwargs.get('width', self.width)
         self.thickness  = kwargs.get('thickness', self.thickness)
         self.sw_angle   = kwargs.get('sw_angle', self.sw_angle)
@@ -170,9 +169,116 @@ class DC(ABC):
         """Writes the geometry to the gds file"""
         pass
     
-    
 """
-All the Different types of DC's with close form solutions. These will be faster than defining it manually in the function form.
+This class will create arbitrarily shaped SYMMETRIC (ie both waveguides are same shape) directional couplers
+"""
+class GapFuncSymmetric(DC):
+    def __init__(self, width, thickness, gap, dgap, zmin, zmax, sw_angle=90):
+        super().__init__(width, thickness, sw_angle)
+        self.gap  = gap
+        self.dgap = dgap
+        self.zmin = zmin
+        self.zmax = zmax
+        
+    def update(self, **kwargs):
+        super().update(**kwargs)
+        self.gap  = kwargs.get('gap', self.gap)
+        self.dgap = kwargs.get('dgap', self.dgap)
+        self.zmin = kwargs.get('zmin', self.zmin)
+        self.zmax = kwargs.get('zmax', self.zmax)
+        
+    def clean_args(self, wavelength):
+        if wavelength is None:
+            return clean_inputs((self.width, self.thickness, self.sw_angle))
+        else:
+            return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle))  
+        
+    def predict(self, ports, wavelength, part='both'):
+        """Has aditional 'part' parameter in case you only want magnitude (mag) or phase (ph)"""
+        wavelength, width, thickness, sw_angle = self.clean_args(wavelength)
+        n = len(wavelength)
+        ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
+        #make sure ports are valid
+        if not all(1 <= x <=4 for x in ports):
+            raise ValueError('Invalid Ports')
+            
+        #if it's coming to itself, or to adjacent port
+        if (ports[0] == ports[1]) or (ports[0] + ports[1] == 3) or (ports[0] + ports[1] == 7):
+            return np.zeros(len(wavelength)) 
+        
+        #determine if cross or through port
+        if ports[1] - ports[0] == 2:
+            trig   = np.cos
+            offset = 0
+        else:
+            trig   = np.sin
+            offset = np.pi/2
+            
+        #determine z distance
+        arcFomula = lambda x: np.sqrt( 1 + dgap(x)**2/2 )
+        z_dist = integrate.quad(arcFomula, zmin, zmax)[0]
+            
+        #calculate everything
+        mag = np.ones(n)
+        phase = np.zeros(n)
+        for i in range(n):
+            if part == 'both' or part == 'mag':
+                f_mag  = lambda z: float(ae[i]*np.exp(-ge[i]*g(z)) + ao[i]*np.exp(-go[i]*g(z)))
+                mag[i] = trig( np.pi * integrate.quad(f_mag, zmin, zmax)[0] / wave[i] )
+            if part == 'both' or part == 'ph':
+                f_ph  = lambda z: float(ae[i]*np.exp(-ge[i]*g(z)) - ao[i]*np.exp(-go[i]*g(z)))
+                ph[i] = np.pi * integrate.quad(f_mag, zmin, zmax)[0] / wave[i] + 2*np.pi*neff[i]*z_dist/wave[i] + offset
+    
+        return mag*np.exp(-1j * phase)
+    
+    def gds(self, filename=None, extra=0, units='microns', view=False):
+        #check to make sure the geometry isn't an array    
+        if len(self.clean_args(None)[0]) != 1:
+            raise ValueError("You have changing geometries, getting sparams doesn't make sense")
+            
+        if units == 'nms':
+            scale = 1
+        if units == 'microns':
+            scale = 10**-3
+            
+        #scale to proper units
+        sc_zmin = self.zmin*scale
+        sc_zmax = self.zmax*scale
+        sc_width= self.width*scale
+        cL = (sc_zmax - sc_zmin)
+        cH = self.gap(self.zmin) * scale / 2
+        
+        #make parametric functions
+        paraTop    = lambda x: (x*(sc_zmax-sc_zmin)+sc_zmin, scale*self.gap(x*(self.zmax-self.zmin)+self.zmin)/2 + sc_width/2)
+        paraBottom = lambda x: (x*(sc_zmax-sc_zmin)+sc_zmin, -scale*self.gap(x*(self.zmax-self.zmin)+self.zmin)/2 - sc_width/2)
+        
+        #write to GDS
+        pathTop = gdspy.Path(sc_width, (sc_zmin-extra, cH+sc_width/2))
+        pathTop.segment(extra, '+x')
+        pathTop.parametric(paraTop, relative=False)
+        pathTop.segment(extra, '+x')
+        
+        pathBottom = gdspy.Path(sc_width, (sc_zmin-extra, -cH-sc_width/2))
+        pathBottom.segment(extra, '+x')
+        pathBottom.parametric(paraBottom, relative=False)
+        pathBottom.segment(extra, '+x')
+        
+        gdspy.current_library = gdspy.GdsLibrary()
+        path_cell = gdspy.Cell('C0')
+        path_cell.add(pathTop)
+        path_cell.add(pathBottom)
+
+        if view:
+            gdspy.LayoutViewer(cells='C0')
+
+        if filename is not None:
+            writer = gdspy.GdsWriter('filename', unit=1.0e-6, precision=1.0e-9)
+            writer.write_cell(path_cell)
+            writer.close()
+        
+        
+"""
+All the Different types of DC's with closed form solutions. These will be faster than defining it manually in the function form.
 """
 class RR(DC):
     def __init__(self, width, thickness, radius, gap, sw_angle=90):
@@ -189,11 +295,16 @@ class RR(DC):
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle, self.radius, self.gap))
         else:
-            return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap))        
+            return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap))  
+        
     def predict(self, ports, wavelength):
         wavelength, width, thickness, sw_angle, radius, gap = self.clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
         
+        #make sure ports are valid
+        if not all(1 <= x <=4 for x in ports):
+            raise ValueError('Invalid Ports')
+            
         #determine if cross or through port
         if ports[1] - ports[0] == 2:
             trig   = np.cos
@@ -248,6 +359,10 @@ class Racetrack(DC):
         wavelength, width, thickness, sw_angle, radius, gap, length = self.clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
         
+        #make sure ports are valid
+        if not all(1 <= x <=4 for x in ports):
+            raise ValueError('Invalid Ports')
+            
         #determine if cross or through port
         if ports[1] - ports[0] == 2:
             trig   = np.cos
@@ -275,12 +390,12 @@ class Racetrack(DC):
         xo = go*(radius + width/2)
         return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
     
-    def gds(filename, self, extra=0, units='nm'):
+    def gds(self, filename, extra=0, units='nm'):
         raise NotImplemented('TODO: Write to GDS file')
       
     
 class Straight(DC):
-    def __init__(self, width, thickness, gap, length,  sw_angle=90):
+    def __init__(self, width, thickness, gap, length, sw_angle=90):
         super().__init__(width, thickness, sw_angle)
         self.gap    = gap
         self.length = length
@@ -300,6 +415,10 @@ class Straight(DC):
         wavelength, width, thickness, sw_angle, gap, length = self.clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
         
+        #make sure ports are valid
+        if not all(1 <= x <=4 for x in ports):
+            raise ValueError('Invalid Ports')
+            
         #determine if cross or through port
         if ports[1] - ports[0] == 2:
             trig   = np.cos
@@ -327,5 +446,5 @@ class Straight(DC):
         xo = go*length
         return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
     
-    def gds(filename, self, extra=0, units='nm'):
+    def gds(self, filename, extra=0, units='nm'):
         raise NotImplemented('TODO: Write to GDS file')
