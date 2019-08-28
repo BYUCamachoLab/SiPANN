@@ -25,18 +25,18 @@ C          = 299792458
 Helper Functions used throughout classes
 """
 """Return neff for a given wg profile"""
-def get_neff(wave, width, thickness, sw_angle=90):
+def get_neff(wavelength, width, thickness, sw_angle=90):
     #clean everything
-    wave, width, thickness, sw_angle = clean_inputs((wave, width, thickness, sw_angle))
+    wavelength, width, thickness, sw_angle = clean_inputs((wavelength, width, thickness, sw_angle))
     #get coefficients
-    _, _, _, _, neff = get_coeffs(wave, width, thickness, sw_angle)
+    _, _, _, _, neff = get_coeffs(wavelength, width, thickness, sw_angle)
     
     return neff   
     
 """Returns all of the coefficients"""
-def get_coeffs(wave, width, thickness, sw_angle):
+def get_coeffs(wavelength, width, thickness, sw_angle):
     #get coeffs from LR model - needs numbers in nm
-    inputs = np.column_stack((wave, width, thickness, sw_angle))
+    inputs = np.column_stack((wavelength, width, thickness, sw_angle))
     coeffs = DC_coeffs.predict(inputs)
     ae = coeffs[:,0]
     ao = coeffs[:,1]
@@ -75,16 +75,15 @@ def clean_inputs(inputs):
                 raise ValueError("Mismatched Input Array Size")
             inputs[i] = np.full((n), inputs[i][0])
          
-    #inputs.append(n)
     return inputs
 
 
 """
-Abstract Class that all directional couplers inherit from. Each DC will inherit from it and have initial arguments: 
+Abstract Class that all directional couplers inherit from. Each DC will inherit from it and have initial arguments (in this order): 
 
 width, thickness, sw_angle=90
 
-in that order. Also, each will have additional arguments as follows:
+in that order. Also, each will have additional arguments as follows (in this order):
 
 RR:                  radius, gap
 Racetrack Resonator: radius, gap, length
@@ -137,12 +136,13 @@ class DC(ABC):
             raise ValueError("You have changing geometries, getting sparams doesn't make sense")
         s_matrix = np.zeros((4,4,n), dtype='complex')
         
-        #calculate upper half of matrix
-        for i in [3,4]:
-            s_matrix[1-1,i-1] = self.predict_port1(i, wavelength)
-            s_matrix[2-1,i-1] = self.predict_port2(i, wavelength)
+        #calculate upper half of matrix (diagonal is 0)
+        for i in range(2,5):
+            for j in range(i,5):
+                s_matrix[i-1,j-1] = self.predict((i,j), wavelength)
+                s_matrix[i-1,j-1] = self.predict((i,j), wavelength)
             
-        #apply symmetry (diagonal is also 0)
+        #apply symmetry (note diagonal is 0, no need to subtract it)
         s_matrix += np.transpose(s_matrix, (1,0,2))
         freq = C/(wavelength*10**-9)
         
@@ -154,24 +154,12 @@ class DC(ABC):
         return (freq, s_matrix)
         
     @abstractmethod
-    def predict_port1(self, out_port, wavelength):
+    def predict(self, ports, wavelength):
         """Predicts the output when light is put in the bottom left port (see diagram above)
 
         Args:
-            out_port                (int): either 3 or 4, for bottom right and top right, respectively
+            ports               (2-tuple): Specifies the port coming in and coming out
             wavelength (float/np.ndarray): wavelength(s) to predict at
-
-        Returns:
-            k/t (complex np.ndarray): returns the value of the light coming through"""
-        pass
-    
-    @abstractmethod
-    def predict_port2(self, out_port, wavelength):
-        """Predicts the output when light is put in the top left port (see diagram above)
-
-        Args:
-            out_port                (int): either 3 or 4, for bottom right and top right, respectively
-            wavelength (float/np.ndarray): wavelength(s) to predict at  
 
         Returns:
             k/t (complex np.ndarray): returns the value of the light coming through"""
@@ -186,68 +174,6 @@ class DC(ABC):
 """
 All the Different types of DC's with close form solutions. These will be faster than defining it manually in the function form.
 """
-class GapFunc(DC):
-    def __init__(self, wavelength, width, thickness, radius, gap, sw_angle=90):
-        super().__init__(wavelength, width, thickness, sw_angle)
-        self.radius = radius
-        self.gap    = gap
-        
-    def update(self, **kwargs):
-        super().update(**kwargs)
-        self.radius = kwargs.get('radius', self.radius)
-        self.gap    = kwargs.get('gap', self.gap)
-        
-    def clean_args(self, wavelength):
-        if wavelength is None:
-            return clean_inputs((self.width, self.thickness, self.sw_angle, self.radius, self.gap))
-        else:
-            return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap))
-        
-    def predict_port1(self, out_port, wavelength):
-        wavelength, width, thickness, sw_angle, radius, gap = self.clean_args(wavelength)
-        ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
-        
-        #through port
-        if out_port == 3:
-            trig   = np.cos
-            offset = 0
-            z_dist = 2 * (radius + width/2)
-        #cross port
-        if out_port == 4:
-            trig   = np.sin
-            offset = np.pi/2
-            z_dist = np.pi*radius/2 + radius+width/2
-            
-        #calculate everything
-        B = lambda x: np.pi*x*np.exp(-x)*(special.iv(1,x) + special.modstruve(-1,x))
-        xe = ge*(radius + width/2)
-        xo = go*(radius + width/2)
-        return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
-    
-    def predict_port2(self, out_port, wavelength):
-        wavelength, width, thickness, sw_angle, radius, gap = self.clean_args()
-        ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)        
-        #through port
-        if out_port == 4:
-            trig   = np.cos
-            offset = 0
-            z_dist = np.pi * radius
-        #cross port
-        if out_port == 3:
-            trig   = np.sin
-            offset = np.pi/2
-            z_dist = np.pi*radius/2 + radius+width/2
-            
-        #calculate everything
-        B = lambda x: np.pi*x*np.exp(-x)*(special.iv(1,x) + special.modstruve(-1,x))
-        xe = ge*(radius + width/2)
-        xo = go*(radius + width/2)
-        return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
-    
-    def gds(filename, self, extra=0, units='nm'):
-        raise NotImplemented('TODO: Write to GDS file')
-        
-        
 class RR(DC):
     def __init__(self, width, thickness, radius, gap, sw_angle=90):
         super().__init__(width, thickness, sw_angle)
@@ -264,40 +190,30 @@ class RR(DC):
             return clean_inputs((self.width, self.thickness, self.sw_angle, self.radius, self.gap))
         else:
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap))        
-    def predict_port1(self, out_port, wavelength):
+    def predict(self, ports, wavelength):
         wavelength, width, thickness, sw_angle, radius, gap = self.clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
         
-        #through port
-        if out_port == 3:
+        #determine if cross or through port
+        if ports[1] - ports[0] == 2:
             trig   = np.cos
             offset = 0
-            z_dist = 2 * (radius + width/2)
-        #cross port
-        if out_port == 4:
+        else:
             trig   = np.sin
             offset = np.pi/2
-            z_dist = np.pi*radius/2 + radius+width/2
             
-        #calculate everything
-        B = lambda x: np.pi*x*np.exp(-x)*(special.iv(1,x) + special.modstruve(-1,x))
-        xe = ge*(radius + width/2)
-        xo = go*(radius + width/2)
-        return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
-    
-    def predict_port2(self, out_port, wavelength):
-        wavelength, width, thickness, sw_angle, radius, gap = self.clean_args(wavelength)
-        ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)        
-        #through port
-        if out_port == 4:
-            trig   = np.cos
-            offset = 0
-            z_dist = np.pi * radius
-        #cross port
-        if out_port == 3:
-            trig   = np.sin
-            offset = np.pi/2
+        #determine z distance
+        if 1 in ports and 3 in ports:
+            z_dist = 2 * (radius + width/2)
+        elif 1 in ports and 4 in ports:
             z_dist = np.pi*radius/2 + radius+width/2
+        elif 2 in ports and 4 in ports:
+            z_dist = np.pi * radius
+        elif 2 in ports and 3 in ports:
+            z_dist = np.pi*radius/2 + radius+width/2
+        #if it's coming to itself, or to adjacent port
+        else:
+            return np.zeros(len(wavelength))    
             
         #calculate everything
         B = lambda x: np.pi*x*np.exp(-x)*(special.iv(1,x) + special.modstruve(-1,x))
@@ -307,8 +223,8 @@ class RR(DC):
     
     def gds(filename, self, extra=0, units='nm'):
         raise NotImplemented('TODO: Write to GDS file')
-        
 
+        
 class Racetrack(DC):
     def __init__(self, width, thickness, radius, gap, length,  sw_angle=90):
         super().__init__(width, thickness, sw_angle)
@@ -326,41 +242,32 @@ class Racetrack(DC):
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle, self.radius, self.gap, self.length))
         else:
-            return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap, self.length))        
-    def predict_port1(self, out_port, wavelength):
+            return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap, self.length))   
+        
+    def predict(self, ports, wavelength):
         wavelength, width, thickness, sw_angle, radius, gap, length = self.clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
         
-        #through port
-        if out_port == 3:
+        #determine if cross or through port
+        if ports[1] - ports[0] == 2:
             trig   = np.cos
             offset = 0
-            z_dist = 2*(radius+width/2) + length
-        #cross port
-        if out_port == 4:
+        else:
             trig   = np.sin
             offset = np.pi/2
-            z_dist = np.pi*radius/2 + radius+width/2 + length
             
-        #calculate everything
-        B = lambda x: length*x/(radius+width/2) + np.pi*x*np.exp(-x)*(special.iv(1,x) + special.modstruve(-1,x))
-        xe = ge*(radius + width/2)
-        xo = go*(radius + width/2)
-        return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
-    
-    def predict_port2(self, out_port, wavelength):
-        wavelength, width, thickness, sw_angle, radius, gap, length = self.clean_args(wavelength)
-        ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)        
-        #through port
-        if out_port == 4:
-            trig   = np.cos
-            offset = 0
-            z_dist = np.pi*radius + length
-        #cross port
-        if out_port == 3:
-            trig   = np.sin
-            offset = np.pi/2
+        #determine z distance
+        if 1 in ports and 3 in ports:
+            z_dist = 2 * (radius + width/2) + length
+        elif 1 in ports and 4 in ports:
+            z_dist = np.pi*radius/2 + radius+width/2
+        elif 2 in ports and 4 in ports:
+            z_dist = np.pi * radius + length
+        elif 2 in ports and 3 in ports:
             z_dist = np.pi*radius/2 + radius+width/2 + length
+        #if it's coming to itself, or to adjacent port
+        else:
+            return np.zeros(len(wavelength))    
             
         #calculate everything
         B = lambda x: length*x/(radius+width/2) + np.pi*x*np.exp(-x)*(special.iv(1,x) + special.modstruve(-1,x))
@@ -370,4 +277,55 @@ class Racetrack(DC):
     
     def gds(filename, self, extra=0, units='nm'):
         raise NotImplemented('TODO: Write to GDS file')
+      
+    
+class Straight(DC):
+    def __init__(self, width, thickness, gap, length,  sw_angle=90):
+        super().__init__(width, thickness, sw_angle)
+        self.gap    = gap
+        self.length = length
         
+    def update(self, **kwargs):
+        super().update(**kwargs)
+        self.gap    = kwargs.get('gap', self.gap)
+        self.length = kwargs.get('length', self.length)
+        
+    def clean_args(self, wavelength):
+        if wavelength is None:
+            return clean_inputs((self.width, self.thickness, self.sw_angle, self.gap, self.length))
+        else:
+            return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.gap, self.length))   
+        
+    def predict(self, ports, wavelength):
+        wavelength, width, thickness, sw_angle, gap, length = self.clean_args(wavelength)
+        ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
+        
+        #determine if cross or through port
+        if ports[1] - ports[0] == 2:
+            trig   = np.cos
+            offset = 0
+        else:
+            trig   = np.sin
+            offset = np.pi/2
+            
+        #determine z distance
+        if 1 in ports and 3 in ports:
+            z_dist = length
+        elif 1 in ports and 4 in ports:
+            z_dist = length
+        elif 2 in ports and 4 in ports:
+            z_dist = length
+        elif 2 in ports and 3 in ports:
+            z_dist = length
+        #if it's coming to itself, or to adjacent port
+        else:
+            return np.zeros(len(wavelength))    
+            
+        #calculate everything
+        B = lambda x: x
+        xe = ge*length
+        xo = go*length
+        return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
+    
+    def gds(filename, self, extra=0, units='nm'):
+        raise NotImplemented('TODO: Write to GDS file')
