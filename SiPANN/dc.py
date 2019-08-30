@@ -136,7 +136,7 @@ class DC(ABC):
         s_matrix = np.zeros((4,4,n), dtype='complex')
         
         #calculate upper half of matrix (diagonal is 0)
-        for i in range(2,5):
+        for i in range(1,5):
             for j in range(i,5):
                 s_matrix[i-1,j-1] = self.predict((i,j), wavelength)
                 s_matrix[i-1,j-1] = self.predict((i,j), wavelength)
@@ -149,7 +149,9 @@ class DC(ABC):
         if n != 1:
             freq = freq[::-1]
             s_matrix = s_matrix[:,:,::-1]
-            
+        
+        #transpose so depth comes first
+        s_matrix = np.transpose(s_matrix, (2, 0, 1))
         return (freq, s_matrix)
         
     @abstractmethod
