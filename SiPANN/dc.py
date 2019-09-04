@@ -53,7 +53,7 @@ def get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, tri
     phase_part= 2*z_dist*neff
         
     mag =  trig( (even_part+odd_part)*np.pi / wavelength )
-    phase = (even_part+odd_part-phase_part)*np.pi/wavelength + offset
+    phase = (even_part-odd_part+phase_part)*np.pi/wavelength + offset
 
     return mag*np.exp(-1j*phase)
 
@@ -88,7 +88,9 @@ in that order. Also, each will have additional arguments as follows (in this ord
 RR:                  radius, gap
 Racetrack Resonator: radius, gap, length
 Straight:            gap, length
-
+Standard:            gap, length, H, V
+DoubleRR:            radius, gap
+CurvedRR:            radius, gap, theta
 """
 class DC(ABC):
     """Base Class for DC. All other DC classes should be based on this one, including same functions (so 
@@ -195,7 +197,7 @@ class GapFuncSymmetric(DC):
         else:
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle))  
         
-    def predict(self, ports, wavelength, part='both'):
+    def predict(self, ports, wavelength, extra_arc=0, part='both'):
         """Has aditional 'part' parameter in case you only want magnitude (mag) or phase (ph)"""
         wavelength, width, thickness, sw_angle = self.clean_args(wavelength)
         n = len(wavelength)
@@ -217,19 +219,19 @@ class GapFuncSymmetric(DC):
             offset = np.pi/2
             
         #determine z distance
-        arcFomula = lambda x: np.sqrt( 1 + dgap(x)**2/2 )
-        z_dist = integrate.quad(arcFomula, zmin, zmax)[0]
+        arcFomula = lambda x: np.sqrt( 1 + self.dgap(x)**2/2 )
+        z_dist = integrate.quad(arcFomula, self.zmin, self.zmax)[0] + extra_arc
             
         #calculate everything
         mag = np.ones(n)
         phase = np.zeros(n)
         for i in range(n):
             if part == 'both' or part == 'mag':
-                f_mag  = lambda z: float(ae[i]*np.exp(-ge[i]*g(z)) + ao[i]*np.exp(-go[i]*g(z)))
-                mag[i] = trig( np.pi * integrate.quad(f_mag, zmin, zmax)[0] / wave[i] )
+                f_mag  = lambda z: float(ae[i]*np.exp(-ge[i]*self.gap(z)) + ao[i]*np.exp(-go[i]*self.gap(z)))
+                mag[i] = trig( np.pi * integrate.quad(f_mag, self.zmin, self.zmax)[0] / wavelength[i] )
             if part == 'both' or part == 'ph':
-                f_ph  = lambda z: float(ae[i]*np.exp(-ge[i]*g(z)) - ao[i]*np.exp(-go[i]*g(z)))
-                ph[i] = np.pi * integrate.quad(f_mag, zmin, zmax)[0] / wave[i] + 2*np.pi*neff[i]*z_dist/wave[i] + offset
+                f_phase  = lambda z: float(ae[i]*np.exp(-ge[i]*self.gap(z)) - ao[i]*np.exp(-go[i]*self.gap(z)))
+                phase[i] = np.pi * integrate.quad(f_phase, self.zmin, self.zmax)[0] / wavelength[i] + 2*np.pi*neff[i]*z_dist/wavelength[i] + offset
     
         return mag*np.exp(-1j * phase)
     
@@ -449,4 +451,180 @@ class Straight(DC):
         return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
     
     def gds(self, filename, extra=0, units='nm'):
+        raise NotImplemented('TODO: Write to GDS file')
+     
+    
+class Standard(DC):
+    def __init__(self, width, thickness, gap, length, H, V, sw_angle=90):
+        super().__init__(width, thickness, sw_angle)
+        self.gap    = gap
+        self.length = length
+        self.H      = H
+        self.V      = V
+        
+    def update(self, **kwargs):
+        super().update(**kwargs)
+        self.gap    = kwargs.get('gap', self.gap)
+        self.length = kwargs.get('length', self.length)
+        self.H      = kwargs.get('H', self.H)
+        self.V      = kwargs.get('V', self.V)
+        
+    def clean_args(self, wavelength):
+        if wavelength is None:
+            return clean_inputs((self.width, self.thickness, self.sw_angle, self.gap, self.length, self.H, self.V))
+        else:
+            return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.gap, self.length, self.H, self.V))   
+        
+    def predict(self, ports, wavelength):
+        wavelength, width, thickness, sw_angle, gap, length, H, V = self.clean_args(wavelength)
+        ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
+        
+        #make sure ports are valid
+        if not all(1 <= x <=4 for x in ports):
+            raise ValueError('Invalid Ports')
+            
+        #determine if cross or through port
+        if ports[1] - ports[0] == 2:
+            trig   = np.cos
+            offset = 0
+        else:
+            trig   = np.sin
+            offset = np.pi/2
+            
+        #determine z distance - length + 2*sbend length
+        m      = (V*np.pi/2)**2 / (H**2 + (V*np.pi/2)**2)
+        z_dist = length + 2* np.sqrt(H**2 + (V*np.pi/2)**2)/np.pi * special.ellipeinc(np.pi, m)
+        if 1 in ports and 3 in ports:
+            z_dist = z_dist
+        elif 1 in ports and 4 in ports:
+            z_dist = z_dist
+        elif 2 in ports and 4 in ports:
+            z_dist = z_dist
+        elif 2 in ports and 3 in ports:
+            z_dist = z_dist
+        #if it's coming to itself, or to adjacent port
+        else:
+            return np.zeros(len(wavelength))    
+            
+        #calculate everything
+        B = lambda x: x * (1 + 2*H*np.exp(-V*x/length)*special.iv(0,V*x/length)/length)
+        xe = ge*length
+        xo = go*length
+        return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
+    
+    def gds(self, filename, extra=0, units='nm'):
+        raise NotImplemented('TODO: Write to GDS file')
+        
+        
+class DoubleRR(DC):
+    def __init__(self, width, thickness, radius, gap, sw_angle=90):
+        super().__init__(width, thickness, sw_angle)
+        self.radius = radius
+        self.gap    = gap
+        
+    def update(self, **kwargs):
+        super().update(**kwargs)
+        self.radius = kwargs.get('radius', self.radius)
+        self.gap    = kwargs.get('gap', self.gap)
+        
+    def clean_args(self, wavelength):
+        if wavelength is None:
+            return clean_inputs((self.width, self.thickness, self.sw_angle, self.radius, self.gap))
+        else:
+            return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap))  
+        
+    def predict(self, ports, wavelength):
+        wavelength, width, thickness, sw_angle, radius, gap = self.clean_args(wavelength)
+        ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
+        
+        #make sure ports are valid
+        if not all(1 <= x <=4 for x in ports):
+            raise ValueError('Invalid Ports')
+            
+        #determine if cross or through port
+        if ports[1] - ports[0] == 2:
+            trig   = np.cos
+            offset = 0
+        else:
+            trig   = np.sin
+            offset = np.pi/2
+            
+        #determine z distance
+        if 1 in ports and 3 in ports:
+            z_dist = np.pi * radius
+        elif 1 in ports and 4 in ports:
+            z_dist = np.pi * radius
+        elif 2 in ports and 4 in ports:
+            z_dist = np.pi * radius
+        elif 2 in ports and 3 in ports:
+            z_dist = np.pi * radius
+        #if it's coming to itself, or to adjacent port
+        else:
+            return np.zeros(len(wavelength))    
+            
+        #calculate everything
+        B = lambda x: 0.5*np.pi*2*x*np.exp(-2*x)*(special.iv(1,2*x) + special.modstruve(-1,2*x))
+        xe = ge*(radius + width/2)
+        xo = go*(radius + width/2)
+        return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
+    
+    def gds(filename, self, extra=0, units='nm'):
+        raise NotImplemented('TODO: Write to GDS file')
+        
+        
+class AngledRR(DC):
+    def __init__(self, width, thickness, radius, gap, theta, sw_angle=90):
+        super().__init__(width, thickness, sw_angle)
+        self.radius = radius
+        self.gap    = gap
+        self.theta  = theta
+        
+    def update(self, **kwargs):
+        super().update(**kwargs)
+        self.radius = kwargs.get('radius', self.radius)
+        self.gap    = kwargs.get('gap', self.gap)
+        self.theta  = kwargs.get('theta', self.theta)
+        
+    def clean_args(self, wavelength):
+        if wavelength is None:
+            return clean_inputs((self.width, self.thickness, self.sw_angle, self.radius, self.gap, self.theta))
+        else:
+            return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap, self.theta))  
+        
+    def predict(self, ports, wavelength):
+        wavelength, width, thickness, sw_angle, radius, gap, theta = self.clean_args(wavelength)
+        ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
+        
+        #make sure ports are valid
+        if not all(1 <= x <=4 for x in ports):
+            raise ValueError('Invalid Ports')
+            
+        #determine if cross or through port
+        if ports[1] - ports[0] == 2:
+            trig   = np.cos
+            offset = 0
+        else:
+            trig   = np.sin
+            offset = np.pi/2
+            
+        #determine z distance
+        if 1 in ports and 3 in ports:
+            z_dist = np.pi*(radius + width + gap)
+        elif 1 in ports and 4 in ports:
+            z_dist = np.pi*(radius + width + gap)/2 + np.pi*radius/2
+        elif 2 in ports and 4 in ports:
+            z_dist = np.pi * radius
+        elif 2 in ports and 3 in ports:
+            z_dist = np.pi*(radius + width + gap)/2 + np.pi*radius/2
+        #if it's coming to itself, or to adjacent port
+        else:
+            return np.zeros(len(wavelength))    
+            
+        #calculate everything
+        B = lambda x: x
+        xe = ge * theta * (radius + width/2 + gap/2)
+        xo = go * theta * (radius + width/2 + gap/2)
+        return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
+    
+    def gds(filename, self, extra=0, units='nm'):
         raise NotImplemented('TODO: Write to GDS file')
