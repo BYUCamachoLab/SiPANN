@@ -83,7 +83,7 @@ Abstract Class that all directional couplers inherit from. Each DC will inherit 
 
 width, thickness, sw_angle=90
 
-in that order. Also, each will have additional arguments as follows (in this order):
+Also, each will have additional arguments as follows (in this order):
 
 RR:                  radius, gap
 Racetrack Resonator: radius, gap, length
@@ -238,7 +238,7 @@ class GapFuncSymmetric(DC):
     def gds(self, filename=None, extra=0, units='microns', view=False):
         #check to make sure the geometry isn't an array    
         if len(self.clean_args(None)[0]) != 1:
-            raise ValueError("You have changing geometries, getting sparams doesn't make sense")
+            raise ValueError("You have changing geometries, making gds doesn't make sense")
             
         if units == 'nms':
             scale = 1
@@ -315,7 +315,7 @@ class RR(DC):
             offset = 0
         else:
             trig   = np.sin
-            offset = np.pi/2
+            offset = -np.pi/2
             
         #determine z distance
         if 1 in ports and 3 in ports:
@@ -336,8 +336,40 @@ class RR(DC):
         xo = go*(radius + width/2)
         return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
     
-    def gds(filename, self, extra=0, units='nm'):
-        raise NotImplemented('TODO: Write to GDS file')
+    def gds(self, filename=None, view=False, extra=0, units='nms'):
+        #check to make sure the geometry isn't an array    
+        if len(self.clean_args(None)[0]) != 1:
+            raise ValueError("You have changing geometries, making gds doesn't make sense")
+            
+        if units == 'nms':
+            scale = 1
+        if units == 'microns':
+            scale = 10**-3
+            
+        #scale to proper units
+        sc_radius = self.radius*scale
+        sc_gap    = self.gap*scale
+        sc_width  = self.width*scale
+        
+        #write to GDS
+        pathTop = gdspy.Path(sc_width, (sc_radius, sc_radius+sc_width/2+sc_gap/2))
+        pathTop.arc(sc_radius, 0, -np.pi)
+        
+        pathBottom = gdspy.Path(sc_width, (-sc_radius-sc_width/2, -sc_gap/2-sc_width/2))
+        pathBottom.segment(2*(sc_radius+sc_width/2), '+x')
+        
+        gdspy.current_library = gdspy.GdsLibrary()
+        path_cell = gdspy.Cell('C0')
+        path_cell.add(pathTop)
+        path_cell.add(pathBottom)
+
+        if view:
+            gdspy.LayoutViewer(cells='C0')
+
+        if filename is not None:
+            writer = gdspy.GdsWriter('filename', unit=1.0e-6, precision=1.0e-9)
+            writer.write_cell(path_cell)
+            writer.close()
 
         
 class Racetrack(DC):
