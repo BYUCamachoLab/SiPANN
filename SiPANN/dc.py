@@ -242,8 +242,10 @@ class GapFuncSymmetric(DC):
             
         if units == 'nms':
             scale = 1
-        if units == 'microns':
+        elif units == 'microns':
             scale = 10**-3
+        else:
+            raise ValueError('Invalid units')
             
         #scale to proper units
         sc_zmin = self.zmin*scale
@@ -315,7 +317,7 @@ class RR(DC):
             offset = 0
         else:
             trig   = np.sin
-            offset = -np.pi/2
+            offset = np.pi/2
             
         #determine z distance
         if 1 in ports and 3 in ports:
@@ -343,8 +345,10 @@ class RR(DC):
             
         if units == 'nms':
             scale = 1
-        if units == 'microns':
+        elif units == 'microns':
             scale = 10**-3
+        else:
+            raise ValueError('Invalid units')
             
         #scale to proper units
         sc_radius = self.radius*scale
@@ -352,11 +356,13 @@ class RR(DC):
         sc_width  = self.width*scale
         
         #write to GDS
-        pathTop = gdspy.Path(sc_width, (sc_radius, sc_radius+sc_width/2+sc_gap/2))
+        pathTop = gdspy.Path(sc_width, (sc_radius, sc_radius+sc_width/2+sc_gap/2+extra))
+        pathTop.segment(extra, '-y')
         pathTop.arc(sc_radius, 0, -np.pi)
+        pathTop.segment(extra, '+y')
         
-        pathBottom = gdspy.Path(sc_width, (-sc_radius-sc_width/2, -sc_gap/2-sc_width/2))
-        pathBottom.segment(2*(sc_radius+sc_width/2), '+x')
+        pathBottom = gdspy.Path(sc_width, (-sc_radius-sc_width/2-extra, -sc_gap/2-sc_width/2))
+        pathBottom.segment(2*(sc_radius+sc_width/2+extra), '+x')
         
         gdspy.current_library = gdspy.GdsLibrary()
         path_cell = gdspy.Cell('C0')
@@ -426,9 +432,47 @@ class Racetrack(DC):
         xo = go*(radius + width/2)
         return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
     
-    def gds(self, filename, extra=0, units='nm'):
-        raise NotImplemented('TODO: Write to GDS file')
-      
+    def gds(self, filename=None, view=False, extra=0, units='nms'):
+        #check to make sure the geometry isn't an array    
+        if len(self.clean_args(None)[0]) != 1:
+            raise ValueError("You have changing geometries, making gds doesn't make sense")
+            
+        if units == 'nms':
+            scale = 1
+        elif units == 'microns':
+            scale = 10**-3
+        else:
+            raise ValueError('Invalid units')
+            
+        #scale to proper units
+        sc_radius = self.radius*scale
+        sc_gap    = self.gap*scale
+        sc_width  = self.width*scale
+        sc_length = self.length*scale
+        
+        #write to GDS
+        pathTop = gdspy.Path(sc_width, (sc_radius+sc_length/2, sc_radius+sc_width/2+sc_gap/2+extra))
+        pathTop.segment(extra, '-y')
+        pathTop.arc(sc_radius, 0, -np.pi/2)
+        pathTop.segment(sc_length, '-x')
+        pathTop.arc(sc_radius, -np.pi/2, -np.pi)
+        pathTop.segment(extra, '+y')
+        
+        pathBottom = gdspy.Path(sc_width, (-sc_radius-sc_width/2-sc_length/2-extra, -sc_gap/2-sc_width/2))
+        pathBottom.segment(2*(sc_radius+sc_width/2)+sc_length+2*extra, '+x')
+        
+        gdspy.current_library = gdspy.GdsLibrary()
+        path_cell = gdspy.Cell('C0')
+        path_cell.add(pathTop)
+        path_cell.add(pathBottom)
+
+        if view:
+            gdspy.LayoutViewer(cells='C0')
+
+        if filename is not None:
+            writer = gdspy.GdsWriter('filename', unit=1.0e-6, precision=1.0e-9)
+            writer.write_cell(path_cell)
+            writer.close()      
     
 class Straight(DC):
     def __init__(self, width, thickness, gap, length, sw_angle=90):
