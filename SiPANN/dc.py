@@ -589,9 +589,56 @@ class Standard(DC):
         xo = go*length
         return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
     
-    def gds(self, filename, extra=0, units='nm'):
-        raise NotImplemented('TODO: Write to GDS file')
+    def gds(self, filename=None, view=False, extra=0, units='nms'):
+        #check to make sure the geometry isn't an array    
+        if len(self.clean_args(None)[0]) != 1:
+            raise ValueError("You have changing geometries, making gds doesn't make sense")
+            
+        if units == 'nms':
+            scale = 1
+        elif units == 'microns':
+            scale = 10**-3
+        else:
+            raise ValueError('Invalid units')
+            
+        #scale to proper units
+        sc_width  = self.width*scale
+        sc_gap    = self.gap*scale
+        sc_length = self.length*scale
+        sc_H      = self.H*scale
+        sc_V      = self.V*scale
         
+        #make parametric functions
+        sbendDown = lambda x: (sc_H*x, -sc_V/2*(1-np.cos(np.pi*x)))
+        sbendUp   = lambda x: (sc_H*x, sc_V/2*(1-np.cos(np.pi*x)))
+        
+        #write to GDS
+        pathTop = gdspy.Path(sc_width, (-sc_length/2-sc_H-extra, sc_V+sc_width/2+sc_gap/2))
+        pathTop.segment(extra, '+x')
+        pathTop.parametric(sbendDown)
+        pathTop.segment(sc_length, '+x')
+        pathTop.parametric(sbendUp)
+        pathTop.segment(extra, '+x')
+        
+        pathBottom = gdspy.Path(sc_width, (-sc_length/2-sc_H-extra, -sc_V-sc_width/2-sc_gap/2))
+        pathBottom.segment(extra, '+x')
+        pathBottom.parametric(sbendUp)
+        pathBottom.segment(sc_length, '+x')
+        pathBottom.parametric(sbendDown)
+        pathBottom.segment(extra, '+x')
+        
+        gdspy.current_library = gdspy.GdsLibrary()
+        path_cell = gdspy.Cell('C0')
+        path_cell.add(pathTop)
+        path_cell.add(pathBottom)
+
+        if view:
+            gdspy.LayoutViewer(cells='C0')
+
+        if filename is not None:
+            writer = gdspy.GdsWriter(filename, unit=1.0e-6, precision=1.0e-9)
+            writer.write_cell(path_cell)
+            writer.close()        
         
 class DoubleRR(DC):
     def __init__(self, width, thickness, radius, gap, sw_angle=90):
