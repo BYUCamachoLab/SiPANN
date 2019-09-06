@@ -220,7 +220,7 @@ class GapFuncSymmetric(DC):
             offset = np.pi/2
             
         #determine z distance
-        arcFomula = lambda x: np.sqrt( 1 + self.dgap(x)**2/2 )
+        arcFomula = lambda x: np.sqrt( 1 + (self.dgap(x)/2)**2 )
         z_dist = integrate.quad(arcFomula, self.zmin, self.zmax)[0] + extra_arc
             
         #calculate everything
