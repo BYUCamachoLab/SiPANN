@@ -236,7 +236,7 @@ class GapFuncSymmetric(DC):
     
         return mag*np.exp(-1j * phase)
     
-    def gds(self, filename=None, extra=0, units='microns', view=False):
+    def gds(self, filename=None, extra=0, units='microns', view=False, sbend_h=0, sbend_v=0):
         #check to make sure the geometry isn't an array    
         if len(self.clean_args(None)[0]) != 1:
             raise ValueError("You have changing geometries, making gds doesn't make sense")
@@ -259,15 +259,22 @@ class GapFuncSymmetric(DC):
         paraTop    = lambda x: (x*(sc_zmax-sc_zmin)+sc_zmin, scale*self.gap(x*(self.zmax-self.zmin)+self.zmin)/2 + sc_width/2)
         paraBottom = lambda x: (x*(sc_zmax-sc_zmin)+sc_zmin, -scale*self.gap(x*(self.zmax-self.zmin)+self.zmin)/2 - sc_width/2)
         
+        sbendDown = lambda x: (sbend_h*x, -sbend_v/2*(1-np.cos(np.pi*x)))
+        sbendUp   = lambda x: (sbend_h*x, sbend_v/2*(1-np.cos(np.pi*x)))
+        
         #write to GDS
-        pathTop = gdspy.Path(sc_width, (sc_zmin-extra, cH+sc_width/2))
+        pathTop = gdspy.Path(sc_width, (sc_zmin-extra-sbend_h, cH+sc_width/2))
         pathTop.segment(extra, '+x')
+        pathTop.parametric(sbendDown)
         pathTop.parametric(paraTop, relative=False)
+        pathTop.parametric(sbendUp)
         pathTop.segment(extra, '+x')
         
-        pathBottom = gdspy.Path(sc_width, (sc_zmin-extra, -cH-sc_width/2))
+        pathBottom = gdspy.Path(sc_width, (sc_zmin-extra,-sbend_h -cH-sc_width/2))
         pathBottom.segment(extra, '+x')
+        pathTop.parametric(sbendUp)
         pathBottom.parametric(paraBottom, relative=False)
+        pathTop.parametric(sbendDown)
         pathBottom.segment(extra, '+x')
         
         gdspy.current_library = gdspy.GdsLibrary()
