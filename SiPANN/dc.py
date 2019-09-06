@@ -170,8 +170,20 @@ class DC(ABC):
         pass
         
     @abstractmethod
-    def gds(self, filename, extra=0):
-        """Writes the geometry to the gds file"""
+    def gds(self, filename=None, extra=0, units='microns', view=False, sbend_h=0, sbend_v=0):
+        """Writes the geometry to the gds file
+        
+        Args:
+            filename (str): location to save file to, or if you don't want to defaults to None
+            extra    (int): extra straight portion to add to ends of waveguides to make room in simulation 
+                                (input with units same as units input)
+            units    (str): either 'microns' or 'nms'. Units to save gds file in
+            view    (bool): whether to visually show gds file
+            sbend_h  (int): how high to horizontally make additional sbends to move ports farther away. 
+                                Sbends insert after extra. Only available in couplers with all horizontal
+                                ports (input with units same as units input)
+            sbend_v  (int): same as sbend_h, but vertical distance. 
+        """
         pass
     
 """
@@ -258,23 +270,30 @@ class GapFuncSymmetric(DC):
         #make parametric functions
         paraTop    = lambda x: (x*(sc_zmax-sc_zmin)+sc_zmin, scale*self.gap(x*(self.zmax-self.zmin)+self.zmin)/2 + sc_width/2)
         paraBottom = lambda x: (x*(sc_zmax-sc_zmin)+sc_zmin, -scale*self.gap(x*(self.zmax-self.zmin)+self.zmin)/2 - sc_width/2)
+        #dparaTop    = lambda x: (sc_zmax-sc_zmin, scale*(self.zmax-self.zmin)*self.dgap(x*(self.zmax-self.zmin)+self.zmin)/2)
+        #dparaBottom = lambda x: (sc_zmax-sc_zmin, -scale*(self.zmax-self.zmin)*self.dgap(x*(self.zmax-self.zmin)+self.zmin)/2)
         
+        sbend = False
+        if sbend_h != 0 and sbend_v != 0:
+            sbend = True
         sbendDown = lambda x: (sbend_h*x, -sbend_v/2*(1-np.cos(np.pi*x)))
         sbendUp   = lambda x: (sbend_h*x, sbend_v/2*(1-np.cos(np.pi*x)))
+        dsbendDown = lambda x: (sbend_h, -np.pi*sbend_v/2*np.sin(np.pi*x))
+        dsbendUp   = lambda x: (sbend_h, np.pi*sbend_v/2*np.sin(np.pi*x))
         
         #write to GDS
-        pathTop = gdspy.Path(sc_width, (sc_zmin-extra-sbend_h, cH+sc_width/2))
+        pathTop = gdspy.Path(sc_width, (sc_zmin-extra-sbend_h, cH+sc_width/2+sbend_v))
         pathTop.segment(extra, '+x')
-        pathTop.parametric(sbendDown)
+        if sbend: pathTop.parametric(sbendDown, dsbendDown)
         pathTop.parametric(paraTop, relative=False)
-        pathTop.parametric(sbendUp)
+        if sbend: pathTop.parametric(sbendUp, dsbendUp)
         pathTop.segment(extra, '+x')
         
-        pathBottom = gdspy.Path(sc_width, (sc_zmin-extra,-sbend_h -cH-sc_width/2))
+        pathBottom = gdspy.Path(sc_width, (sc_zmin-extra-sbend_h, -cH-sc_width/2-sbend_v))
         pathBottom.segment(extra, '+x')
-        pathTop.parametric(sbendUp)
+        if sbend: pathBottom.parametric(sbendUp, dsbendUp)
         pathBottom.parametric(paraBottom, relative=False)
-        pathTop.parametric(sbendDown)
+        if sbend: pathBottom.parametric(sbendDown, dsbendDown)
         pathBottom.segment(extra, '+x')
         
         gdspy.current_library = gdspy.GdsLibrary()
@@ -534,8 +553,59 @@ class Straight(DC):
         xo = go*length
         return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
     
-    def gds(self, filename, extra=0, units='nm'):
-        raise NotImplemented('TODO: Write to GDS file')
+    def gds(self, filename=None, view=False, extra=0, units='nms', sbend_h=0, sbend_v=0):
+        #check to make sure the geometry isn't an array    
+        if len(self.clean_args(None)[0]) != 1:
+            raise ValueError("You have changing geometries, making gds doesn't make sense")
+            
+        if units == 'nms':
+            scale = 1
+        elif units == 'microns':
+            scale = 10**-3
+        else:
+            raise ValueError('Invalid units')
+            
+        #scale to proper units
+        sc_width  = self.width*scale
+        sc_gap    = self.gap*scale
+        sc_length = self.length*scale
+        
+        #make parametric functions  
+        sbend = False
+        if sbend_h != 0 and sbend_v != 0:
+            sbend = True
+        sbendDown = lambda x: (sbend_h*x, -sbend_v/2*(1-np.cos(np.pi*x)))
+        sbendUp   = lambda x: (sbend_h*x, sbend_v/2*(1-np.cos(np.pi*x)))
+        dsbendDown = lambda x: (sbend_h, -np.pi*sbend_v/2*np.sin(np.pi*x))
+        dsbendUp   = lambda x: (sbend_h, np.pi*sbend_v/2*np.sin(np.pi*x))
+        
+        #write to GDS
+        pathTop = gdspy.Path(sc_width, (-sc_length/2-sbend_h-extra, sbend_v+sc_width/2+sc_gap/2))
+        pathTop.segment(extra, '+x')
+        if sbend: pathTop.parametric(sbendDown, dsbendDown)
+        pathTop.segment(sc_length, '+x')
+        if sbend: pathTop.parametric(sbendUp, dsbendUp)
+        pathTop.segment(extra, '+x')
+        
+        pathBottom = gdspy.Path(sc_width, (-sc_length/2-sbend_h-extra, -sbend_v-sc_width/2-sc_gap/2))
+        pathBottom.segment(extra, '+x')
+        if sbend: pathBottom.parametric(sbendUp, dsbendUp)
+        pathBottom.segment(sc_length, '+x')
+        if sbend: pathBottom.parametric(sbendDown, dsbendDown)
+        pathBottom.segment(extra, '+x')
+        
+        gdspy.current_library = gdspy.GdsLibrary()
+        path_cell = gdspy.Cell('C0')
+        path_cell.add(pathTop)
+        path_cell.add(pathBottom)
+
+        if view:
+            gdspy.LayoutViewer(cells='C0')
+
+        if filename is not None:
+            writer = gdspy.GdsWriter(filename, unit=1.0e-6, precision=1.0e-9)
+            writer.write_cell(path_cell)
+            writer.close() 
      
     
 class Standard(DC):
@@ -596,7 +666,7 @@ class Standard(DC):
         xo = go*length
         return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
     
-    def gds(self, filename=None, view=False, extra=0, units='nms'):
+    def gds(self, filename=None, view=False, extra=0, units='nms', sbend_h=0, sbend_v=0):
         #check to make sure the geometry isn't an array    
         if len(self.clean_args(None)[0]) != 1:
             raise ValueError("You have changing geometries, making gds doesn't make sense")
@@ -618,20 +688,34 @@ class Standard(DC):
         #make parametric functions
         sbendDown = lambda x: (sc_H*x, -sc_V/2*(1-np.cos(np.pi*x)))
         sbendUp   = lambda x: (sc_H*x, sc_V/2*(1-np.cos(np.pi*x)))
+        dsbendDown = lambda x: (sc_H, -np.pi*sc_V/2*np.sin(np.pi*x))
+        dsbendUp   = lambda x: (sc_H, np.pi*sc_V/2*np.sin(np.pi*x))
+        
+        sbend = False
+        if sbend_h != 0 and sbend_v != 0:
+            sbend = True
+        sbendDownExtra = lambda x: (sbend_h*x, -sbend_v/2*(1-np.cos(np.pi*x)))
+        sbendUpExtra   = lambda x: (sbend_h*x, sbend_v/2*(1-np.cos(np.pi*x)))
+        dsbendDownExtra = lambda x: (sbend_h, -np.pi*sbend_v/2*np.sin(np.pi*x))
+        dsbendUpExtra   = lambda x: (sbend_h, np.pi*sbend_v/2*np.sin(np.pi*x))
         
         #write to GDS
-        pathTop = gdspy.Path(sc_width, (-sc_length/2-sc_H-extra, sc_V+sc_width/2+sc_gap/2))
+        pathTop = gdspy.Path(sc_width, (-sc_length/2-sc_H-sbend_h-extra, sc_V+sbend_v+sc_width/2+sc_gap/2))
         pathTop.segment(extra, '+x')
-        pathTop.parametric(sbendDown)
+        if sbend: pathTop.parametric(sbendDownExtra, dsbendDownExtra)
+        pathTop.parametric(sbendDown, dsbendDown)
         pathTop.segment(sc_length, '+x')
-        pathTop.parametric(sbendUp)
+        pathTop.parametric(sbendUp, dsbendUp)
+        if sbend: pathTop.parametric(sbendUpExtra, dsbendUpExtra)
         pathTop.segment(extra, '+x')
         
-        pathBottom = gdspy.Path(sc_width, (-sc_length/2-sc_H-extra, -sc_V-sc_width/2-sc_gap/2))
+        pathBottom = gdspy.Path(sc_width, (-sc_length/2-sc_H-sbend_h-extra, -sc_V-sbend_v-sc_width/2-sc_gap/2))
         pathBottom.segment(extra, '+x')
-        pathBottom.parametric(sbendUp)
+        if sbend: pathBottom.parametric(sbendUpExtra, dsbendUpExtra)
+        pathBottom.parametric(sbendUp, dsbendUp)
         pathBottom.segment(sc_length, '+x')
-        pathBottom.parametric(sbendDown)
+        pathBottom.parametric(sbendDown, dsbendDown)
+        if sbend: pathBottom.parametric(sbendDownExtra, dsbendDownExtra)
         pathBottom.segment(extra, '+x')
         
         gdspy.current_library = gdspy.GdsLibrary()
