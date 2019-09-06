@@ -85,6 +85,7 @@ width, thickness, sw_angle=90
 
 Also, each will have additional arguments as follows (in this order):
 
+GapFuncSymmetric:    gap (func), dgap (func), zmin, zmax
 RR:                  radius, gap
 Racetrack Resonator: radius, gap, length
 Straight:            gap, length
@@ -278,7 +279,7 @@ class GapFuncSymmetric(DC):
             gdspy.LayoutViewer(cells='C0')
 
         if filename is not None:
-            writer = gdspy.GdsWriter('filename', unit=1.0e-6, precision=1.0e-9)
+            writer = gdspy.GdsWriter(filename, unit=1.0e-6, precision=1.0e-9)
             writer.write_cell(path_cell)
             writer.close()
         
@@ -373,7 +374,7 @@ class RR(DC):
             gdspy.LayoutViewer(cells='C0')
 
         if filename is not None:
-            writer = gdspy.GdsWriter('filename', unit=1.0e-6, precision=1.0e-9)
+            writer = gdspy.GdsWriter(filename, unit=1.0e-6, precision=1.0e-9)
             writer.write_cell(path_cell)
             writer.close()
 
@@ -417,7 +418,7 @@ class Racetrack(DC):
         if 1 in ports and 3 in ports:
             z_dist = 2 * (radius + width/2) + length
         elif 1 in ports and 4 in ports:
-            z_dist = np.pi*radius/2 + radius+width/2
+            z_dist = np.pi*radius/2 + radius+width/2 + length
         elif 2 in ports and 4 in ports:
             z_dist = np.pi * radius + length
         elif 2 in ports and 3 in ports:
@@ -470,7 +471,7 @@ class Racetrack(DC):
             gdspy.LayoutViewer(cells='C0')
 
         if filename is not None:
-            writer = gdspy.GdsWriter('filename', unit=1.0e-6, precision=1.0e-9)
+            writer = gdspy.GdsWriter(filename, unit=1.0e-6, precision=1.0e-9)
             writer.write_cell(path_cell)
             writer.close()      
     
