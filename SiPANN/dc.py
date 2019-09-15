@@ -142,7 +142,6 @@ class DC(ABC):
         for i in range(1,5):
             for j in range(i,5):
                 s_matrix[i-1,j-1] = self.predict((i,j), wavelength)
-                s_matrix[i-1,j-1] = self.predict((i,j), wavelength)
             
         #apply symmetry (note diagonal is 0, no need to subtract it)
         s_matrix += np.transpose(s_matrix, (1,0,2))
