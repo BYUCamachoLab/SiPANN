@@ -10,7 +10,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
 
-
+from numba import jit
 '''
 Similarly to before, we initialize all ANN's and regressions as global objects to speed things up. 
 '''
@@ -76,7 +76,6 @@ def clean_inputs(inputs):
             inputs[i] = np.full((n), inputs[i][0])
          
     return inputs
-
 
 """
 Abstract Class that all directional couplers inherit from. Each DC will inherit from it and have initial arguments (in this order): 
@@ -308,6 +307,75 @@ class GapFuncSymmetric(DC):
             writer.write_cell(path_cell)
             writer.close()
         
+class GapFuncAntiSymmetric(DC):
+    def __init__(self, width, thickness, gap, zmin, zmax, arc_l, arc_u, sw_angle=90):
+        super().__init__(width, thickness, sw_angle)
+        self.gap   = gap
+        self.zmin  = zmin
+        self.zmax  = zmax
+        self.arc_l = arc_l
+        self.arc_u = arc_u
+
+        
+    def update(self, **kwargs):
+        super().update(**kwargs)
+        self.gap   = kwargs.get('gap', self.gap)
+        self.arc_l = kwargs.get('arc_l', self.arc_l)
+        self.arc_u = kwargs.get('arc_u', self.arc_u)
+        self.zmin  = kwargs.get('zmin', self.zmin)
+        self.zmax  = kwargs.get('zmax', self.zmax)
+        
+    def clean_args(self, wavelength):
+        if wavelength is None:
+            return clean_inputs((self.width, self.thickness, self.sw_angle))
+        else:
+            return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle))  
+        
+    def predict(self, ports, wavelength, extra_arc=0, part='both'):
+        """Has aditional 'part' parameter in case you only want magnitude (mag) or phase (ph)"""
+        wavelength, width, thickness, sw_angle = self.clean_args(wavelength)
+        n = len(wavelength)
+        ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
+        #make sure ports are valid
+        if not all(1 <= x <=4 for x in ports):
+            raise ValueError('Invalid Ports')
+        
+        #determine if cross or through port
+        if ports[1] - ports[0] == 2:
+            trig   = np.cos
+            offset = 0
+        else:
+            trig   = np.sin
+            offset = np.pi/2
+            
+        #determine z distance
+        if 1 in ports and 3 in ports:
+            z_dist = self.arc_l
+        elif 1 in ports and 4 in ports:
+            z_dist = (self.arc_l + self.arc_u) / 2
+        elif 2 in ports and 4 in ports:
+            z_dist = self.arc_u
+        elif 2 in ports and 3 in ports:
+            z_dist = (self.arc_l + self.arc_u) / 2
+        #if it's coming to itself, or to adjacent port
+        else:
+            return np.zeros(len(wavelength)) 
+            
+        #calculate everything
+        mag = np.ones(n)
+        phase = np.zeros(n)
+        for i in range(n):
+            if part == 'both' or part == 'mag':
+                f_mag  = lambda z: float(ae[i]*np.exp(-ge[i]*self.gap(z)) + ao[i]*np.exp(-go[i]*self.gap(z)))
+                mag[i] = trig( np.pi * integrate.quad(f_mag, self.zmin, self.zmax)[0] / wavelength[i] )
+            if part == 'both' or part == 'ph':
+                f_phase  = lambda z: float(ae[i]*np.exp(-ge[i]*self.gap(z)) - ao[i]*np.exp(-go[i]*self.gap(z)))
+                phase[i] = np.pi * integrate.quad(f_phase, self.zmin, self.zmax)[0] / wavelength[i] + 2*np.pi*neff[i]*z_dist/wavelength[i] + offset
+    
+        return mag*np.exp(-1j * phase)
+    
+    def gds(self, filename=None, extra=0, units='microns', view=False, sbend_h=0, sbend_v=0):
+        pass
         
 """
 All the Different types of DC's with closed form solutions. These will be faster than defining it manually in the function form.
