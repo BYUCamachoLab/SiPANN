@@ -9,8 +9,6 @@ import gdspy
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
-
-from numba import jit
 '''
 Similarly to before, we initialize all ANN's and regressions as global objects to speed things up. 
 '''
