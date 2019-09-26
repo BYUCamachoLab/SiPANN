@@ -132,6 +132,7 @@ setup(
         "tensorflow",
         "scikit-learn <= 0.20.4", 
         "gdspy",
+        "joblib"
     ],
 
     # List additional groups of dependencies here (e.g. development
