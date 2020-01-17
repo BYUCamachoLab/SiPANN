@@ -306,13 +306,14 @@ class GapFuncSymmetric(DC):
             writer.close()
         
 class GapFuncAntiSymmetric(DC):
-    def __init__(self, width, thickness, gap, zmin, zmax, arc_l, arc_u, sw_angle=90):
+    def __init__(self, width, thickness, gap, zmin, zmax, dLower, dUpper, zmid, sw_angle=90):
         super().__init__(width, thickness, sw_angle)
         self.gap   = gap
         self.zmin  = zmin
         self.zmax  = zmax
-        self.arc_l = arc_l
-        self.arc_u = arc_u
+        self.zmid = zmid
+        self.dLower = dLower
+        self.dUpper = dUpper
 
         
     def update(self, **kwargs):
@@ -345,16 +346,22 @@ class GapFuncAntiSymmetric(DC):
         else:
             trig   = np.sin
             offset = np.pi/2
-            
+
+        arcFomulaUpper = lambda x: np.sqrt(1 + (self.dUpper(x) / 2) ** 2)
+        arcFomulaLower = lambda x: np.sqrt(1 + (self.dLower(x) / 2) ** 2)
         #determine z distance
         if 1 in ports and 3 in ports:
-            z_dist = self.arc_l
+            z_dist = integrate.quad(arcFomulaLower, self.zmin, self.zmax)[0] + extra_arc
         elif 1 in ports and 4 in ports:
-            z_dist = (self.arc_l + self.arc_u) / 2
+            z_distUpper = integrate.quad(arcFomulaUpper, self.zmid, self.zmax)[0] + extra_arc
+            z_distLower = integrate.quad(arcFomulaLower, self.zmin, self.zmid)[0] + extra_arc
+            z_dist = z_distLower + z_distUpper
         elif 2 in ports and 4 in ports:
-            z_dist = self.arc_u
+            z_dist = integrate.quad(arcFomulaUpper, self.zmin, self.zmax)[0] + extra_arc
         elif 2 in ports and 3 in ports:
-            z_dist = (self.arc_l + self.arc_u) / 2
+            z_distUpper = integrate.quad(arcFomulaUpper, self.zmin, self.zmid)[0] + extra_arc
+            z_distLower = integrate.quad(arcFomulaLower, self.zmid, self.zmax)[0] + extra_arc
+            z_dist = z_distLower + z_distUpper
         #if it's coming to itself, or to adjacent port
         else:
             return np.zeros(len(wavelength)) 
