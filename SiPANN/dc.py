@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-import scipy.integrate as integrate
+from scipy.integrate import quad
 import scipy.special as special
 import pkg_resources
 import joblib
@@ -229,7 +229,7 @@ class GapFuncSymmetric(DC):
 
         #determine z distance
         arcFomula = lambda x: np.sqrt( 1 + (self.dgap(x)/2)**2 )
-        z_dist = integrate.quad(arcFomula, self.zmin, self.zmax)[0] + extra_arc
+        z_dist = quad(arcFomula, self.zmin, self.zmax)[0] + extra_arc
 
         #calculate everything
         mag = np.ones(n)
@@ -237,10 +237,10 @@ class GapFuncSymmetric(DC):
         for i in range(n):
             if part == 'both' or part == 'mag':
                 f_mag  = lambda z: float(ae[i]*np.exp(-ge[i]*self.gap(z)) + ao[i]*np.exp(-go[i]*self.gap(z)))
-                mag[i] = trig( np.pi * integrate.quad(f_mag, self.zmin, self.zmax)[0] / wavelength[i] )
+                mag[i] = trig( np.pi * quad(f_mag, self.zmin, self.zmax)[0] / wavelength[i] )
             if part == 'both' or part == 'ph':
                 f_phase  = lambda z: float(ae[i]*np.exp(-ge[i]*self.gap(z)) - ao[i]*np.exp(-go[i]*self.gap(z)))
-                phase[i] = np.pi * integrate.quad(f_phase, self.zmin, self.zmax)[0] / wavelength[i] + 2*np.pi*neff[i]*z_dist/wavelength[i] + offset
+                phase[i] = np.pi * quad(f_phase, self.zmin, self.zmax)[0] / wavelength[i] + 2*np.pi*neff[i]*z_dist/wavelength[i] + offset
 
         return mag*np.exp(-1j * phase)
 
@@ -306,15 +306,15 @@ class GapFuncSymmetric(DC):
             writer.close()
 
 class GapFuncAntiSymmetric(DC):
-    def __init__(self, width, thickness, gap, zmin, zmax, dLower, dUpper, zmid, sw_angle=90):
+    def __init__(self, width, thickness, gap, zmin, zmax, arc1, arc2, arc3, arc4, sw_angle=90):
         super().__init__(width, thickness, sw_angle)
-        self.gap   = gap
-        self.zmin  = zmin
-        self.zmax  = zmax
-        self.zmid = zmid
-        self.dLower = dLower
-        self.dUpper = dUpper
-
+        self.gap  = gap
+        self.zmin = zmin
+        self.zmax = zmax
+        self.arc1 = arc1
+        self.arc2 = arc2
+        self.arc3 = arc3
+        self.arc4 = arc4
 
     def update(self, **kwargs):
         super().update(**kwargs)
@@ -347,21 +347,15 @@ class GapFuncAntiSymmetric(DC):
             trig   = np.sin
             offset = np.pi/2
 
-        arcFomulaUpper = lambda x: np.sqrt(1 + (self.dUpper(x) / 2) ** 2)
-        arcFomulaLower = lambda x: np.sqrt(1 + (self.dLower(x) / 2) ** 2)
         #determine z distance
         if 1 in ports and 3 in ports:
-            z_dist = integrate.quad(arcFomulaLower, self.zmin, self.zmax)[0] + extra_arc
+            z_dist = self.arc1 + self.arc3 + extra_arc
         elif 1 in ports and 4 in ports:
-            z_distUpper = integrate.quad(arcFomulaUpper, self.zmid, self.zmax)[0] + extra_arc
-            z_distLower = integrate.quad(arcFomulaLower, self.zmin, self.zmid)[0] + extra_arc
-            z_dist = z_distLower + z_distUpper
+            z_dist = self.arc1 + self.arc4 + extra_arc
         elif 2 in ports and 4 in ports:
-            z_dist = integrate.quad(arcFomulaUpper, self.zmin, self.zmax)[0] + extra_arc
+            z_dist = self.arc2 + self.arc4 + extra_arc
         elif 2 in ports and 3 in ports:
-            z_distUpper = integrate.quad(arcFomulaUpper, self.zmin, self.zmid)[0] + extra_arc
-            z_distLower = integrate.quad(arcFomulaLower, self.zmid, self.zmax)[0] + extra_arc
-            z_dist = z_distLower + z_distUpper
+            z_dist = self.arc2 + self.arc3 + extra_arc
         #if it's coming to itself, or to adjacent port
         else:
             return np.zeros(len(wavelength))
@@ -372,10 +366,10 @@ class GapFuncAntiSymmetric(DC):
         for i in range(n):
             if part == 'both' or part == 'mag':
                 f_mag  = lambda z: float(ae[i]*np.exp(-ge[i]*self.gap(z)) + ao[i]*np.exp(-go[i]*self.gap(z)))
-                mag[i] = trig( np.pi * integrate.quad(f_mag, self.zmin, self.zmax)[0] / wavelength[i] )
+                mag[i] = trig( np.pi * quad(f_mag, self.zmin, self.zmax)[0] / wavelength[i] )
             if part == 'both' or part == 'ph':
                 f_phase  = lambda z: float(ae[i]*np.exp(-ge[i]*self.gap(z)) - ao[i]*np.exp(-go[i]*self.gap(z)))
-                phase[i] = np.pi * integrate.quad(f_phase, self.zmin, self.zmax)[0] / wavelength[i] + 2*np.pi*neff[i]*z_dist/wavelength[i] + offset
+                phase[i] = np.pi * quad(f_phase, self.zmin, self.zmax)[0] / wavelength[i] + 2*np.pi*neff[i]*z_dist/wavelength[i] + offset
 
         return mag*np.exp(-1j * phase)
 
