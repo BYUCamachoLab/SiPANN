@@ -909,3 +909,125 @@ class AngledRR(DC):
 
     def gds(filename, self, extra=0, units='nm'):
         raise NotImplemented('TODO: Write to GDS file')
+
+class Waveguide(ABC):
+    """Lossless model for a straight waveguide. Ports are numbered as:
+                
+                1 ============== 2
+    """
+    def __init__(self, width, thickness, length, sw_angle=90):
+        self.width      = width
+        self.thickness  = thickness
+        self.length     = length
+        self.sw_angle   = sw_angle
+
+    def clean_args(self, wavelength):
+        """Makes sure all attributes are the same size"""
+        if wavelength is None:
+            return clean_inputs((self.width, self.thickness, self.sw_angle, self.length))
+        else:
+            return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.length))
+
+    def update(self, **kwargs):
+        """Takes in any parameter defined by __init__ and changes it."""
+        self.width      = kwargs.get('width', self.width)
+        self.thickness  = kwargs.get('thickness', self.thickness)
+        self.length     = kwargs.get('thickness', self.length)
+        self.sw_angle   = kwargs.get('sw_angle', self.sw_angle)
+
+    def sparams(self, wavelength):
+        """Returns sparams
+        Args:
+            wavelength(float/np.ndarray): wavelengths to get sparams at
+        Returns:
+            freq     (np.ndarray): frequency for s_matrix in Hz, size n (number of wavelength points)
+            s_matrix (np.ndarray): size (4,4,n) complex matrix of scattering parameters
+        """
+        #get number of points to evaluate at
+        if np.isscalar(wavelength):
+            n = 1
+        else:
+            n = len(wavelength)
+
+        #check to make sure the geometry isn't an array
+        if len(self.clean_args(None)[0]) != 1:
+            raise ValueError("You have changing geometries, getting sparams doesn't make sense")
+        s_matrix = np.zeros((2,2,n), dtype='complex')
+
+        #calculate upper half of matrix (diagonal is 0)
+        s_matrix[0,1] = self.predict(wavelength, (1,2))
+
+        #apply symmetry (note diagonal is 0, no need to subtract it)
+        s_matrix += np.transpose(s_matrix, (1,0,2))
+        freq = C/(wavelength*10**-9)
+
+        #flip them so frequency is increasing
+        if n != 1:
+            freq = freq[::-1]
+            s_matrix = s_matrix[:,:,::-1]
+
+        #transpose so depth comes first
+        s_matrix = np.transpose(s_matrix, (2, 0, 1))
+        return (freq, s_matrix)
+
+    def predict(self, wavelength, ports=(1,2)):
+        """Predicts the output when light is put in the bottom left port (see diagram above)
+
+        Args:
+            wavelength (float/np.ndarray): wavelength(s) to predict at
+            ports               (2-tuple): Specifies the port coming in and coming out
+
+        Returns:
+            k/t (complex np.ndarray): returns the value of the light coming through"""
+        wavelength, width, thickness, sw_angle, length = self.clean_args(wavelength)
+        ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
+
+        #make sure ports are valid
+        if not all(1 <= x <= 2 for x in ports):
+            raise ValueError('Invalid Ports')
+
+        #calculate everything
+        z_dist = self.length
+        phase = 2*z_dist*neff*np.pi/wavelength
+
+        return np.exp(-1j*phase)
+
+    def gds(self, filename=None, extra=0, units='microns', view=False):
+        """Writes the geometry to the gds file
+
+        Args:
+            filename (str): location to save file to, or if you don't want to defaults to None
+            extra    (int): extra straight portion to add to ends of waveguides to make room in simulation
+                                (input with units same as units input)
+            units    (str): either 'microns' or 'nms'. Units to save gds file in
+        """
+                #check to make sure the geometry isn't an array
+        if len(self.clean_args(None)[0]) != 1:
+            raise ValueError("You have changing geometries, making gds doesn't make sense")
+
+        if units == 'nms':
+            scale = 1
+        elif units == 'microns':
+            scale = 10**-3
+        else:
+            raise ValueError('Invalid units')
+
+        #scale to proper units
+        sc_width  = self.width*scale
+        sc_length = self.length*scale
+
+        #write to GDS
+        path = gdspy.Path(sc_width, (-sc_length/2-extra, 0))
+        path.segment(2*extra+sc_length, '+x')
+
+        gdspy.current_library = gdspy.GdsLibrary()
+        path_cell = gdspy.Cell('C0')
+        path_cell.add(path)
+
+        if view:
+            gdspy.LayoutViewer(cells='C0')
+
+        if filename is not None:
+            writer = gdspy.GdsWriter(filename, unit=1.0e-6, precision=1.0e-9)
+            writer.write_cell(path_cell)
+            writer.close()
