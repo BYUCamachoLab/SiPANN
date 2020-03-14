@@ -9,21 +9,36 @@ import gdspy
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
-'''
-Similarly to before, we initialize all ANN's and regressions as global objects to speed things up.
-'''
+
+##########################################################################################
+####  We initialize all ANN's and regressions as global objects to speed things up.  #####
+##########################################################################################
 cross_file = pkg_resources.resource_filename('SiPANN','LR/DC_coeffs.joblib')
 DC_coeffs  = joblib.load(cross_file)
 
-cross_file = pkg_resources.resource_filename('SiPANN','LR/R_bent_wide.joblib')
-R_bent     = joblib.load(cross_file)
+# cross_file = pkg_resources.resource_filename('SiPANN','LR/R_bent_wide.joblib')
+# R_bent     = joblib.load(cross_file)
 
 C          = 299792458
-"""
-Helper Functions used throughout classes
-"""
-"""Return neff for a given wg profile"""
+
+#########################################################################################
+######################  Helper Functions used throughout classes  #######################
+#########################################################################################
 def get_neff(wavelength, width, thickness, sw_angle=90):
+    """Return neff for a given waveguide profile
+
+        Leverages Multivariate Linear Regression that maps wavelength, width, thickness and
+        sidewall angle to effective index with silicon core and silicon dioxide cladding
+
+        Args:
+            wavelength (float/np.ndarray): wavelength
+            width      (float/np.ndarray): width
+            thickness  (float/np.ndarray): thickness
+            sw_angle   (float/np.ndarray): sw_angle
+
+        Returns:
+            neff (float/np.ndarray): effective index of waveguide"""
+
     #clean everything
     wavelength, width, thickness, sw_angle = clean_inputs((wavelength, width, thickness, sw_angle))
     #get coefficients
@@ -31,9 +46,25 @@ def get_neff(wavelength, width, thickness, sw_angle=90):
 
     return neff
 
-"""Returns all of the coefficients"""
 def get_coeffs(wavelength, width, thickness, sw_angle):
-    #get coeffs from LR model - needs numbers in nm
+    """Return coefficients and neff for a given waveguide profile as used in SCEE
+
+        Leverages Multivariate Linear Regression that maps wavelength, width, thickness and
+        sidewall angle to effective index and coefficients used in estimate of even and odd
+        effective indices with silicon core and silicon dioxide cladding.
+
+        Args:
+            wavelength (float/np.ndarray): wavelength
+            width      (float/np.ndarray): width
+            thickness  (float/np.ndarray): thickness
+            sw_angle   (float/np.ndarray): sw_angle
+
+        Returns:
+            ae   (float/np.ndarray): used in even mode estimation in neff + ae exp(ge * g)
+            ao   (float/np.ndarray): used in odd mode estimation in neff + ao exp(go * g)
+            ge   (float/np.ndarray): used in even mode estimation in neff + ae exp(ge * g)
+            go   (float/np.ndarray): used in odd mode estimation in neff + ao exp(go * g)
+            neff (float/np.ndarray): effective index of waveguide"""
     inputs = np.column_stack((wavelength, width, thickness, sw_angle))
     coeffs = DC_coeffs.predict(inputs)
     ae = coeffs[:,0]
@@ -46,6 +77,29 @@ def get_coeffs(wavelength, width, thickness, sw_angle):
 
 """Plugs coeffs into actual closed form function"""
 def get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist):
+    """Return coupling as found in Columbia paper
+
+        Uses general form of closed form solutions as found in M. Bahadori et al.,
+        "Design Space Exploration of Microring Resonators in Silicon Photonic Interconnects: Impact of the Ring Curvature,"
+        in Journal of Lightwave Technology, vol. 36, no. 13, pp. 2767-2782, 1 July1, 2018..
+
+        Args:
+            ae   (float/np.ndarray): used in even mode estimation in neff + ae exp(ge * g)
+            ao   (float/np.ndarray): used in odd mode estimation in neff + ao exp(go * g)
+            ge   (float/np.ndarray): used in even mode estimation in neff + ae exp(ge * g)
+            go   (float/np.ndarray): used in odd mode estimation in neff + ao exp(go * g)
+            neff (float/np.ndarray): effective index of waveguide
+            wavelength (float/np.ndarray): wavelength
+            gap (float/np.ndarray): gap distance
+            B   (function): B function as found in paper
+            xe  (float/np.ndarray): as found in paper
+            xo  (float/np.ndarray): as found in paper
+            offset  (float/np.ndarray): 0 or pi/2 depending on through/cross coupling
+            trig  (float/np.ndarray): sin or cos depending on through/cross coupling
+            z_dist  (float/np.ndarray): distance light will travel
+
+        Returns:
+            k/t   (complex np.ndarray): coupling coefficient found"""
     even_part = ae*np.exp(-ge*gap)*B(xe)/ge
     odd_part  = ao*np.exp(-go*gap)*B(xo)/go
     phase_part= 2*z_dist*neff
@@ -55,8 +109,18 @@ def get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, tri
 
     return mag*np.exp(-1j*phase)
 
-"""Makes all inputs as the same shape to allow passing arrays through"""
 def clean_inputs(inputs):
+    """Makes all inputs as the same shape to allow passing arrays through
+
+        Used to make sure all inputs have the same length - ie that it's trying
+        to run a specific number of simulations, not a varying amount
+
+        Args:
+            inputs (tuple): can be a mixture of floats/np.ndarray of any amounts
+
+        Returns:
+            inputs (tuple): returns all inputs as same size np.ndarrays"""
+
     inputs = list(inputs)
     #make all scalars into numpy arrays
     for i in range(len(inputs)):
@@ -75,23 +139,23 @@ def clean_inputs(inputs):
 
     return inputs
 
-"""
-Abstract Class that all directional couplers inherit from. Each DC will inherit from it and have initial arguments (in this order):
-
-width, thickness, sw_angle=90
-
-Also, each will have additional arguments as follows (in this order):
-
-GapFuncSymmetric:    gap (func), dgap (func), zmin, zmax
-RR:                  radius, gap
-Racetrack Resonator: radius, gap, length
-Straight:            gap, length
-Standard:            gap, length, H, V
-DoubleRR:            radius, gap
-CurvedRR:            radius, gap, theta
-"""
 class DC(ABC):
-    """Base Class for DC. All other DC classes should be based on this one, including same functions (so
+    """
+    Abstract Class that all directional couplers inherit from. Each DC will inherit from it and have initial arguments (in this order):
+
+    width, thickness, sw_angle=90
+
+    Also, each will have additional arguments as follows (in this order):
+
+    GapFuncSymmetric:    gap (func), dgap (func), zmin, zmax
+    RR:                  radius, gap
+    Racetrack Resonator: radius, gap, length
+    Straight:            gap, length
+    Standard:            gap, length, H, V
+    DoubleRR:            radius, gap
+    CurvedRR:            radius, gap, theta
+
+    Base Class for DC. All other DC classes should be based on this one, including same functions (so
         documentation should be the same). Ports are numbered as:
                 2---\      /---4
                      ------
@@ -912,7 +976,7 @@ class AngledRR(DC):
 
 class Waveguide(ABC):
     """Lossless model for a straight waveguide. Ports are numbered as:
-                
+
                 1 ============== 2
     """
     def __init__(self, width, thickness, length, sw_angle=90):
