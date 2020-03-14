@@ -32,7 +32,7 @@ release = '0.1'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.coverage', 
+    'sphinx.ext.coverage',
     'sphinx.ext.napoleon'
 ]
 
@@ -59,3 +59,5 @@ html_static_path = ['_static']
 
 
 # -- Extension configuration -------------------------------------------------
+#makes it compatible with older sphinx versions (like used by read the docs)
+master_doc = 'index'
