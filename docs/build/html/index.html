@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -206,23 +206,29 @@ ports (input with units same as units input)</p></li>
 
 </dd></dl>
 
-<dl class="data">
-<dt id="SiPANN.dc.C">
-<code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">C</code><em class="property"> = 299792458</em><a class="headerlink" href="#SiPANN.dc.C" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper Functions used throughout classes</p>
-</dd></dl>
-
 <dl class="class">
 <dt id="SiPANN.dc.DC">
 <em class="property">class </em><code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">DC</code><span class="sig-paren">(</span><em class="sig-param">width</em>, <em class="sig-param">thickness</em>, <em class="sig-param">sw_angle=90</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.DC" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base Class for DC. All other DC classes should be based on this one, including same functions (so
-documentation should be the same). Ports are numbered as:</p>
-<blockquote>
-<div><dl class="simple">
+<dd><p>Abstract Class that all directional couplers inherit from. Each DC will inherit from it and have initial arguments (in this order):</p>
+<p>width, thickness, sw_angle=90</p>
+<p>Also, each will have additional arguments as follows (in this order):</p>
+<p>GapFuncSymmetric:    gap (func), dgap (func), zmin, zmax
+RR:                  radius, gap
+Racetrack Resonator: radius, gap, length
+Straight:            gap, length
+Standard:            gap, length, H, V
+DoubleRR:            radius, gap
+CurvedRR:            radius, gap, theta</p>
+<dl>
+<dt>Base Class for DC. All other DC classes should be based on this one, including same functions (so</dt><dd><dl>
+<dt>documentation should be the same). Ports are numbered as:</dt><dd><dl class="simple">
 <dt>2—     /—4</dt><dd></dd>
 </dl>
 <p>1—/      —3</p>
-</div></blockquote>
+</dd>
+</dl>
+</dd>
+</dl>
 <dl class="method">
 <dt id="SiPANN.dc.DC.clean_args">
 <code class="sig-name descname">clean_args</code><span class="sig-paren">(</span><em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.DC.clean_args" title="Permalink to this definition">¶</a></dt>
@@ -743,6 +749,113 @@ s_matrix (np.ndarray): size (4,4,n) complex matrix of scattering parameters</p>
 <dd><p>Takes in any parameter defined by __init__ and changes it.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="function">
+<dt id="SiPANN.dc.clean_inputs">
+<code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">clean_inputs</code><span class="sig-paren">(</span><em class="sig-param">inputs</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.clean_inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes all inputs as the same shape to allow passing arrays through</p>
+<p>Used to make sure all inputs have the same length - ie that it’s trying
+to run a specific number of simulations, not a varying amount</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inputs</strong> (<em>tuple</em>) – can be a mixture of floats/np.ndarray of any amounts</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>returns all inputs as same size np.ndarrays</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>inputs (tuple)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="SiPANN.dc.get_closed_ans">
+<code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">get_closed_ans</code><span class="sig-paren">(</span><em class="sig-param">ae</em>, <em class="sig-param">ao</em>, <em class="sig-param">ge</em>, <em class="sig-param">go</em>, <em class="sig-param">neff</em>, <em class="sig-param">wavelength</em>, <em class="sig-param">gap</em>, <em class="sig-param">B</em>, <em class="sig-param">xe</em>, <em class="sig-param">xo</em>, <em class="sig-param">offset</em>, <em class="sig-param">trig</em>, <em class="sig-param">z_dist</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.get_closed_ans" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return coupling as found in Columbia paper</p>
+<p>Uses general form of closed form solutions as found in M. Bahadori et al.,
+“Design Space Exploration of Microring Resonators in Silicon Photonic Interconnects: Impact of the Ring Curvature,”
+in Journal of Lightwave Technology, vol. 36, no. 13, pp. 2767-2782, 1 July1, 2018..</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ae</strong> (<em>float/np.ndarray</em>) – used in even mode estimation in neff + ae exp(ge * g)</p></li>
+<li><p><strong>ao</strong> (<em>float/np.ndarray</em>) – used in odd mode estimation in neff + ao exp(go * g)</p></li>
+<li><p><strong>ge</strong> (<em>float/np.ndarray</em>) – used in even mode estimation in neff + ae exp(ge * g)</p></li>
+<li><p><strong>go</strong> (<em>float/np.ndarray</em>) – used in odd mode estimation in neff + ao exp(go * g)</p></li>
+<li><p><strong>neff</strong> (<em>float/np.ndarray</em>) – effective index of waveguide</p></li>
+<li><p><strong>wavelength</strong> (<em>float/np.ndarray</em>) – wavelength</p></li>
+<li><p><strong>gap</strong> (<em>float/np.ndarray</em>) – gap distance</p></li>
+<li><p><strong>B</strong> (<em>function</em>) – B function as found in paper</p></li>
+<li><p><strong>xe</strong> (<em>float/np.ndarray</em>) – as found in paper</p></li>
+<li><p><strong>xo</strong> (<em>float/np.ndarray</em>) – as found in paper</p></li>
+<li><p><strong>offset</strong> (<em>float/np.ndarray</em>) – 0 or pi/2 depending on through/cross coupling</p></li>
+<li><p><strong>trig</strong> (<em>float/np.ndarray</em>) – sin or cos depending on through/cross coupling</p></li>
+<li><p><strong>z_dist</strong> (<em>float/np.ndarray</em>) – distance light will travel</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>coupling coefficient found</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>k/t   (complex np.ndarray)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="SiPANN.dc.get_coeffs">
+<code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">get_coeffs</code><span class="sig-paren">(</span><em class="sig-param">wavelength</em>, <em class="sig-param">width</em>, <em class="sig-param">thickness</em>, <em class="sig-param">sw_angle</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.get_coeffs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return coefficients and neff for a given waveguide profile as used in SCEE</p>
+<p>Leverages Multivariate Linear Regression that maps wavelength, width, thickness and
+sidewall angle to effective index and coefficients used in estimate of even and odd
+effective indices with silicon core and silicon dioxide cladding.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wavelength</strong> (<em>float/np.ndarray</em>) – wavelength</p></li>
+<li><p><strong>width</strong> (<em>float/np.ndarray</em>) – width</p></li>
+<li><p><strong>thickness</strong> (<em>float/np.ndarray</em>) – thickness</p></li>
+<li><p><strong>sw_angle</strong> (<em>float/np.ndarray</em>) – sw_angle</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>used in even mode estimation in neff + ae exp(ge * g)
+ao   (float/np.ndarray): used in odd mode estimation in neff + ao exp(go * g)
+ge   (float/np.ndarray): used in even mode estimation in neff + ae exp(ge * g)
+go   (float/np.ndarray): used in odd mode estimation in neff + ao exp(go * g)
+neff (float/np.ndarray): effective index of waveguide</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ae   (float/np.ndarray)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="SiPANN.dc.get_neff">
+<code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">get_neff</code><span class="sig-paren">(</span><em class="sig-param">wavelength</em>, <em class="sig-param">width</em>, <em class="sig-param">thickness</em>, <em class="sig-param">sw_angle=90</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.get_neff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return neff for a given waveguide profile</p>
+<p>Leverages Multivariate Linear Regression that maps wavelength, width, thickness and
+sidewall angle to effective index with silicon core and silicon dioxide cladding</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wavelength</strong> (<em>float/np.ndarray</em>) – wavelength</p></li>
+<li><p><strong>width</strong> (<em>float/np.ndarray</em>) – width</p></li>
+<li><p><strong>thickness</strong> (<em>float/np.ndarray</em>) – thickness</p></li>
+<li><p><strong>sw_angle</strong> (<em>float/np.ndarray</em>) – sw_angle</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>effective index of waveguide
+float: and another</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float/np.ndarray</p>
+</dd>
+</dl>
 </dd></dl>
 
 <div class="toctree-wrapper compound">
