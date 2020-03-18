@@ -30,14 +30,21 @@ def get_neff(wavelength, width, thickness, sw_angle=90):
         Leverages Multivariate Linear Regression that maps wavelength, width, thickness and
         sidewall angle to effective index with silicon core and silicon dioxide cladding
 
-        Args:
-            wavelength (float/np.ndarray): wavelength
-            width      (float/np.ndarray): width
-            thickness  (float/np.ndarray): thickness
-            sw_angle   (float/np.ndarray): sw_angle
+        Parameters
+        ----------
+            wavelength:  float or np.ndarray
+                wavelength
+            width:    float or np.ndarray
+                width
+            thickness:    float or np.ndarray
+                    thickness
+            sw_angle:    float or np.ndarray
+                sw_angle
 
-        Returns:
-            neff (float/np.ndarray): effective index of waveguide"""
+        Returns
+        ----------
+            neff:    float or np.ndarray
+                effective index of waveguide"""
 
     #clean everything
     wavelength, width, thickness, sw_angle = clean_inputs((wavelength, width, thickness, sw_angle))
@@ -53,18 +60,29 @@ def get_coeffs(wavelength, width, thickness, sw_angle):
         sidewall angle to effective index and coefficients used in estimate of even and odd
         effective indices with silicon core and silicon dioxide cladding.
 
-        Args:
-            wavelength (float/np.ndarray): wavelength
-            width      (float/np.ndarray): width
-            thickness  (float/np.ndarray): thickness
-            sw_angle   (float/np.ndarray): sw_angle
+        Parameters
+        ----------
+            wavelength:    float or np.ndarray
+                wavelength
+            width:    float or np.ndarray
+                width
+            thickness:    float or np.ndarray
+                thickness
+            sw_angle:    float or np.ndarray
+                sw_angle
 
-        Returns:
-            ae   (float/np.ndarray): used in even mode estimation in neff + ae exp(ge * g)
-            ao   (float/np.ndarray): used in odd mode estimation in neff + ao exp(go * g)
-            ge   (float/np.ndarray): used in even mode estimation in neff + ae exp(ge * g)
-            go   (float/np.ndarray): used in odd mode estimation in neff + ao exp(go * g)
-            neff (float/np.ndarray): effective index of waveguide"""
+        Returns
+        ----------
+            ae:    float or np.ndarray
+                used in even mode estimation in neff + ae exp(ge * g)
+            ao:    float or np.ndarray
+                used in odd mode estimation in neff + ao exp(go * g)
+            ge:    float or np.ndarray
+                used in even mode estimation in neff + ae exp(ge * g)
+            go:    float or np.ndarray
+                used in odd mode estimation in neff + ao exp(go * g)
+            neff:    float or np.ndarray
+                effective index of waveguide"""
     inputs = np.column_stack((wavelength, width, thickness, sw_angle))
     coeffs = DC_coeffs.predict(inputs)
     ae = coeffs[:,0]
@@ -83,22 +101,36 @@ def get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, tri
         "Design Space Exploration of Microring Resonators in Silicon Photonic Interconnects: Impact of the Ring Curvature,"
         in Journal of Lightwave Technology, vol. 36, no. 13, pp. 2767-2782, 1 July1, 2018..
 
-        Args:
-            ae   (float/np.ndarray): used in even mode estimation in neff + ae exp(ge * g)
-            ao   (float/np.ndarray): used in odd mode estimation in neff + ao exp(go * g)
-            ge   (float/np.ndarray): used in even mode estimation in neff + ae exp(ge * g)
-            go   (float/np.ndarray): used in odd mode estimation in neff + ao exp(go * g)
-            neff (float/np.ndarray): effective index of waveguide
-            wavelength (float/np.ndarray): wavelength
-            gap (float/np.ndarray): gap distance
+        Parameters
+        ----------
+            ae:    float or np.ndarray
+                used in even mode estimation in neff + ae exp(ge * g)
+            ao:    float or np.ndarray
+                used in odd mode estimation in neff + ao exp(go * g)
+            ge:    float or np.ndarray
+                used in even mode estimation in neff + ae exp(ge * g)
+            go:    float or np.ndarray
+                used in odd mode estimation in neff + ao exp(go * g)
+            neff:    float or np.ndarray
+                effective index of waveguide
+            wavelength:    float or np.ndarray
+                wavelength
+            gap:    float or np.ndarray
+                gap distance
             B   (function): B function as found in paper
-            xe  (float/np.ndarray): as found in paper
-            xo  (float/np.ndarray): as found in paper
-            offset  (float/np.ndarray): 0 or pi/2 depending on through/cross coupling
-            trig  (float/np.ndarray): sin or cos depending on through/cross coupling
-            z_dist  (float/np.ndarray): distance light will travel
+            xe:    float or np.ndarray
+                as found in paper
+            xo:    float or np.ndarray
+                as found in paper
+            offset:    float or np.ndarray
+                0 or pi/2 depending on through/cross coupling
+            trig:    float or np.ndarray
+                sin or cos depending on through/cross coupling
+            z_dist:    float or np.ndarray
+                distance light will travel
 
-        Returns:
+        Returns
+        ----------
             k/t   (complex np.ndarray): coupling coefficient found"""
     even_part = ae*np.exp(-ge*gap)*B(xe)/ge
     odd_part  = ao*np.exp(-go*gap)*B(xo)/go
@@ -115,10 +147,12 @@ def clean_inputs(inputs):
         Used to make sure all inputs have the same length - ie that it's trying
         to run a specific number of simulations, not a varying amount
 
-        Args:
+        Parameters
+        ----------
             inputs (tuple): can be a mixture of floats/np.ndarray of any amounts
 
-        Returns:
+        Returns
+        ----------
             inputs (tuple): returns all inputs as same size np.ndarrays"""
 
     inputs = list(inputs)
@@ -182,9 +216,12 @@ class DC(ABC):
 
     def sparams(self, wavelength):
         """Returns sparams
-        Args:
-            wavelength(float/np.ndarray): wavelengths to get sparams at
-        Returns:
+        Parameters
+        ----------
+            wavelength:    float or np.ndarray
+                wavelengths to get sparams at
+        Returns
+        ----------
             freq     (np.ndarray): frequency for s_matrix in Hz, size n (number of wavelength points)
             s_matrix (np.ndarray): size (4,4,n) complex matrix of scattering parameters
         """
@@ -221,11 +258,14 @@ class DC(ABC):
     def predict(self, ports, wavelength):
         """Predicts the output when light is put in the bottom left port (see diagram above)
 
-        Args:
+        Parameters
+        ----------
             ports               (2-tuple): Specifies the port coming in and coming out
-            wavelength (float/np.ndarray): wavelength(s) to predict at
+            wavelength:    float or np.ndarray
+                wavelength(s) to predict at
 
-        Returns:
+        Returns
+        ----------
             k/t (complex np.ndarray): returns the value of the light coming through"""
         pass
 
@@ -233,7 +273,8 @@ class DC(ABC):
     def gds(self, filename=None, extra=0, units='microns', view=False, sbend_h=0, sbend_v=0):
         """Writes the geometry to the gds file
 
-        Args:
+        Parameters
+        ----------
             filename (str): location to save file to, or if you don't want to defaults to None
             extra    (int): extra straight portion to add to ends of waveguides to make room in simulation
                                 (input with units same as units input)
@@ -1001,9 +1042,12 @@ class Waveguide(ABC):
 
     def sparams(self, wavelength):
         """Returns sparams
-        Args:
-            wavelength(float/np.ndarray): wavelengths to get sparams at
-        Returns:
+        Parameters
+        ----------
+            wavelength:    float or np.ndarray
+                wavelengths to get sparams at
+        Returns
+        ----------
             freq     (np.ndarray): frequency for s_matrix in Hz, size n (number of wavelength points)
             s_matrix (np.ndarray): size (4,4,n) complex matrix of scattering parameters
         """
@@ -1037,11 +1081,14 @@ class Waveguide(ABC):
     def predict(self, wavelength, ports=(1,2)):
         """Predicts the output when light is put in the bottom left port (see diagram above)
 
-        Args:
-            wavelength (float/np.ndarray): wavelength(s) to predict at
+        Parameters
+        ----------
+            wavelength : float or np.ndarray
+                wavelength(s) to predict at
             ports               (2-tuple): Specifies the port coming in and coming out
 
-        Returns:
+        Returns
+        ----------
             k/t (complex np.ndarray): returns the value of the light coming through"""
         wavelength, width, thickness, sw_angle, length = self.clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
@@ -1059,7 +1106,8 @@ class Waveguide(ABC):
     def gds(self, filename=None, extra=0, units='microns', view=False):
         """Writes the geometry to the gds file
 
-        Args:
+        Parameters
+        ----------
             filename (str): location to save file to, or if you don't want to defaults to None
             extra    (int): extra straight portion to add to ends of waveguides to make room in simulation
                                 (input with units same as units input)
