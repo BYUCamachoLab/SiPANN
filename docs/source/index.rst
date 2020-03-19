@@ -8,7 +8,6 @@ Welcome to SiPANN's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-    dc
 
 Indices and tables
 ==================

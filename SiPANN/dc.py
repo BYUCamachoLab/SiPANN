@@ -27,24 +27,24 @@ C          = 299792458
 def get_neff(wavelength, width, thickness, sw_angle=90):
     """Return neff for a given waveguide profile
 
-        Leverages Multivariate Linear Regression that maps wavelength, width, thickness and
-        sidewall angle to effective index with silicon core and silicon dioxide cladding
+    Leverages Multivariate Linear Regression that maps wavelength, width, thickness and
+    sidewall angle to effective index with silicon core and silicon dioxide cladding
 
-        Parameters
-        ----------
-            wavelength:  float or np.ndarray
-                wavelength
-            width:    float or np.ndarray
-                width
-            thickness:    float or np.ndarray
-                    thickness
-            sw_angle:    float or np.ndarray
-                sw_angle
+    Parameters
+    ----------
+        wavelength:  float or ndarray
+            wavelength
+        width:    float or ndarray
+            width
+        thickness:    float or ndarray
+                thickness
+        sw_angle:    float or ndarray
+            sw_angle
 
-        Returns
-        ----------
-            neff:    float or np.ndarray
-                effective index of waveguide"""
+    Returns
+    ----------
+        neff:    float or ndarray
+            effective index of waveguide"""
 
     #clean everything
     wavelength, width, thickness, sw_angle = clean_inputs((wavelength, width, thickness, sw_angle))
@@ -56,33 +56,33 @@ def get_neff(wavelength, width, thickness, sw_angle=90):
 def get_coeffs(wavelength, width, thickness, sw_angle):
     """Return coefficients and neff for a given waveguide profile as used in SCEE
 
-        Leverages Multivariate Linear Regression that maps wavelength, width, thickness and
-        sidewall angle to effective index and coefficients used in estimate of even and odd
-        effective indices with silicon core and silicon dioxide cladding.
+    Leverages Multivariate Linear Regression that maps wavelength, width, thickness and
+    sidewall angle to effective index and coefficients used in estimate of even and odd
+    effective indices with silicon core and silicon dioxide cladding.
 
-        Parameters
-        ----------
-            wavelength:    float or np.ndarray
-                wavelength
-            width:    float or np.ndarray
-                width
-            thickness:    float or np.ndarray
-                thickness
-            sw_angle:    float or np.ndarray
-                sw_angle
+    Parameters
+    ----------
+        wavelength:    float or ndarray
+            wavelength
+        width:    float or ndarray
+            width
+        thickness:    float or ndarray
+            thickness
+        sw_angle:    float or ndarray
+            sw_angle
 
-        Returns
-        ----------
-            ae:    float or np.ndarray
-                used in even mode estimation in neff + ae exp(ge * g)
-            ao:    float or np.ndarray
-                used in odd mode estimation in neff + ao exp(go * g)
-            ge:    float or np.ndarray
-                used in even mode estimation in neff + ae exp(ge * g)
-            go:    float or np.ndarray
-                used in odd mode estimation in neff + ao exp(go * g)
-            neff:    float or np.ndarray
-                effective index of waveguide"""
+    Returns
+    ----------
+        ae:    float or ndarray
+            used in even mode estimation in neff + ae exp(ge * g)
+        ao:    float or ndarray
+            used in odd mode estimation in neff + ao exp(go * g)
+        ge:    float or ndarray
+            used in even mode estimation in neff + ae exp(ge * g)
+        go:    float or ndarray
+            used in odd mode estimation in neff + ao exp(go * g)
+        neff:    float or ndarray
+            effective index of waveguide"""
     inputs = np.column_stack((wavelength, width, thickness, sw_angle))
     coeffs = DC_coeffs.predict(inputs)
     ae = coeffs[:,0]
@@ -97,41 +97,41 @@ def get_coeffs(wavelength, width, thickness, sw_angle):
 def get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist):
     """Return coupling as found in Columbia paper
 
-        Uses general form of closed form solutions as found in M. Bahadori et al.,
-        "Design Space Exploration of Microring Resonators in Silicon Photonic Interconnects: Impact of the Ring Curvature,"
-        in Journal of Lightwave Technology, vol. 36, no. 13, pp. 2767-2782, 1 July1, 2018..
+    Uses general form of closed form solutions as found in M. Bahadori et al.,
+    "Design Space Exploration of Microring Resonators in Silicon Photonic Interconnects: Impact of the Ring Curvature,"
+    in Journal of Lightwave Technology, vol. 36, no. 13, pp. 2767-2782, 1 July1, 2018..
 
-        Parameters
-        ----------
-            ae:    float or np.ndarray
-                used in even mode estimation in neff + ae exp(ge * g)
-            ao:    float or np.ndarray
-                used in odd mode estimation in neff + ao exp(go * g)
-            ge:    float or np.ndarray
-                used in even mode estimation in neff + ae exp(ge * g)
-            go:    float or np.ndarray
-                used in odd mode estimation in neff + ao exp(go * g)
-            neff:    float or np.ndarray
-                effective index of waveguide
-            wavelength:    float or np.ndarray
-                wavelength
-            gap:    float or np.ndarray
-                gap distance
-            B   (function): B function as found in paper
-            xe:    float or np.ndarray
-                as found in paper
-            xo:    float or np.ndarray
-                as found in paper
-            offset:    float or np.ndarray
-                0 or pi/2 depending on through/cross coupling
-            trig:    float or np.ndarray
-                sin or cos depending on through/cross coupling
-            z_dist:    float or np.ndarray
-                distance light will travel
+    Parameters
+    ----------
+        ae:    float or ndarray
+            used in even mode estimation in neff + ae exp(ge * g)
+        ao:    float or ndarray
+            used in odd mode estimation in neff + ao exp(go * g)
+        ge:    float or ndarray
+            used in even mode estimation in neff + ae exp(ge * g)
+        go:    float or ndarray
+            used in odd mode estimation in neff + ao exp(go * g)
+        neff:    float or ndarray
+            effective index of waveguide
+        wavelength:    float or ndarray
+            wavelength
+        gap:    float or ndarray
+            gap distance
+        B   (function): B function as found in paper
+        xe:    float or ndarray
+            as found in paper
+        xo:    float or ndarray
+            as found in paper
+        offset:    float or ndarray
+            0 or pi/2 depending on through/cross coupling
+        trig:    float or ndarray
+            sin or cos depending on through/cross coupling
+        z_dist:    float or ndarray
+            distance light will travel
 
-        Returns
-        ----------
-            k/t   (complex np.ndarray): coupling coefficient found"""
+    Returns
+    ----------
+        k/t   (complex ndarray): coupling coefficient"""
     even_part = ae*np.exp(-ge*gap)*B(xe)/ge
     odd_part  = ao*np.exp(-go*gap)*B(xo)/go
     phase_part= 2*z_dist*neff
@@ -144,16 +144,18 @@ def get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, tri
 def clean_inputs(inputs):
     """Makes all inputs as the same shape to allow passing arrays through
 
-        Used to make sure all inputs have the same length - ie that it's trying
-        to run a specific number of simulations, not a varying amount
+    Used to make sure all inputs have the same length - ie that it's trying
+    to run a specific number of simulations, not a varying amount
 
-        Parameters
-        ----------
-            inputs (tuple): can be a mixture of floats/np.ndarray of any amounts
+    Parameters
+    ----------
+        inputs : tuple
+            can be an arbitrary mixture of floats/ndarray
 
-        Returns
-        ----------
-            inputs (tuple): returns all inputs as same size np.ndarrays"""
+    Returns
+    ----------
+        inputs : tuple
+            returns all inputs as same size ndarrays"""
 
     inputs = list(inputs)
     #make all scalars into numpy arrays
@@ -174,56 +176,77 @@ def clean_inputs(inputs):
     return inputs
 
 class DC(ABC):
-    """
-    Abstract Class that all directional couplers inherit from. Each DC will inherit from it and have initial arguments (in this order):
-
-    width, thickness, sw_angle=90
-
-    Also, each will have additional arguments as follows (in this order):
-
-    GapFuncSymmetric:    gap (func), dgap (func), zmin, zmax
-    RR:                  radius, gap
-    Racetrack Resonator: radius, gap, length
-    Straight:            gap, length
-    Standard:            gap, length, H, V
-    DoubleRR:            radius, gap
-    CurvedRR:            radius, gap, theta
+    """Abstract Class that all directional couplers inherit from. Each DC will inherit from it.
 
     Base Class for DC. All other DC classes should be based on this one, including same functions (so
-        documentation should be the same). Ports are numbered as:
-                2---\      /---4
-                     ------
-                     ------
-                1---/      \---3
-    """
+    documentation should be the same/similar with exception of device specific attributes). Ports are numbered as:
+    |       2---\      /---4       |
+    |            ------            |
+    |            ------            |
+    |       1---/      \---3       |
+
+    Parameters
+    ----------
+        width : float or ndarray
+            Width of the waveguide in nm
+        thickness : float or ndarray
+            Thickness of waveguide in nm
+        sw_angle : float or ndarray
+            Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
     def __init__(self, width, thickness, sw_angle=90):
         self.width      = width
         self.thickness  = thickness
         self.sw_angle   = sw_angle
 
-    def clean_args(self, wavelength):
-        """Makes sure all attributes are the same size"""
+    def _clean_args(self, wavelength):
+        """Makes sure all attributes are the same size
+
+        Parses through all self attributes to make sure they're all the same size for 
+        simulations. Must be reimplemented for all child classes if they have unique attributes.
+        Also takes in wavelength parameter to clean as is needed occasionally.
+        
+        Parameters
+        ----------
+        wavelength : float or ndarray
+            Wavelength
+
+        Returns
+        ----------
+        inputs : (tuple)
+            Cleaned array of all devices attributes (and wavelength if included.)
+        """
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle))
         else:
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle))
 
     def update(self, **kwargs):
-        """Takes in any parameter defined by __init__ and changes it."""
+        """Takes in any parameter defined by __init__ and changes it.
+        
+        Parameters
+        ----------
+        attribute : float or ndarray
+            Included if any device needs to have an attribute changed."""
         self.width      = kwargs.get('width', self.width)
         self.thickness  = kwargs.get('thickness', self.thickness)
         self.sw_angle   = kwargs.get('sw_angle', self.sw_angle)
 
     def sparams(self, wavelength):
-        """Returns sparams
+        """Returns scattering parameters
+
+        Runs SCEE to get scattering parameters at wavelength input. 
+        
         Parameters
         ----------
-            wavelength:    float or np.ndarray
-                wavelengths to get sparams at
+        wavelength:    float or ndarray
+            wavelengths to get sparams at
+
         Returns
         ----------
-            freq     (np.ndarray): frequency for s_matrix in Hz, size n (number of wavelength points)
-            s_matrix (np.ndarray): size (4,4,n) complex matrix of scattering parameters
+        freq : ndarray
+            frequency for s_matrix in Hz, size n (number of wavelength points)
+        s_matrix : ndarray
+            size (4,4,n) complex matrix of scattering parameters
         """
         #get number of points to evaluate at
         if np.isscalar(wavelength):
@@ -232,7 +255,7 @@ class DC(ABC):
             n = len(wavelength)
 
         #check to make sure the geometry isn't an array
-        if len(self.clean_args(None)[0]) != 1:
+        if len(self._clean_args(None)[0]) != 1:
             raise ValueError("You have changing geometries, getting sparams doesn't make sense")
         s_matrix = np.zeros((4,4,n), dtype='complex')
 
@@ -260,13 +283,14 @@ class DC(ABC):
 
         Parameters
         ----------
-            ports               (2-tuple): Specifies the port coming in and coming out
-            wavelength:    float or np.ndarray
-                wavelength(s) to predict at
+        ports : 2-tuple
+            Specifies the port coming in and coming out
+        wavelength:    float or ndarray
+            Wavelength(s) to predict at
 
         Returns
         ----------
-            k/t (complex np.ndarray): returns the value of the light coming through"""
+        k/t (complex ndarray): returns the value of the light coming through"""
         pass
 
     @abstractmethod
@@ -275,15 +299,21 @@ class DC(ABC):
 
         Parameters
         ----------
-            filename (str): location to save file to, or if you don't want to defaults to None
-            extra    (int): extra straight portion to add to ends of waveguides to make room in simulation
-                                (input with units same as units input)
-            units    (str): either 'microns' or 'nms'. Units to save gds file in
-            view    (bool): whether to visually show gds file
-            sbend_h  (int): how high to horizontally make additional sbends to move ports farther away.
-                                Sbends insert after extra. Only available in couplers with all horizontal
-                                ports (input with units same as units input)
-            sbend_v  (int): same as sbend_h, but vertical distance.
+        filename : str, optional
+            Location to save file to. Defaults to None.
+        extra : int, optional
+            Extra straight portion to add to ends of waveguides to make room in simulation
+            (units same as units parameter). Defaults to 0.
+        units : {'microns' or 'nms'}, optional
+            Units to save gds file in. Defaults to microns.
+        view : bool, optional
+            Whether to visually show gds file. Defaults to False.
+        sbend_h : int, optional
+            How high to horizontally make additional sbends to move ports farther away.
+            Sbends insert after extra. Only available in couplers with all horizontal
+            ports (units same as units parameters). Defaults to 0
+        sbend_v : int, optional
+            Same as sbend_h, but vertical distance. Defaults to 0.
         """
         pass
 
@@ -305,7 +335,7 @@ class GapFuncSymmetric(DC):
         self.zmin = kwargs.get('zmin', self.zmin)
         self.zmax = kwargs.get('zmax', self.zmax)
 
-    def clean_args(self, wavelength):
+    def _clean_args(self, wavelength):
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle))
         else:
@@ -313,7 +343,7 @@ class GapFuncSymmetric(DC):
 
     def predict(self, ports, wavelength, extra_arc=0, part='both'):
         """Has aditional 'part' parameter in case you only want magnitude (mag) or phase (ph)"""
-        wavelength, width, thickness, sw_angle = self.clean_args(wavelength)
+        wavelength, width, thickness, sw_angle = self._clean_args(wavelength)
         n = len(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
         #make sure ports are valid
@@ -351,7 +381,7 @@ class GapFuncSymmetric(DC):
 
     def gds(self, filename=None, extra=0, units='microns', view=False, sbend_h=0, sbend_v=0):
         #check to make sure the geometry isn't an array
-        if len(self.clean_args(None)[0]) != 1:
+        if len(self._clean_args(None)[0]) != 1:
             raise ValueError("You have changing geometries, making gds doesn't make sense")
 
         if units == 'nms':
@@ -429,7 +459,7 @@ class GapFuncAntiSymmetric(DC):
         self.zmin  = kwargs.get('zmin', self.zmin)
         self.zmax  = kwargs.get('zmax', self.zmax)
 
-    def clean_args(self, wavelength):
+    def _clean_args(self, wavelength):
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle))
         else:
@@ -437,7 +467,7 @@ class GapFuncAntiSymmetric(DC):
 
     def predict(self, ports, wavelength, extra_arc=0, part='both'):
         """Has aditional 'part' parameter in case you only want magnitude (mag) or phase (ph)"""
-        wavelength, width, thickness, sw_angle = self.clean_args(wavelength)
+        wavelength, width, thickness, sw_angle = self._clean_args(wavelength)
         n = len(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
         #make sure ports are valid
@@ -495,14 +525,14 @@ class RR(DC):
         self.radius = kwargs.get('radius', self.radius)
         self.gap    = kwargs.get('gap', self.gap)
 
-    def clean_args(self, wavelength):
+    def _clean_args(self, wavelength):
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle, self.radius, self.gap))
         else:
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap))
 
     def predict(self, ports, wavelength):
-        wavelength, width, thickness, sw_angle, radius, gap = self.clean_args(wavelength)
+        wavelength, width, thickness, sw_angle, radius, gap = self._clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         #make sure ports are valid
@@ -538,7 +568,7 @@ class RR(DC):
 
     def gds(self, filename=None, view=False, extra=0, units='nms'):
         #check to make sure the geometry isn't an array
-        if len(self.clean_args(None)[0]) != 1:
+        if len(self._clean_args(None)[0]) != 1:
             raise ValueError("You have changing geometries, making gds doesn't make sense")
 
         if units == 'nms':
@@ -589,14 +619,14 @@ class Racetrack(DC):
         self.gap    = kwargs.get('gap', self.gap)
         self.length = kwargs.get('length', self.length)
 
-    def clean_args(self, wavelength):
+    def _clean_args(self, wavelength):
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle, self.radius, self.gap, self.length))
         else:
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap, self.length))
 
     def predict(self, ports, wavelength):
-        wavelength, width, thickness, sw_angle, radius, gap, length = self.clean_args(wavelength)
+        wavelength, width, thickness, sw_angle, radius, gap, length = self._clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         #make sure ports are valid
@@ -632,7 +662,7 @@ class Racetrack(DC):
 
     def gds(self, filename=None, view=False, extra=0, units='nms'):
         #check to make sure the geometry isn't an array
-        if len(self.clean_args(None)[0]) != 1:
+        if len(self._clean_args(None)[0]) != 1:
             raise ValueError("You have changing geometries, making gds doesn't make sense")
 
         if units == 'nms':
@@ -683,14 +713,14 @@ class Straight(DC):
         self.gap    = kwargs.get('gap', self.gap)
         self.length = kwargs.get('length', self.length)
 
-    def clean_args(self, wavelength):
+    def _clean_args(self, wavelength):
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle, self.gap, self.length))
         else:
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.gap, self.length))
 
     def predict(self, ports, wavelength):
-        wavelength, width, thickness, sw_angle, gap, length = self.clean_args(wavelength)
+        wavelength, width, thickness, sw_angle, gap, length = self._clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         #make sure ports are valid
@@ -726,7 +756,7 @@ class Straight(DC):
 
     def gds(self, filename=None, view=False, extra=0, units='nms', sbend_h=0, sbend_v=0):
         #check to make sure the geometry isn't an array
-        if len(self.clean_args(None)[0]) != 1:
+        if len(self._clean_args(None)[0]) != 1:
             raise ValueError("You have changing geometries, making gds doesn't make sense")
 
         if units == 'nms':
@@ -794,14 +824,14 @@ class Standard(DC):
         self.H      = kwargs.get('H', self.H)
         self.V      = kwargs.get('V', self.V)
 
-    def clean_args(self, wavelength):
+    def _clean_args(self, wavelength):
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle, self.gap, self.length, self.H, self.V))
         else:
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.gap, self.length, self.H, self.V))
 
     def predict(self, ports, wavelength):
-        wavelength, width, thickness, sw_angle, gap, length, H, V = self.clean_args(wavelength)
+        wavelength, width, thickness, sw_angle, gap, length, H, V = self._clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         #make sure ports are valid
@@ -839,7 +869,7 @@ class Standard(DC):
 
     def gds(self, filename=None, view=False, extra=0, units='nms', sbend_h=0, sbend_v=0):
         #check to make sure the geometry isn't an array
-        if len(self.clean_args(None)[0]) != 1:
+        if len(self._clean_args(None)[0]) != 1:
             raise ValueError("You have changing geometries, making gds doesn't make sense")
 
         if units == 'nms':
@@ -913,14 +943,14 @@ class DoubleRR(DC):
         self.radius = kwargs.get('radius', self.radius)
         self.gap    = kwargs.get('gap', self.gap)
 
-    def clean_args(self, wavelength):
+    def _clean_args(self, wavelength):
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle, self.radius, self.gap))
         else:
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap))
 
     def predict(self, ports, wavelength):
-        wavelength, width, thickness, sw_angle, radius, gap = self.clean_args(wavelength)
+        wavelength, width, thickness, sw_angle, radius, gap = self._clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         #make sure ports are valid
@@ -971,14 +1001,14 @@ class AngledRR(DC):
         self.gap    = kwargs.get('gap', self.gap)
         self.theta  = kwargs.get('theta', self.theta)
 
-    def clean_args(self, wavelength):
+    def _clean_args(self, wavelength):
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle, self.radius, self.gap, self.theta))
         else:
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap, self.theta))
 
     def predict(self, ports, wavelength):
-        wavelength, width, thickness, sw_angle, radius, gap, theta = self.clean_args(wavelength)
+        wavelength, width, thickness, sw_angle, radius, gap, theta = self._clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         #make sure ports are valid
@@ -1026,7 +1056,7 @@ class Waveguide(ABC):
         self.length     = length
         self.sw_angle   = sw_angle
 
-    def clean_args(self, wavelength):
+    def _clean_args(self, wavelength):
         """Makes sure all attributes are the same size"""
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle, self.length))
@@ -1044,12 +1074,14 @@ class Waveguide(ABC):
         """Returns sparams
         Parameters
         ----------
-            wavelength:    float or np.ndarray
+            wavelength:    float or ndarray
                 wavelengths to get sparams at
         Returns
         ----------
-            freq     (np.ndarray): frequency for s_matrix in Hz, size n (number of wavelength points)
-            s_matrix (np.ndarray): size (4,4,n) complex matrix of scattering parameters
+            freq : ndarray
+                frequency for s_matrix in Hz, size n (number of wavelength points)
+            s_matrix : ndarray
+                size (4,4,n) complex matrix of scattering parameters
         """
         #get number of points to evaluate at
         if np.isscalar(wavelength):
@@ -1058,7 +1090,7 @@ class Waveguide(ABC):
             n = len(wavelength)
 
         #check to make sure the geometry isn't an array
-        if len(self.clean_args(None)[0]) != 1:
+        if len(self._clean_args(None)[0]) != 1:
             raise ValueError("You have changing geometries, getting sparams doesn't make sense")
         s_matrix = np.zeros((2,2,n), dtype='complex')
 
@@ -1083,14 +1115,14 @@ class Waveguide(ABC):
 
         Parameters
         ----------
-            wavelength : float or np.ndarray
+            wavelength : float or ndarray
                 wavelength(s) to predict at
             ports               (2-tuple): Specifies the port coming in and coming out
 
         Returns
         ----------
-            k/t (complex np.ndarray): returns the value of the light coming through"""
-        wavelength, width, thickness, sw_angle, length = self.clean_args(wavelength)
+            k/t (complex ndarray): returns the value of the light coming through"""
+        wavelength, width, thickness, sw_angle, length = self._clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         #make sure ports are valid
@@ -1108,13 +1140,16 @@ class Waveguide(ABC):
 
         Parameters
         ----------
-            filename (str): location to save file to, or if you don't want to defaults to None
-            extra    (int): extra straight portion to add to ends of waveguides to make room in simulation
+            filename : str
+                location to save file to, or if you don't want to defaults to None
+            extra : int
+                extra straight portion to add to ends of waveguides to make room in simulation
                                 (input with units same as units input)
-            units    (str): either 'microns' or 'nms'. Units to save gds file in
+            units : str
+                either 'microns' or 'nms'. Units to save gds file in
         """
                 #check to make sure the geometry isn't an array
-        if len(self.clean_args(None)[0]) != 1:
+        if len(self._clean_args(None)[0]) != 1:
             raise ValueError("You have changing geometries, making gds doesn't make sense")
 
         if units == 'nms':
