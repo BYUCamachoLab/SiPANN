@@ -1,7 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
 from scipy.integrate import quad
-import scipy.special as special
+from scipy import special
 import pkg_resources
 import joblib
 import gdspy
@@ -191,12 +191,13 @@ class DC(ABC):
             Width of the waveguide in nm
         thickness : float or ndarray
             Thickness of waveguide in nm
-        sw_angle : float or ndarray
+        sw_angle : float or ndarray, optional
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
+            
     def __init__(self, width, thickness, sw_angle=90):
-        self.width      = width
-        self.thickness  = thickness
-        self.sw_angle   = sw_angle
+        self.width     = width
+        self.thickness = thickness
+        self.sw_angle  = sw_angle
 
     def _clean_args(self, wavelength):
         """Makes sure all attributes are the same size
@@ -227,9 +228,9 @@ class DC(ABC):
         ----------
         attribute : float or ndarray
             Included if any device needs to have an attribute changed."""
-        self.width      = kwargs.get('width', self.width)
-        self.thickness  = kwargs.get('thickness', self.thickness)
-        self.sw_angle   = kwargs.get('sw_angle', self.sw_angle)
+        self.width     = kwargs.get('width', self.width)
+        self.thickness = kwargs.get('thickness', self.thickness)
+        self.sw_angle  = kwargs.get('sw_angle', self.sw_angle)
 
     def sparams(self, wavelength):
         """Returns scattering parameters
@@ -279,18 +280,19 @@ class DC(ABC):
 
     @abstractmethod
     def predict(self, ports, wavelength):
-        """Predicts the output when light is put in the bottom left port (see diagram above)
+        """Predicts the output when light is put into one port and out another
 
         Parameters
         ----------
         ports : 2-tuple
             Specifies the port coming in and coming out
-        wavelength:    float or ndarray
+        wavelength : float or ndarray
             Wavelength(s) to predict at
 
         Returns
         ----------
-        k/t (complex ndarray): returns the value of the light coming through"""
+        k/t : complex ndarray
+            The value of the light coming through"""
         pass
 
     @abstractmethod
@@ -317,10 +319,33 @@ class DC(ABC):
         """
         pass
 
-"""
-This class will create arbitrarily shaped SYMMETRIC (ie both waveguides are same shape) directional couplers
-"""
 class GapFuncSymmetric(DC):
+    """This class will create arbitrarily shaped SYMMETRIC (ie both waveguides are same shape) directional couplers.
+
+    It takes in a gap function that describes the gap as one progreses through the device. Note that the shape fo the waveguide 
+    will simply be half of gap function. Also requires the derivative of the gap function for this purpose.
+    Ports are numbered as:
+    |       2---\      /---4       |
+    |            ------            |
+    |            ------            |
+    |       1---/      \---3       |
+
+    Parameters
+    ----------
+        width : float or ndarray
+            Width of the waveguide in nm
+        thickness : float or ndarray
+            Thickness of waveguide in nm
+        gap : function
+            Gap function as one progresses along the waveguide
+        dgap : function
+            Derivative of the gap function
+        zmin : float
+            Where to begin integration in the gap function
+        zmax : float
+            Where to end integration in the gap function
+        sw_angle : float or ndarray, optional
+            Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
     def __init__(self, width, thickness, gap, dgap, zmin, zmax, sw_angle=90):
         super().__init__(width, thickness, sw_angle)
         self.gap  = gap
@@ -336,13 +361,44 @@ class GapFuncSymmetric(DC):
         self.zmax = kwargs.get('zmax', self.zmax)
 
     def _clean_args(self, wavelength):
+        """Makes sure all attributes are the same size
+
+        Parses through all self attributes to make sure they're all the same size for 
+        simulations. Must be reimplemented for all child classes if they have unique attributes.
+        Also takes in wavelength parameter to clean as is needed occasionally.
+        
+        Parameters
+        ----------
+        wavelength : float or ndarray
+            Wavelength
+
+        Returns
+        ----------
+        inputs : (tuple)
+            Cleaned array of all devices attributes (and wavelength if included.)"""
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle))
         else:
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle))
 
     def predict(self, ports, wavelength, extra_arc=0, part='both'):
-        """Has aditional 'part' parameter in case you only want magnitude (mag) or phase (ph)"""
+        """Predicts the output when light is put in the bottom left port (see diagram above)
+
+        Parameters
+        ----------
+        ports : 2-tuple
+            Specifies the port coming in and coming out
+        wavelength : float or ndarray
+            Wavelength(s) to predict at
+        extra_arc : float, optional
+            Adds phase to compensate for waveguides getting to gap function. Defaults to 0.
+        part : {"both", "mag", "ph"}, optional
+            To speed up calculation, can calculate only magnitude (mag), phase (ph), or both. Defaults to both.
+
+        Returns
+        ----------
+        k/t : complex ndarray
+            The value of the light coming through"""
         wavelength, width, thickness, sw_angle = self._clean_args(wavelength)
         n = len(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
@@ -380,6 +436,25 @@ class GapFuncSymmetric(DC):
         return mag*np.exp(-1j * phase)
 
     def gds(self, filename=None, extra=0, units='microns', view=False, sbend_h=0, sbend_v=0):
+        """Writes the geometry to the gds file
+
+        Parameters
+        ----------
+        filename : str, optional
+            Location to save file to. Defaults to None.
+        extra : int, optional
+            Extra straight portion to add to ends of waveguides to make room in simulation
+            (units same as units parameter). Defaults to 0.
+        units : {'microns' or 'nms'}, optional
+            Units to save gds file in. Defaults to microns.
+        view : bool, optional
+            Whether to visually show gds file. Defaults to False.
+        sbend_h : int, optional
+            How high to horizontally make additional sbends to move ports farther away.
+            Sbends insert after extra. Only available in couplers with all horizontal
+            ports (units same as units parameters). Defaults to 0
+        sbend_v : int, optional
+            Same as sbend_h, but vertical distance. Defaults to 0."""
         #check to make sure the geometry isn't an array
         if len(self._clean_args(None)[0]) != 1:
             raise ValueError("You have changing geometries, making gds doesn't make sense")
@@ -441,6 +516,32 @@ class GapFuncSymmetric(DC):
             writer.close()
 
 class GapFuncAntiSymmetric(DC):
+    """This class will create arbitrarily shaped ANTISYMMETRIC (ie waveguides are different shapes) directional couplers.
+
+    It takes in a gap function that describes the gap as one progreses through the device. Also takes in arc length
+    of each port up till coupling point.
+    Ports are numbered as:
+    |       2---\      /---4       |
+    |            ------            |
+    |            ------            |
+    |       1---/      \---3       |
+
+    Parameters
+    ----------
+        width : float or ndarray
+            Width of the waveguide in nm
+        thickness : float or ndarray
+            Thickness of waveguide in nm
+        gap : function
+            Gap function as one progresses along the waveguide
+        zmin : float
+            Where to begin integration in the gap function
+        zmax : float
+            Where to end integration in the gap function
+        arc1, arc2, arc3, arc4 : float
+            Arclength from entrance of each port till minimum coupling point
+        sw_angle : float or ndarray, optional
+            Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
     def __init__(self, width, thickness, gap, zmin, zmax, arc1, arc2, arc3, arc4, sw_angle=90):
         super().__init__(width, thickness, sw_angle)
         self.gap  = gap
@@ -460,13 +561,44 @@ class GapFuncAntiSymmetric(DC):
         self.zmax  = kwargs.get('zmax', self.zmax)
 
     def _clean_args(self, wavelength):
+        """Makes sure all attributes are the same size
+
+        Parses through all self attributes to make sure they're all the same size for 
+        simulations. Must be reimplemented for all child classes if they have unique attributes.
+        Also takes in wavelength parameter to clean as is needed occasionally.
+        
+        Parameters
+        ----------
+        wavelength : float or ndarray
+            Wavelength
+
+        Returns
+        ----------
+        inputs : (tuple)
+            Cleaned array of all devices attributes (and wavelength if included.)"""
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle))
         else:
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle))
 
     def predict(self, ports, wavelength, extra_arc=0, part='both'):
-        """Has aditional 'part' parameter in case you only want magnitude (mag) or phase (ph)"""
+        """Predicts the output when light is put in the bottom left port (see diagram above)
+
+        Parameters
+        ----------
+        ports : 2-tuple
+            Specifies the port coming in and coming out
+        wavelength : float or ndarray
+            Wavelength(s) to predict at
+        extra_arc : float, optional
+            Adds phase to compensate for waveguides getting to gap function. Defaults to 0.
+        part : {"both", "mag", "ph"}, optional
+            To speed up calculation, can calculate only magnitude (mag), phase (ph), or both. Defaults to both.
+
+        Returns
+        ----------
+        k/t : complex ndarray
+            The value of the light coming through"""
         wavelength, width, thickness, sw_angle = self._clean_args(wavelength)
         n = len(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
@@ -509,6 +641,7 @@ class GapFuncAntiSymmetric(DC):
         return mag*np.exp(-1j * phase)
 
     def gds(self, filename=None, extra=0, units='microns', view=False, sbend_h=0, sbend_v=0):
+        """Still needs to be implemented"""
         pass
 
 """
@@ -604,7 +737,6 @@ class RR(DC):
             writer = gdspy.GdsWriter(filename, unit=1.0e-6, precision=1.0e-9)
             writer.write_cell(path_cell)
             writer.close()
-
 
 class Racetrack(DC):
     def __init__(self, width, thickness, radius, gap, length,  sw_angle=90):
@@ -807,7 +939,6 @@ class Straight(DC):
             writer = gdspy.GdsWriter(filename, unit=1.0e-6, precision=1.0e-9)
             writer.write_cell(path_cell)
             writer.close()
-
 
 class Standard(DC):
     def __init__(self, width, thickness, gap, length, H, V, sw_angle=90):

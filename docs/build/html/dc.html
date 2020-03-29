@@ -1,0 +1,1138 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Directional Couplers Module &mdash; SiPANN 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to SiPANN’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> SiPANN
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#"> Directional Couplers Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#helper-functions">Helper Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#base-directional-coupler-class">Base Directional Coupler Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#effective-index-finder">Effective Index Finder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#integration-coefficient-finder">Integration Coefficient Finder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#input-cleaner">Input Cleaner</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#coupling-devices">Coupling Devices</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#symmetric-coupler">Symmetric Coupler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#non-symmetric-coupler">Non-Symmetric Coupler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#half-racetrack-resonator">Half Racetrack Resonator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#coupling-straight-waveguides">Coupling Straight Waveguides</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#standard-shaped-directional-coupler">Standard Shaped Directional Coupler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#double-half-ring">Double Half Ring</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#half-ring">Half Ring</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pushed-half-ring">Pushed Half Ring</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#waveguide">Waveguide</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SiPANN</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Directional Couplers Module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/dc.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="directional-couplers-module">
+<h1>Directional Couplers Module<a class="headerlink" href="#directional-couplers-module" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="helper-functions">
+<h2>Helper Functions<a class="headerlink" href="#helper-functions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="base-directional-coupler-class">
+<h3>Base Directional Coupler Class<a class="headerlink" href="#base-directional-coupler-class" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="SiPANN.dc.DC">
+<em class="property">class </em><code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">DC</code><span class="sig-paren">(</span><em class="sig-param">width</em>, <em class="sig-param">thickness</em>, <em class="sig-param">sw_angle=90</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.DC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract Class that all directional couplers inherit from. Each DC will inherit from it.</p>
+<p>Base Class for DC. All other DC classes should be based on this one, including same functions (so
+documentation should be the same/similar with exception of device specific attributes). Ports are numbered as:
+|       2—     /—4       |
+|            ——            |
+|            ——            |
+|       1—/      —3       |</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>width</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Width of the waveguide in nm</p></li>
+<li><p><strong>thickness</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Thickness of waveguide in nm</p></li>
+<li><p><strong>sw_angle</strong> (<em>float</em><em> or </em><em>ndarray</em><em>, </em><em>optional</em>) – Sidewall angle of waveguide from horizontal in degrees. Defaults to 90.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="SiPANN.dc.DC.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.DC.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in any parameter defined by __init__ and changes it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>attribute</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Included if any device needs to have an attribute changed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.DC.sparams">
+<code class="sig-name descname">sparams</code><span class="sig-paren">(</span><em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.DC.sparams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns scattering parameters</p>
+<p>Runs SCEE to get scattering parameters at wavelength input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – wavelengths to get sparams at</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>freq</strong> (<em>ndarray</em>) – frequency for s_matrix in Hz, size n (number of wavelength points)</p></li>
+<li><p><strong>s_matrix</strong> (<em>ndarray</em>) – size (4,4,n) complex matrix of scattering parameters</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.DC.predict">
+<em class="property">abstract </em><code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">ports</em>, <em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.DC.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predicts the output when light is put into one port and out another</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ports</strong> (<em>2-tuple</em>) – Specifies the port coming in and coming out</p></li>
+<li><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Wavelength(s) to predict at</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>k/t</strong> – The value of the light coming through</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>complex ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.DC.gds">
+<em class="property">abstract </em><code class="sig-name descname">gds</code><span class="sig-paren">(</span><em class="sig-param">filename=None</em>, <em class="sig-param">extra=0</em>, <em class="sig-param">units='microns'</em>, <em class="sig-param">view=False</em>, <em class="sig-param">sbend_h=0</em>, <em class="sig-param">sbend_v=0</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.DC.gds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the geometry to the gds file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – Location to save file to. Defaults to None.</p></li>
+<li><p><strong>extra</strong> (<em>int</em><em>, </em><em>optional</em>) – Extra straight portion to add to ends of waveguides to make room in simulation
+(units same as units parameter). Defaults to 0.</p></li>
+<li><p><strong>units</strong> (<em>{'microns'</em><em> or </em><em>'nms'}</em><em>, </em><em>optional</em>) – Units to save gds file in. Defaults to microns.</p></li>
+<li><p><strong>view</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to visually show gds file. Defaults to False.</p></li>
+<li><p><strong>sbend_h</strong> (<em>int</em><em>, </em><em>optional</em>) – How high to horizontally make additional sbends to move ports farther away.
+Sbends insert after extra. Only available in couplers with all horizontal
+ports (units same as units parameters). Defaults to 0</p></li>
+<li><p><strong>sbend_v</strong> (<em>int</em><em>, </em><em>optional</em>) – Same as sbend_h, but vertical distance. Defaults to 0.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="effective-index-finder">
+<h3>Effective Index Finder<a class="headerlink" href="#effective-index-finder" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="SiPANN.dc.get_neff">
+<code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">get_neff</code><span class="sig-paren">(</span><em class="sig-param">wavelength</em>, <em class="sig-param">width</em>, <em class="sig-param">thickness</em>, <em class="sig-param">sw_angle=90</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.get_neff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return neff for a given waveguide profile</p>
+<p>Leverages Multivariate Linear Regression that maps wavelength, width, thickness and
+sidewall angle to effective index with silicon core and silicon dioxide cladding</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – wavelength</p></li>
+<li><p><strong>width</strong> (<em>float</em><em> or </em><em>ndarray</em>) – width</p></li>
+<li><p><strong>thickness</strong> (<em>float</em><em> or </em><em>ndarray</em>) – thickness</p></li>
+<li><p><strong>sw_angle</strong> (<em>float</em><em> or </em><em>ndarray</em>) – sw_angle</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>neff</strong> – effective index of waveguide</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float or ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="integration-coefficient-finder">
+<h3>Integration Coefficient Finder<a class="headerlink" href="#integration-coefficient-finder" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="SiPANN.dc.get_coeffs">
+<code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">get_coeffs</code><span class="sig-paren">(</span><em class="sig-param">wavelength</em>, <em class="sig-param">width</em>, <em class="sig-param">thickness</em>, <em class="sig-param">sw_angle</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.get_coeffs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return coefficients and neff for a given waveguide profile as used in SCEE</p>
+<p>Leverages Multivariate Linear Regression that maps wavelength, width, thickness and
+sidewall angle to effective index and coefficients used in estimate of even and odd
+effective indices with silicon core and silicon dioxide cladding.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – wavelength</p></li>
+<li><p><strong>width</strong> (<em>float</em><em> or </em><em>ndarray</em>) – width</p></li>
+<li><p><strong>thickness</strong> (<em>float</em><em> or </em><em>ndarray</em>) – thickness</p></li>
+<li><p><strong>sw_angle</strong> (<em>float</em><em> or </em><em>ndarray</em>) – sw_angle</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>ae</strong> (<em>float or ndarray</em>) – used in even mode estimation in neff + ae exp(ge * g)</p></li>
+<li><p><strong>ao</strong> (<em>float or ndarray</em>) – used in odd mode estimation in neff + ao exp(go * g)</p></li>
+<li><p><strong>ge</strong> (<em>float or ndarray</em>) – used in even mode estimation in neff + ae exp(ge * g)</p></li>
+<li><p><strong>go</strong> (<em>float or ndarray</em>) – used in odd mode estimation in neff + ao exp(go * g)</p></li>
+<li><p><strong>neff</strong> (<em>float or ndarray</em>) – effective index of waveguide</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="input-cleaner">
+<h3>Input Cleaner<a class="headerlink" href="#input-cleaner" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="SiPANN.dc.clean_inputs">
+<code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">clean_inputs</code><span class="sig-paren">(</span><em class="sig-param">inputs</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.clean_inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes all inputs as the same shape to allow passing arrays through</p>
+<p>Used to make sure all inputs have the same length - ie that it’s trying
+to run a specific number of simulations, not a varying amount</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inputs</strong> (<em>tuple</em>) – can be an arbitrary mixture of floats/ndarray</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>inputs</strong> – returns all inputs as same size ndarrays</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="coupling-devices">
+<h2>Coupling Devices<a class="headerlink" href="#coupling-devices" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="symmetric-coupler">
+<h3>Symmetric Coupler<a class="headerlink" href="#symmetric-coupler" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="SiPANN.dc.GapFuncSymmetric">
+<em class="property">class </em><code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">GapFuncSymmetric</code><span class="sig-paren">(</span><em class="sig-param">width</em>, <em class="sig-param">thickness</em>, <em class="sig-param">gap</em>, <em class="sig-param">dgap</em>, <em class="sig-param">zmin</em>, <em class="sig-param">zmax</em>, <em class="sig-param">sw_angle=90</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.GapFuncSymmetric" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class will create arbitrarily shaped SYMMETRIC (ie both waveguides are same shape) directional couplers.</p>
+<p>It takes in a gap function that describes the gap as one progreses through the device. Note that the shape fo the waveguide
+will simply be half of gap function. Also requires the derivative of the gap function for this purpose.
+Ports are numbered as:
+|       2—     /—4       |
+|            ——            |
+|            ——            |
+|       1—/      —3       |</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>width</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Width of the waveguide in nm</p></li>
+<li><p><strong>thickness</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Thickness of waveguide in nm</p></li>
+<li><p><strong>gap</strong> (<em>function</em>) – Gap function as one progresses along the waveguide</p></li>
+<li><p><strong>dgap</strong> (<em>function</em>) – Derivative of the gap function</p></li>
+<li><p><strong>zmin</strong> (<em>float</em>) – Where to begin integration in the gap function</p></li>
+<li><p><strong>zmax</strong> (<em>float</em>) – Where to end integration in the gap function</p></li>
+<li><p><strong>sw_angle</strong> (<em>float</em><em> or </em><em>ndarray</em><em>, </em><em>optional</em>) – Sidewall angle of waveguide from horizontal in degrees. Defaults to 90.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="SiPANN.dc.GapFuncSymmetric.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.GapFuncSymmetric.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in any parameter defined by __init__ and changes it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>attribute</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Included if any device needs to have an attribute changed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.GapFuncSymmetric.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">ports</em>, <em class="sig-param">wavelength</em>, <em class="sig-param">extra_arc=0</em>, <em class="sig-param">part='both'</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.GapFuncSymmetric.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predicts the output when light is put in the bottom left port (see diagram above)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ports</strong> (<em>2-tuple</em>) – Specifies the port coming in and coming out</p></li>
+<li><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Wavelength(s) to predict at</p></li>
+<li><p><strong>extra_arc</strong> (<em>float</em><em>, </em><em>optional</em>) – Adds phase to compensate for waveguides getting to gap function. Defaults to 0.</p></li>
+<li><p><strong>part</strong> (<em>{&quot;both&quot;</em><em>, </em><em>&quot;mag&quot;</em><em>, </em><em>&quot;ph&quot;}</em><em>, </em><em>optional</em>) – To speed up calculation, can calculate only magnitude (mag), phase (ph), or both. Defaults to both.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>k/t</strong> – The value of the light coming through</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>complex ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.GapFuncSymmetric.gds">
+<code class="sig-name descname">gds</code><span class="sig-paren">(</span><em class="sig-param">filename=None</em>, <em class="sig-param">extra=0</em>, <em class="sig-param">units='microns'</em>, <em class="sig-param">view=False</em>, <em class="sig-param">sbend_h=0</em>, <em class="sig-param">sbend_v=0</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.GapFuncSymmetric.gds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the geometry to the gds file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – Location to save file to. Defaults to None.</p></li>
+<li><p><strong>extra</strong> (<em>int</em><em>, </em><em>optional</em>) – Extra straight portion to add to ends of waveguides to make room in simulation
+(units same as units parameter). Defaults to 0.</p></li>
+<li><p><strong>units</strong> (<em>{'microns'</em><em> or </em><em>'nms'}</em><em>, </em><em>optional</em>) – Units to save gds file in. Defaults to microns.</p></li>
+<li><p><strong>view</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to visually show gds file. Defaults to False.</p></li>
+<li><p><strong>sbend_h</strong> (<em>int</em><em>, </em><em>optional</em>) – How high to horizontally make additional sbends to move ports farther away.
+Sbends insert after extra. Only available in couplers with all horizontal
+ports (units same as units parameters). Defaults to 0</p></li>
+<li><p><strong>sbend_v</strong> (<em>int</em><em>, </em><em>optional</em>) – Same as sbend_h, but vertical distance. Defaults to 0.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.GapFuncSymmetric.sparams">
+<code class="sig-name descname">sparams</code><span class="sig-paren">(</span><em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.GapFuncSymmetric.sparams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns scattering parameters</p>
+<p>Runs SCEE to get scattering parameters at wavelength input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – wavelengths to get sparams at</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>freq</strong> (<em>ndarray</em>) – frequency for s_matrix in Hz, size n (number of wavelength points)</p></li>
+<li><p><strong>s_matrix</strong> (<em>ndarray</em>) – size (4,4,n) complex matrix of scattering parameters</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="non-symmetric-coupler">
+<h3>Non-Symmetric Coupler<a class="headerlink" href="#non-symmetric-coupler" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="SiPANN.dc.GapFuncAntiSymmetric">
+<em class="property">class </em><code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">GapFuncAntiSymmetric</code><span class="sig-paren">(</span><em class="sig-param">width</em>, <em class="sig-param">thickness</em>, <em class="sig-param">gap</em>, <em class="sig-param">zmin</em>, <em class="sig-param">zmax</em>, <em class="sig-param">arc1</em>, <em class="sig-param">arc2</em>, <em class="sig-param">arc3</em>, <em class="sig-param">arc4</em>, <em class="sig-param">sw_angle=90</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.GapFuncAntiSymmetric" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class will create arbitrarily shaped ANTISYMMETRIC (ie waveguides are different shapes) directional couplers.</p>
+<p>It takes in a gap function that describes the gap as one progreses through the device. Also takes in arc length
+of each port up till coupling point.
+Ports are numbered as:
+|       2—     /—4       |
+|            ——            |
+|            ——            |
+|       1—/      —3       |</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>width</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Width of the waveguide in nm</p></li>
+<li><p><strong>thickness</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Thickness of waveguide in nm</p></li>
+<li><p><strong>gap</strong> (<em>function</em>) – Gap function as one progresses along the waveguide</p></li>
+<li><p><strong>zmin</strong> (<em>float</em>) – Where to begin integration in the gap function</p></li>
+<li><p><strong>zmax</strong> (<em>float</em>) – Where to end integration in the gap function</p></li>
+<li><p><strong>arc2</strong><strong>, </strong><strong>arc3</strong><strong>, </strong><strong>arc4</strong> (<em>arc1</em><em>,</em>) – Arclength from entrance of each port till minimum coupling point</p></li>
+<li><p><strong>sw_angle</strong> (<em>float</em><em> or </em><em>ndarray</em><em>, </em><em>optional</em>) – Sidewall angle of waveguide from horizontal in degrees. Defaults to 90.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="SiPANN.dc.GapFuncAntiSymmetric.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.GapFuncAntiSymmetric.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in any parameter defined by __init__ and changes it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>attribute</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Included if any device needs to have an attribute changed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.GapFuncAntiSymmetric.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">ports</em>, <em class="sig-param">wavelength</em>, <em class="sig-param">extra_arc=0</em>, <em class="sig-param">part='both'</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.GapFuncAntiSymmetric.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predicts the output when light is put in the bottom left port (see diagram above)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ports</strong> (<em>2-tuple</em>) – Specifies the port coming in and coming out</p></li>
+<li><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Wavelength(s) to predict at</p></li>
+<li><p><strong>extra_arc</strong> (<em>float</em><em>, </em><em>optional</em>) – Adds phase to compensate for waveguides getting to gap function. Defaults to 0.</p></li>
+<li><p><strong>part</strong> (<em>{&quot;both&quot;</em><em>, </em><em>&quot;mag&quot;</em><em>, </em><em>&quot;ph&quot;}</em><em>, </em><em>optional</em>) – To speed up calculation, can calculate only magnitude (mag), phase (ph), or both. Defaults to both.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>k/t</strong> – The value of the light coming through</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>complex ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.GapFuncAntiSymmetric.gds">
+<code class="sig-name descname">gds</code><span class="sig-paren">(</span><em class="sig-param">filename=None</em>, <em class="sig-param">extra=0</em>, <em class="sig-param">units='microns'</em>, <em class="sig-param">view=False</em>, <em class="sig-param">sbend_h=0</em>, <em class="sig-param">sbend_v=0</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.GapFuncAntiSymmetric.gds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Still needs to be implemented</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.GapFuncAntiSymmetric.sparams">
+<code class="sig-name descname">sparams</code><span class="sig-paren">(</span><em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.GapFuncAntiSymmetric.sparams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns scattering parameters</p>
+<p>Runs SCEE to get scattering parameters at wavelength input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – wavelengths to get sparams at</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>freq</strong> (<em>ndarray</em>) – frequency for s_matrix in Hz, size n (number of wavelength points)</p></li>
+<li><p><strong>s_matrix</strong> (<em>ndarray</em>) – size (4,4,n) complex matrix of scattering parameters</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="half-racetrack-resonator">
+<h3>Half Racetrack Resonator<a class="headerlink" href="#half-racetrack-resonator" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="SiPANN.dc.Racetrack">
+<em class="property">class </em><code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">Racetrack</code><span class="sig-paren">(</span><em class="sig-param">width</em>, <em class="sig-param">thickness</em>, <em class="sig-param">radius</em>, <em class="sig-param">gap</em>, <em class="sig-param">length</em>, <em class="sig-param">sw_angle=90</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Racetrack" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="SiPANN.dc.Racetrack.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Racetrack.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in any parameter defined by __init__ and changes it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>attribute</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Included if any device needs to have an attribute changed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.Racetrack.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">ports</em>, <em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Racetrack.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predicts the output when light is put into one port and out another</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ports</strong> (<em>2-tuple</em>) – Specifies the port coming in and coming out</p></li>
+<li><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Wavelength(s) to predict at</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>k/t</strong> – The value of the light coming through</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>complex ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.Racetrack.gds">
+<code class="sig-name descname">gds</code><span class="sig-paren">(</span><em class="sig-param">filename=None</em>, <em class="sig-param">view=False</em>, <em class="sig-param">extra=0</em>, <em class="sig-param">units='nms'</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Racetrack.gds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the geometry to the gds file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – Location to save file to. Defaults to None.</p></li>
+<li><p><strong>extra</strong> (<em>int</em><em>, </em><em>optional</em>) – Extra straight portion to add to ends of waveguides to make room in simulation
+(units same as units parameter). Defaults to 0.</p></li>
+<li><p><strong>units</strong> (<em>{'microns'</em><em> or </em><em>'nms'}</em><em>, </em><em>optional</em>) – Units to save gds file in. Defaults to microns.</p></li>
+<li><p><strong>view</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to visually show gds file. Defaults to False.</p></li>
+<li><p><strong>sbend_h</strong> (<em>int</em><em>, </em><em>optional</em>) – How high to horizontally make additional sbends to move ports farther away.
+Sbends insert after extra. Only available in couplers with all horizontal
+ports (units same as units parameters). Defaults to 0</p></li>
+<li><p><strong>sbend_v</strong> (<em>int</em><em>, </em><em>optional</em>) – Same as sbend_h, but vertical distance. Defaults to 0.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.Racetrack.sparams">
+<code class="sig-name descname">sparams</code><span class="sig-paren">(</span><em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Racetrack.sparams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns scattering parameters</p>
+<p>Runs SCEE to get scattering parameters at wavelength input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – wavelengths to get sparams at</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>freq</strong> (<em>ndarray</em>) – frequency for s_matrix in Hz, size n (number of wavelength points)</p></li>
+<li><p><strong>s_matrix</strong> (<em>ndarray</em>) – size (4,4,n) complex matrix of scattering parameters</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="coupling-straight-waveguides">
+<h3>Coupling Straight Waveguides<a class="headerlink" href="#coupling-straight-waveguides" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="SiPANN.dc.Straight">
+<em class="property">class </em><code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">Straight</code><span class="sig-paren">(</span><em class="sig-param">width</em>, <em class="sig-param">thickness</em>, <em class="sig-param">gap</em>, <em class="sig-param">length</em>, <em class="sig-param">sw_angle=90</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Straight" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="SiPANN.dc.Straight.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Straight.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in any parameter defined by __init__ and changes it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>attribute</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Included if any device needs to have an attribute changed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.Straight.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">ports</em>, <em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Straight.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predicts the output when light is put into one port and out another</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ports</strong> (<em>2-tuple</em>) – Specifies the port coming in and coming out</p></li>
+<li><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Wavelength(s) to predict at</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>k/t</strong> – The value of the light coming through</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>complex ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.Straight.gds">
+<code class="sig-name descname">gds</code><span class="sig-paren">(</span><em class="sig-param">filename=None</em>, <em class="sig-param">view=False</em>, <em class="sig-param">extra=0</em>, <em class="sig-param">units='nms'</em>, <em class="sig-param">sbend_h=0</em>, <em class="sig-param">sbend_v=0</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Straight.gds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the geometry to the gds file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – Location to save file to. Defaults to None.</p></li>
+<li><p><strong>extra</strong> (<em>int</em><em>, </em><em>optional</em>) – Extra straight portion to add to ends of waveguides to make room in simulation
+(units same as units parameter). Defaults to 0.</p></li>
+<li><p><strong>units</strong> (<em>{'microns'</em><em> or </em><em>'nms'}</em><em>, </em><em>optional</em>) – Units to save gds file in. Defaults to microns.</p></li>
+<li><p><strong>view</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to visually show gds file. Defaults to False.</p></li>
+<li><p><strong>sbend_h</strong> (<em>int</em><em>, </em><em>optional</em>) – How high to horizontally make additional sbends to move ports farther away.
+Sbends insert after extra. Only available in couplers with all horizontal
+ports (units same as units parameters). Defaults to 0</p></li>
+<li><p><strong>sbend_v</strong> (<em>int</em><em>, </em><em>optional</em>) – Same as sbend_h, but vertical distance. Defaults to 0.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.Straight.sparams">
+<code class="sig-name descname">sparams</code><span class="sig-paren">(</span><em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Straight.sparams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns scattering parameters</p>
+<p>Runs SCEE to get scattering parameters at wavelength input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – wavelengths to get sparams at</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>freq</strong> (<em>ndarray</em>) – frequency for s_matrix in Hz, size n (number of wavelength points)</p></li>
+<li><p><strong>s_matrix</strong> (<em>ndarray</em>) – size (4,4,n) complex matrix of scattering parameters</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="standard-shaped-directional-coupler">
+<h3>Standard Shaped Directional Coupler<a class="headerlink" href="#standard-shaped-directional-coupler" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="SiPANN.dc.Standard">
+<em class="property">class </em><code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">Standard</code><span class="sig-paren">(</span><em class="sig-param">width</em>, <em class="sig-param">thickness</em>, <em class="sig-param">gap</em>, <em class="sig-param">length</em>, <em class="sig-param">H</em>, <em class="sig-param">V</em>, <em class="sig-param">sw_angle=90</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Standard" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="SiPANN.dc.Standard.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Standard.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in any parameter defined by __init__ and changes it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>attribute</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Included if any device needs to have an attribute changed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.Standard.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">ports</em>, <em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Standard.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predicts the output when light is put into one port and out another</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ports</strong> (<em>2-tuple</em>) – Specifies the port coming in and coming out</p></li>
+<li><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Wavelength(s) to predict at</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>k/t</strong> – The value of the light coming through</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>complex ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.Standard.gds">
+<code class="sig-name descname">gds</code><span class="sig-paren">(</span><em class="sig-param">filename=None</em>, <em class="sig-param">view=False</em>, <em class="sig-param">extra=0</em>, <em class="sig-param">units='nms'</em>, <em class="sig-param">sbend_h=0</em>, <em class="sig-param">sbend_v=0</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Standard.gds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the geometry to the gds file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – Location to save file to. Defaults to None.</p></li>
+<li><p><strong>extra</strong> (<em>int</em><em>, </em><em>optional</em>) – Extra straight portion to add to ends of waveguides to make room in simulation
+(units same as units parameter). Defaults to 0.</p></li>
+<li><p><strong>units</strong> (<em>{'microns'</em><em> or </em><em>'nms'}</em><em>, </em><em>optional</em>) – Units to save gds file in. Defaults to microns.</p></li>
+<li><p><strong>view</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to visually show gds file. Defaults to False.</p></li>
+<li><p><strong>sbend_h</strong> (<em>int</em><em>, </em><em>optional</em>) – How high to horizontally make additional sbends to move ports farther away.
+Sbends insert after extra. Only available in couplers with all horizontal
+ports (units same as units parameters). Defaults to 0</p></li>
+<li><p><strong>sbend_v</strong> (<em>int</em><em>, </em><em>optional</em>) – Same as sbend_h, but vertical distance. Defaults to 0.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.Standard.sparams">
+<code class="sig-name descname">sparams</code><span class="sig-paren">(</span><em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Standard.sparams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns scattering parameters</p>
+<p>Runs SCEE to get scattering parameters at wavelength input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – wavelengths to get sparams at</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>freq</strong> (<em>ndarray</em>) – frequency for s_matrix in Hz, size n (number of wavelength points)</p></li>
+<li><p><strong>s_matrix</strong> (<em>ndarray</em>) – size (4,4,n) complex matrix of scattering parameters</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="double-half-ring">
+<h3>Double Half Ring<a class="headerlink" href="#double-half-ring" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="SiPANN.dc.DoubleRR">
+<em class="property">class </em><code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">DoubleRR</code><span class="sig-paren">(</span><em class="sig-param">width</em>, <em class="sig-param">thickness</em>, <em class="sig-param">radius</em>, <em class="sig-param">gap</em>, <em class="sig-param">sw_angle=90</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.DoubleRR" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="SiPANN.dc.DoubleRR.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.DoubleRR.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in any parameter defined by __init__ and changes it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>attribute</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Included if any device needs to have an attribute changed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.DoubleRR.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">ports</em>, <em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.DoubleRR.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predicts the output when light is put into one port and out another</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ports</strong> (<em>2-tuple</em>) – Specifies the port coming in and coming out</p></li>
+<li><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Wavelength(s) to predict at</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>k/t</strong> – The value of the light coming through</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>complex ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.DoubleRR.gds">
+<code class="sig-name descname">gds</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">extra=0</em>, <em class="sig-param">units='nm'</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.DoubleRR.gds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the geometry to the gds file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – Location to save file to. Defaults to None.</p></li>
+<li><p><strong>extra</strong> (<em>int</em><em>, </em><em>optional</em>) – Extra straight portion to add to ends of waveguides to make room in simulation
+(units same as units parameter). Defaults to 0.</p></li>
+<li><p><strong>units</strong> (<em>{'microns'</em><em> or </em><em>'nms'}</em><em>, </em><em>optional</em>) – Units to save gds file in. Defaults to microns.</p></li>
+<li><p><strong>view</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to visually show gds file. Defaults to False.</p></li>
+<li><p><strong>sbend_h</strong> (<em>int</em><em>, </em><em>optional</em>) – How high to horizontally make additional sbends to move ports farther away.
+Sbends insert after extra. Only available in couplers with all horizontal
+ports (units same as units parameters). Defaults to 0</p></li>
+<li><p><strong>sbend_v</strong> (<em>int</em><em>, </em><em>optional</em>) – Same as sbend_h, but vertical distance. Defaults to 0.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.DoubleRR.sparams">
+<code class="sig-name descname">sparams</code><span class="sig-paren">(</span><em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.DoubleRR.sparams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns scattering parameters</p>
+<p>Runs SCEE to get scattering parameters at wavelength input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – wavelengths to get sparams at</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>freq</strong> (<em>ndarray</em>) – frequency for s_matrix in Hz, size n (number of wavelength points)</p></li>
+<li><p><strong>s_matrix</strong> (<em>ndarray</em>) – size (4,4,n) complex matrix of scattering parameters</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="half-ring">
+<h3>Half Ring<a class="headerlink" href="#half-ring" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="SiPANN.dc.RR">
+<em class="property">class </em><code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">RR</code><span class="sig-paren">(</span><em class="sig-param">width</em>, <em class="sig-param">thickness</em>, <em class="sig-param">radius</em>, <em class="sig-param">gap</em>, <em class="sig-param">sw_angle=90</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.RR" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="SiPANN.dc.RR.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.RR.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in any parameter defined by __init__ and changes it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>attribute</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Included if any device needs to have an attribute changed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.RR.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">ports</em>, <em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.RR.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predicts the output when light is put into one port and out another</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ports</strong> (<em>2-tuple</em>) – Specifies the port coming in and coming out</p></li>
+<li><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Wavelength(s) to predict at</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>k/t</strong> – The value of the light coming through</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>complex ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.RR.gds">
+<code class="sig-name descname">gds</code><span class="sig-paren">(</span><em class="sig-param">filename=None</em>, <em class="sig-param">view=False</em>, <em class="sig-param">extra=0</em>, <em class="sig-param">units='nms'</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.RR.gds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the geometry to the gds file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – Location to save file to. Defaults to None.</p></li>
+<li><p><strong>extra</strong> (<em>int</em><em>, </em><em>optional</em>) – Extra straight portion to add to ends of waveguides to make room in simulation
+(units same as units parameter). Defaults to 0.</p></li>
+<li><p><strong>units</strong> (<em>{'microns'</em><em> or </em><em>'nms'}</em><em>, </em><em>optional</em>) – Units to save gds file in. Defaults to microns.</p></li>
+<li><p><strong>view</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to visually show gds file. Defaults to False.</p></li>
+<li><p><strong>sbend_h</strong> (<em>int</em><em>, </em><em>optional</em>) – How high to horizontally make additional sbends to move ports farther away.
+Sbends insert after extra. Only available in couplers with all horizontal
+ports (units same as units parameters). Defaults to 0</p></li>
+<li><p><strong>sbend_v</strong> (<em>int</em><em>, </em><em>optional</em>) – Same as sbend_h, but vertical distance. Defaults to 0.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.RR.sparams">
+<code class="sig-name descname">sparams</code><span class="sig-paren">(</span><em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.RR.sparams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns scattering parameters</p>
+<p>Runs SCEE to get scattering parameters at wavelength input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – wavelengths to get sparams at</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>freq</strong> (<em>ndarray</em>) – frequency for s_matrix in Hz, size n (number of wavelength points)</p></li>
+<li><p><strong>s_matrix</strong> (<em>ndarray</em>) – size (4,4,n) complex matrix of scattering parameters</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="pushed-half-ring">
+<h3>Pushed Half Ring<a class="headerlink" href="#pushed-half-ring" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="SiPANN.dc.AngledRR">
+<em class="property">class </em><code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">AngledRR</code><span class="sig-paren">(</span><em class="sig-param">width</em>, <em class="sig-param">thickness</em>, <em class="sig-param">radius</em>, <em class="sig-param">gap</em>, <em class="sig-param">theta</em>, <em class="sig-param">sw_angle=90</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.AngledRR" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="SiPANN.dc.AngledRR.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.AngledRR.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in any parameter defined by __init__ and changes it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>attribute</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Included if any device needs to have an attribute changed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.AngledRR.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">ports</em>, <em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.AngledRR.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predicts the output when light is put into one port and out another</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ports</strong> (<em>2-tuple</em>) – Specifies the port coming in and coming out</p></li>
+<li><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – Wavelength(s) to predict at</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>k/t</strong> – The value of the light coming through</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>complex ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.AngledRR.gds">
+<code class="sig-name descname">gds</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">extra=0</em>, <em class="sig-param">units='nm'</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.AngledRR.gds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the geometry to the gds file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – Location to save file to. Defaults to None.</p></li>
+<li><p><strong>extra</strong> (<em>int</em><em>, </em><em>optional</em>) – Extra straight portion to add to ends of waveguides to make room in simulation
+(units same as units parameter). Defaults to 0.</p></li>
+<li><p><strong>units</strong> (<em>{'microns'</em><em> or </em><em>'nms'}</em><em>, </em><em>optional</em>) – Units to save gds file in. Defaults to microns.</p></li>
+<li><p><strong>view</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to visually show gds file. Defaults to False.</p></li>
+<li><p><strong>sbend_h</strong> (<em>int</em><em>, </em><em>optional</em>) – How high to horizontally make additional sbends to move ports farther away.
+Sbends insert after extra. Only available in couplers with all horizontal
+ports (units same as units parameters). Defaults to 0</p></li>
+<li><p><strong>sbend_v</strong> (<em>int</em><em>, </em><em>optional</em>) – Same as sbend_h, but vertical distance. Defaults to 0.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.AngledRR.sparams">
+<code class="sig-name descname">sparams</code><span class="sig-paren">(</span><em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.AngledRR.sparams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns scattering parameters</p>
+<p>Runs SCEE to get scattering parameters at wavelength input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – wavelengths to get sparams at</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>freq</strong> (<em>ndarray</em>) – frequency for s_matrix in Hz, size n (number of wavelength points)</p></li>
+<li><p><strong>s_matrix</strong> (<em>ndarray</em>) – size (4,4,n) complex matrix of scattering parameters</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="waveguide">
+<h3>Waveguide<a class="headerlink" href="#waveguide" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="SiPANN.dc.Waveguide">
+<em class="property">class </em><code class="sig-prename descclassname">SiPANN.dc.</code><code class="sig-name descname">Waveguide</code><span class="sig-paren">(</span><em class="sig-param">width</em>, <em class="sig-param">thickness</em>, <em class="sig-param">length</em>, <em class="sig-param">sw_angle=90</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Waveguide" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lossless model for a straight waveguide. Ports are numbered as:</p>
+<p>1 ============== 2</p>
+<dl class="method">
+<dt id="SiPANN.dc.Waveguide.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Waveguide.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in any parameter defined by __init__ and changes it.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.Waveguide.sparams">
+<code class="sig-name descname">sparams</code><span class="sig-paren">(</span><em class="sig-param">wavelength</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Waveguide.sparams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns sparams
+:param wavelength: wavelengths to get sparams at
+:type wavelength: float or ndarray</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>freq</strong> (<em>ndarray</em>) – frequency for s_matrix in Hz, size n (number of wavelength points)</p></li>
+<li><p><strong>s_matrix</strong> (<em>ndarray</em>) – size (4,4,n) complex matrix of scattering parameters</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.Waveguide.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">wavelength</em>, <em class="sig-param">ports=(1</em>, <em class="sig-param">2)</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Waveguide.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predicts the output when light is put in the bottom left port (see diagram above)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wavelength</strong> (<em>float</em><em> or </em><em>ndarray</em>) – wavelength(s) to predict at</p></li>
+<li><p><strong>(</strong><strong>2-tuple</strong><strong>)</strong> (<em>ports</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>k/t (complex ndarray)</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>returns the value of the light coming through</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="SiPANN.dc.Waveguide.gds">
+<code class="sig-name descname">gds</code><span class="sig-paren">(</span><em class="sig-param">filename=None</em>, <em class="sig-param">extra=0</em>, <em class="sig-param">units='microns'</em>, <em class="sig-param">view=False</em><span class="sig-paren">)</span><a class="headerlink" href="#SiPANN.dc.Waveguide.gds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the geometry to the gds file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – location to save file to, or if you don’t want to defaults to None</p></li>
+<li><p><strong>extra</strong> (<em>int</em>) – <dl class="simple">
+<dt>extra straight portion to add to ends of waveguides to make room in simulation</dt><dd><p>(input with units same as units input)</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – either ‘microns’ or ‘nms’. Units to save gds file in</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to SiPANN’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Easton Potokar, R Scott Collings, Alec Hammond
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
