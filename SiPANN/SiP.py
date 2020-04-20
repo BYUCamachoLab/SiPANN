@@ -4,6 +4,7 @@
 
 Changes                                       (Author) (Date)
   Initilization .............................. (AMH) - 22-01-2019
+  Documentation Changes........................(ERP) - 20-04-2020
 
 Current devices:                              (Author)(Date last modified)
   Straight waveguide (TE/TM) ................. (AMH) - 22-01-2019
@@ -78,44 +79,52 @@ def cartesian_product(arrays):
 # Strip waveguide
 # ---------------------------------------------------------------------------- #
 
-'''
-straightWaveguide()
-
-Calculates the first three effective index values of the TE and TM modes. Can also
-calculate derivatives with respect to any of the inputs. This is especially useful
-for calculating the group index, or running gradient based optimization routines.
-
-Each of the inputs can either be a one dimensional numpy array or a scalar. This
-is especially useful if you want to sweep over multiple parameters and include
-all of the possible permutations of the sweeps.
-
-The output is a multidimensional array. The size of each dimension corresponds with
-the size of each of the inputs, such that
-   DIM1 = size(wavelength)
-   DIM2 = size(width)
-   DIM3 = size(thickness)
-
-So if I swept 100 wavelength points, 1 width, and 10 possible thicknesses, then
-the dimension of each output effective index (or higher order derivative) would
-be: (100,1,10).
-
-INPUTS:
-wavelength .............. [np array](N,) wavelength points to evaluate
-width ................... [np array](N,) width of the waveguides in microns
-thickness ............... [np array](N,) thickness of the waveguides in microns
-derivative .............. [scalar] (default=None) Order of the derivative to take
-
-OUTPUTS:
-TE0 .................... [np array](N,M,P) First TE effective index (or derivative)
-TE1 .................... [np array](N,M,P) Second TE effective index (or derivative)
-TE2 .................... [np array](N,M,P) Third TE effective index (or derivative)
-TM0 .................... [np array](N,M,P) First TM effective index (or derivative)
-TM1 .................... [np array](N,M,P) Second TM effective index (or derivative)
-TM2 .................... [np array](N,M,P) Third TM effective index (or derivative)
-
-'''
 def straightWaveguide(wavelength,width,thickness,angle,derivative=None):
+    '''Calculates the first three effective index values of the TE and TM modes. Can also
+    calculate derivatives with respect to any of the inputs. This is especially useful
+    for calculating the group index, or running gradient based optimization routines.
 
+    Each of the inputs can either be a one dimensional numpy array or a scalar. This
+    is especially useful if you want to sweep over multiple parameters and include
+    all of the possible permutations of the sweeps.
+
+    The output is a multidimensional array. The size of each dimension corresponds with
+    the size of each of the inputs, such that
+    DIM1 = size(wavelength)
+    DIM2 = size(width)
+    DIM3 = size(thickness)
+
+    So if I swept 100 wavelength points, 1 width, and 10 possible thicknesses, then
+    the dimension of each output effective index (or higher order derivative) would
+    be: (100,1,10).
+
+    Parameters
+    ----------
+    wavelength : ndarray (N,) 
+        wavelength points to evaluate
+    width : ndarray (N,) 
+        width of the waveguides in microns
+    thickness : ndarray (N,) 
+        thickness of the waveguides in microns
+    derivative : float (default=None) 
+        Order of the derivative to take
+
+    Returns
+    -------
+    TE0 : ndarray (N,M,P) 
+        First TE effective index (or derivative)
+    TE1 : ndarray (N,M,P) 
+        Second TE effective index (or derivative)
+    TE2 : ndarray (N,M,P) 
+        Third TE effective index (or derivative)
+    TM0 : ndarray (N,M,P) 
+        First TM effective index (or derivative)
+    TM1 : ndarray (N,M,P) 
+        Second TM effective index (or derivative)
+    TM2 : ndarray (N,M,P) 
+        Third TM effective index (or derivative)
+
+    '''
     # Santize the input
     if type(wavelength) is np.ndarray:
         wavelength = np.squeeze(wavelength)
@@ -162,25 +171,25 @@ def straightWaveguide(wavelength,width,thickness,angle,derivative=None):
     TE0 = OUTPUT#np.reshape(OUTPUT[:,0],tensorSize)# + 1j*np.reshape(OUTPUT[:,1],tensorSize)
     return TE0
 
-'''
-straightWaveguide_S()
-
-Calculates the analytic scattering matrix of a simple straight waveguide with
-length L.
-
-INPUTS:
-wavelength .............. [np array](N,) wavelength points to evaluate
-width ................... [scalar] width of the waveguides in microns
-thickness ............... [scalar] thickness of the waveguides in microns
-L ....................... [scalar] length of the waveguide in microns
-
-OUTPUTS:
-S ....................... [np array](N,2,2) scattering matrix for each wavelength
-
-
-'''
 def straightWaveguide_S(wavelength,width,thickness,length):
+    '''Calculates the analytic scattering matrix of a simple straight waveguide with
+    length L.
 
+    Parameters
+    -----------
+    wavelength : ndarray (N,) 
+        wavelength points to evaluate
+    width : float 
+        width of the waveguides in microns
+    thickness : float 
+        thickness of the waveguides in microns
+    L : float 
+        length of the waveguide in microns
+
+    Returns
+    -------
+    S : ndarray (N,2,2) 
+        scattering matrix for each wavelength'''
     TE0,TE1,TE2,TM0,TM1,TM2 = straightWaveguide(wavelength,width,thickness)
 
     neff = np.squeeze(TE0)
@@ -191,28 +200,32 @@ def straightWaveguide_S(wavelength,width,thickness,length):
     S[:,1,0] = np.exp(1j*2*np.pi*length*neff/wavelength)
     return S
 
+
 # ---------------------------------------------------------------------------- #
 # Bent waveguide
 # ---------------------------------------------------------------------------- #
-'''
-bentWaveguide()
 
-Calculates the analytic scattering matrix of a simple, parallel waveguide
-directional coupler using the ANN.
-
-INPUTS:
-wavelength .............. [np array](N,) wavelength points to evaluate
-gap ..................... [scalar] gap in the coupler region in microns
-width ................... [scalar] width of the waveguides in microns
-thickness ............... [scalar] thickness of the waveguides in microns
-length .................. [scalar] length of the waveguide in microns
-
-OUTPUTS:
-S ....................... [np array](N,2,2) Scattering matrix
-
-'''
 def bentWaveguide(wavelength,width,thickness,radius,angle,derivative=None):
+    '''Calculates the analytic scattering matrix of a simple, parallel waveguide
+    directional coupler using the ANN.
 
+    Parameters
+    -----------
+    wavelength : ndarray (N,) 
+        wavelength points to evaluate
+    gap : float 
+        gap in the coupler region in microns
+    width : float 
+        width of the waveguides in microns
+    thickness : float 
+        thickness of the waveguides in microns
+    length : float 
+        length of the waveguide in microns
+
+    Returns
+    -------
+    S : ndarray (N,2,2) 
+        Scattering matrix'''
     # Santize the input
     if type(wavelength) is np.ndarray:
         wavelength = np.squeeze(wavelength)
@@ -254,7 +267,24 @@ def bentWaveguide(wavelength,width,thickness,radius,angle,derivative=None):
     return TE0
 
 def bentWaveguide_S(wavelength,radius,width,thickness,gap,angle):
+    '''Calculates the analytic scattering matrix of bent waveguide with
+    length L.
 
+    Parameters
+    -----------
+    wavelength : ndarray (N,) 
+        wavelength points to evaluate
+    width : float 
+        width of the waveguides in microns
+    thickness : float 
+        thickness of the waveguides in microns
+    L : float 
+        length of the waveguide in microns
+
+    Returns
+    -------
+    S : ndarray (N,2,2) 
+        scattering matrix for each wavelength'''
     # Pull effective indices from ANN
     TE0 = bentWaveguide(wavelength,width,thickness,radius)
     neff = np.squeeze(TE0)
@@ -265,29 +295,32 @@ def bentWaveguide_S(wavelength,radius,width,thickness,gap,angle):
     S[:,1,0] = np.exp(1j*2*np.pi*radius*neff*angle/wavelength)
     return S
 
+
 # ---------------------------------------------------------------------------- #
 # Evanescent waveguide coupler
 # ---------------------------------------------------------------------------- #
-'''
-evWGcoupler()
-
-Calculates the analytic scattering matrix of a simple, parallel waveguide
-directional coupler using the ANN.
-
-INPUTS:
-wavelength .............. [np array](N,) wavelength points to evaluate
-couplerLength ........... [scalar] length of the coupling region in microns
-gap ..................... [scalar] gap in the coupler region in microns
-width ................... [scalar] width of the waveguides in microns
-thickness ............... [scalar] thickness of the waveguides in microns
-
-OUTPUTS:
-S ....................... [np array](N,4,4) Scattering matrix
-
-'''
 
 def evWGcoupler(wavelength,width,thickness,gap,angle,derivative=None):
+    '''Calculates the analytic scattering matrix of a simple, parallel waveguide
+    directional coupler using the ANN.
 
+    Parameters
+    -----------
+    wavelength : ndarray (N,) 
+        wavelength points to evaluate
+    couplerLength : float 
+        length of the coupling region in microns
+    gap : float 
+        gap in the coupler region in microns
+    width : float 
+        width of the waveguides in microns
+    thickness : float 
+        thickness of the waveguides in microns
+
+    Returns
+    -------
+    S : ndarray (N,4,4) 
+        Scattering matrix'''
     # Santize the input
     if type(wavelength) is np.ndarray:
         wavelength = np.squeeze(wavelength)
@@ -366,34 +399,39 @@ def evWGcoupler_S(wavelength,width,thickness,gap,couplerLength):
     S[:,3,0] = y
     S[:,3,2] = x
     return S
+
+
 # ---------------------------------------------------------------------------- #
 # Racetrack Ring Resonator
 # ---------------------------------------------------------------------------- #
 
-'''
-racetrackRR()
-
-This particular transfer function assumes that the coupling sides of the ring
-resonator are straight, and the other two sides are curved. Therefore, the
-roundtrip length of the RR is 2*pi*radius + 2*couplerLength.
-
-We assume that the round parts of the ring have negligble coupling compared to
-the straight sections.
-
-INPUTS:
-wavelength .............. [np array](N,) wavelength points to evaluate
-radius .................. [scalar] radius of the sides in microns
-couplerLength ........... [scalar] length of the coupling region in microns
-gap ..................... [scalar] gap in the coupler region in microns
-width ................... [scalar] width of the waveguides in microns
-thickness ............... [scalar] thickness of the waveguides in microns
-
-OUTPUTS:
-S ....................... [np array](N,4,4) Scattering matrix
-
-'''
 def racetrack_AP_RR(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickness=0.2):
+    '''This particular transfer function assumes that the coupling sides of the ring
+    resonator are straight, and the other two sides are curved. Therefore, the
+    roundtrip length of the RR is 2*pi*radius + 2*couplerLength.
 
+    We assume that the round parts of the ring have negligble coupling compared to
+    the straight sections.
+
+    Parameters
+    -----------
+    wavelength : ndarray (N,) 
+        wavelength points to evaluate
+    radius : float 
+        radius of the sides in microns
+    couplerLength : float 
+        length of the coupling region in microns
+    gap : float 
+        gap in the coupler region in microns
+    width : float 
+        width of the waveguides in microns
+    thickness : float 
+        thickness of the waveguides in microns
+
+    Returns
+    -------
+    S : ndarray (N,4,4) 
+        Scattering matrix'''
     # Sanitize the input
     wavelength = np.squeeze(wavelength)
     N          = wavelength.shape[0]
@@ -486,40 +524,47 @@ def racetrack_AP_RR_TF(wavelength,angle=90,radius=12,couplerLength=4.5,gap=0.2,w
 
     # Output final s matrix
     return E, alpha, t, alpha_s, phi
+
+
 # ---------------------------------------------------------------------------- #
 # Rectangular Ring Resonator
 # ---------------------------------------------------------------------------- #
 
-'''
-This particular transfer function assumes that all four sides of the ring
-resonator are straight and that the corners are rounded. Therefore, the
-roundtrip length of the RR is 2*pi*radius + 2*couplerLength + 2*sideLength.
+def rectangularRR(wavelength,radius=5,couplerLength=5,sideLength=5,gap=0.2,width=0.5,thickness=0.2):
+    '''This particular transfer function assumes that all four sides of the ring
+    resonator are straight and that the corners are rounded. Therefore, the
+    roundtrip length of the RR is 2*pi*radius + 2*couplerLength + 2*sideLength.
 
-We assume that the round parts of the ring have negligble coupling compared to
-the straight sections.
+    We assume that the round parts of the ring have negligble coupling compared to
+    the straight sections.
 
-INPUTS:
-wavelength .............. [np array](N,) wavelength points to evaluate
-radius .................. [scalar] radius of the sides in microns
-couplerLength ........... [scalar] length of the coupling region in microns
-sideLength .............. [scalar] length of each side not coupling in microns
-gap ..................... [scalar] gap in the coupler region in microns
-width ................... [scalar] width of the waveguides in microns
-thickness ............... [scalar] thickness of the waveguides in microns
+    Parameters
+    -----------
+    wavelength : ndarray (N,) 
+        wavelength points to evaluate
+    radius : float 
+        radius of the sides in microns
+    couplerLength : float 
+        length of the coupling region in microns
+    sideLength : float 
+        length of each side not coupling in microns
+    gap : float 
+        gap in the coupler region in microns
+    width : float 
+        width of the waveguides in microns
+    thickness : float 
+        thickness of the waveguides in microns
 
-OUTPUTS:
-S ....................... [np array](N,4,4) Scattering matrix
-
-'''
-def rectangularRR(wavelength,radius=5,couplerLength=5,sideLength=5,
-            gap=0.2,width=0.5,thickness=0.2):
-
+    Returns
+    -------
+    S : ndarray (N,4,4) 
+        Scattering matrix'''
     # Sanitize the input
 
     # Calculate transfer function output
 
     #
-    return
+    raise NotImplementedError("Hasn't been implemented yet")
 
 
 # ---------------------------------------------------------------------------- #
