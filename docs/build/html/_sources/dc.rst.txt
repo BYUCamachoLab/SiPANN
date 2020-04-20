@@ -1,6 +1,8 @@
 #############################
-Directional Couplers Module
+SCEE Module
 #############################
+
+These methods are based on the model SCEE found in [CITE PAPER WHEN PUBLISHED].
 
 *********************
 Helper Functions
@@ -11,12 +13,18 @@ Base Directional Coupler Class
 .. autoclass:: SiPANN.dc.DC
     :members:
 
+Waveguide
+==========================
+.. autoclass:: SiPANN.dc.Waveguide
+    :members:
+    :inherited-members:
+
 Effective Index Finder
 ==============================
 .. autofunction:: SiPANN.dc.get_neff
 
-Integration Coefficient Finder
-==============================
+Integrations Coefficient Finder
+=================================
 .. autofunction:: SiPANN.dc.get_coeffs
 
 Input Cleaner
@@ -40,15 +48,9 @@ Non-Symmetric Coupler
     :members:
     :inherited-members:
 
-Half Racetrack Resonator
-==========================
-.. autoclass:: SiPANN.dc.Racetrack
-    :members:
-    :inherited-members:
-
 Coupling Straight Waveguides
 ==============================
-.. autoclass:: SiPANN.dc.Straight
+.. autoclass:: SiPANN.dc.StraightCoupler
     :members:
     :inherited-members:
 
@@ -58,26 +60,26 @@ Standard Shaped Directional Coupler
     :members:
     :inherited-members:
 
-Double Half Ring
+Half Ring
 ==========================
-.. autoclass:: SiPANN.dc.DoubleRR
+.. autoclass:: SiPANN.dc.HalfRing
     :members:
     :inherited-members:
 
-Half Ring
+Half Racetrack Resonator
 ==========================
-.. autoclass:: SiPANN.dc.RR
+.. autoclass:: SiPANN.dc.HalfRacetrack
+    :members:
+    :inherited-members:
+
+Double Half Ring
+==========================
+.. autoclass:: SiPANN.dc.DoubleHalfRing
     :members:
     :inherited-members:
 
 Pushed Half Ring
 ==========================
-.. autoclass:: SiPANN.dc.AngledRR
-    :members:
-    :inherited-members:
-
-Waveguide
-==========================
-.. autoclass:: SiPANN.dc.Waveguide
+.. autoclass:: SiPANN.dc.AngledHalfRing
     :members:
     :inherited-members:

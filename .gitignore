@@ -1,3 +1,5 @@
 **/.ipynb_checkpoints
 **/__pycache__
 SiP_ANN.egg-info/
+docs/build
+**/.vscode

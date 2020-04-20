@@ -93,7 +93,6 @@ def get_coeffs(wavelength, width, thickness, sw_angle):
 
     return (ae, ao, ge, go, neff)
 
-"""Plugs coeffs into actual closed form function"""
 def get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist):
     """Return coupling as found in Columbia paper
 
@@ -179,12 +178,13 @@ class DC(ABC):
     """Abstract Class that all directional couplers inherit from. Each DC will inherit from it.
 
     Base Class for DC. All other DC classes should be based on this one, including same functions (so
-    documentation should be the same/similar with exception of device specific attributes). Ports are numbered as:
-    |       2---\      /---4       |
-    |            ------            |
-    |            ------            |
-    |       1---/      \---3       |
+    documentation should be the same/similar with exception of device specific attributes). Ports are numbered as::
 
+        |       2---\      /---4       | 
+        |            ------            | 
+        |            ------            | 
+        |       1---/      \---3       |
+        
     Parameters
     ----------
         width : float or ndarray
@@ -280,7 +280,7 @@ class DC(ABC):
 
     @abstractmethod
     def predict(self, ports, wavelength):
-        """Predicts the output when light is put into one port and out another
+        """Predicts the output when light is put in the specified port (see diagram above)
 
         Parameters
         ----------
@@ -288,6 +288,10 @@ class DC(ABC):
             Specifies the port coming in and coming out
         wavelength : float or ndarray
             Wavelength(s) to predict at
+        extra_arc : float, optional
+            Adds phase to compensate for waveguides getting to gap function. Defaults to 0.
+        part : {"both", "mag", "ph"}, optional
+            To speed up calculation, can calculate only magnitude (mag), phase (ph), or both. Defaults to both.
 
         Returns
         ----------
@@ -319,16 +323,19 @@ class DC(ABC):
         """
         pass
 
+#########################################################################################
+# Integral Estimators. Make any coupling device as desired.
+#########################################################################################
 class GapFuncSymmetric(DC):
     """This class will create arbitrarily shaped SYMMETRIC (ie both waveguides are same shape) directional couplers.
 
     It takes in a gap function that describes the gap as one progreses through the device. Note that the shape fo the waveguide 
-    will simply be half of gap function. Also requires the derivative of the gap function for this purpose.
-    Ports are numbered as:
-    |       2---\      /---4       |
-    |            ------            |
-    |            ------            |
-    |       1---/      \---3       |
+    will simply be half of gap function. Also requires the derivative of the gap function for this purpose. Ports are numbered as::
+
+        |       2---\      /---4       |
+        |            ------            |
+        |            ------            |
+        |       1---/      \---3       |
 
     Parameters
     ----------
@@ -361,44 +368,12 @@ class GapFuncSymmetric(DC):
         self.zmax = kwargs.get('zmax', self.zmax)
 
     def _clean_args(self, wavelength):
-        """Makes sure all attributes are the same size
-
-        Parses through all self attributes to make sure they're all the same size for 
-        simulations. Must be reimplemented for all child classes if they have unique attributes.
-        Also takes in wavelength parameter to clean as is needed occasionally.
-        
-        Parameters
-        ----------
-        wavelength : float or ndarray
-            Wavelength
-
-        Returns
-        ----------
-        inputs : (tuple)
-            Cleaned array of all devices attributes (and wavelength if included.)"""
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle))
         else:
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle))
 
     def predict(self, ports, wavelength, extra_arc=0, part='both'):
-        """Predicts the output when light is put in the bottom left port (see diagram above)
-
-        Parameters
-        ----------
-        ports : 2-tuple
-            Specifies the port coming in and coming out
-        wavelength : float or ndarray
-            Wavelength(s) to predict at
-        extra_arc : float, optional
-            Adds phase to compensate for waveguides getting to gap function. Defaults to 0.
-        part : {"both", "mag", "ph"}, optional
-            To speed up calculation, can calculate only magnitude (mag), phase (ph), or both. Defaults to both.
-
-        Returns
-        ----------
-        k/t : complex ndarray
-            The value of the light coming through"""
         wavelength, width, thickness, sw_angle = self._clean_args(wavelength)
         n = len(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
@@ -436,25 +411,6 @@ class GapFuncSymmetric(DC):
         return mag*np.exp(-1j * phase)
 
     def gds(self, filename=None, extra=0, units='microns', view=False, sbend_h=0, sbend_v=0):
-        """Writes the geometry to the gds file
-
-        Parameters
-        ----------
-        filename : str, optional
-            Location to save file to. Defaults to None.
-        extra : int, optional
-            Extra straight portion to add to ends of waveguides to make room in simulation
-            (units same as units parameter). Defaults to 0.
-        units : {'microns' or 'nms'}, optional
-            Units to save gds file in. Defaults to microns.
-        view : bool, optional
-            Whether to visually show gds file. Defaults to False.
-        sbend_h : int, optional
-            How high to horizontally make additional sbends to move ports farther away.
-            Sbends insert after extra. Only available in couplers with all horizontal
-            ports (units same as units parameters). Defaults to 0
-        sbend_v : int, optional
-            Same as sbend_h, but vertical distance. Defaults to 0."""
         #check to make sure the geometry isn't an array
         if len(self._clean_args(None)[0]) != 1:
             raise ValueError("You have changing geometries, making gds doesn't make sense")
@@ -561,44 +517,12 @@ class GapFuncAntiSymmetric(DC):
         self.zmax  = kwargs.get('zmax', self.zmax)
 
     def _clean_args(self, wavelength):
-        """Makes sure all attributes are the same size
-
-        Parses through all self attributes to make sure they're all the same size for 
-        simulations. Must be reimplemented for all child classes if they have unique attributes.
-        Also takes in wavelength parameter to clean as is needed occasionally.
-        
-        Parameters
-        ----------
-        wavelength : float or ndarray
-            Wavelength
-
-        Returns
-        ----------
-        inputs : (tuple)
-            Cleaned array of all devices attributes (and wavelength if included.)"""
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle))
         else:
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle))
 
     def predict(self, ports, wavelength, extra_arc=0, part='both'):
-        """Predicts the output when light is put in the bottom left port (see diagram above)
-
-        Parameters
-        ----------
-        ports : 2-tuple
-            Specifies the port coming in and coming out
-        wavelength : float or ndarray
-            Wavelength(s) to predict at
-        extra_arc : float, optional
-            Adds phase to compensate for waveguides getting to gap function. Defaults to 0.
-        part : {"both", "mag", "ph"}, optional
-            To speed up calculation, can calculate only magnitude (mag), phase (ph), or both. Defaults to both.
-
-        Returns
-        ----------
-        k/t : complex ndarray
-            The value of the light coming through"""
         wavelength, width, thickness, sw_angle = self._clean_args(wavelength)
         n = len(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
@@ -641,13 +565,34 @@ class GapFuncAntiSymmetric(DC):
         return mag*np.exp(-1j * phase)
 
     def gds(self, filename=None, extra=0, units='microns', view=False, sbend_h=0, sbend_v=0):
-        """Still needs to be implemented"""
-        pass
+        """Still needs to be implemented for this class"""
+        raise NotImplementedError("Generating GDS file of nonsymmetric coupler not supported yet.")
 
-"""
-All the Different types of DC's with closed form solutions. These will be faster than defining it manually in the function form.
-"""
-class RR(DC):
+#########################################################################################
+# All the Different types of DC's with closed form solutions. These will be faster than defining it manually in the function form above.
+#########################################################################################
+class HalfRing(DC):
+    """This class will create half of a ring resonator.
+
+    It takes in a radius and gap along with usual waveguide parameters. Ports are numbered as::
+
+        |         2 \     / 4          |
+        |            \   /             |
+        |             ---              |
+        |         1---------3          |
+
+    Parameters
+    ----------
+        width : float or ndarray
+            Width of the waveguide in nm
+        thickness : float or ndarray
+            Thickness of waveguide in nm
+        radius : float
+            Distance from center of ring to middle of waveguide in nm.
+        gap : float
+            Minimum distance from ring waveguide edge to straight waveguide edge in nm.
+        sw_angle : float or ndarray, optional
+            Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
     def __init__(self, width, thickness, radius, gap, sw_angle=90):
         super().__init__(width, thickness, sw_angle)
         self.radius = radius
@@ -700,6 +645,19 @@ class RR(DC):
         return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
 
     def gds(self, filename=None, view=False, extra=0, units='nms'):
+        """Writes the geometry to the gds file
+
+        Parameters
+        ----------
+        filename : str, optional
+            Location to save file to. Defaults to None.
+        extra : int, optional
+            Extra straight portion to add to ends of waveguides to make room in simulation
+            (units same as units parameter). Defaults to 0.
+        units : {'microns' or 'nms'}, optional
+            Units to save gds file in. Defaults to microns.
+        view : bool, optional
+            Whether to visually show gds file. Defaults to False."""
         #check to make sure the geometry isn't an array
         if len(self._clean_args(None)[0]) != 1:
             raise ValueError("You have changing geometries, making gds doesn't make sense")
@@ -738,7 +696,30 @@ class RR(DC):
             writer.write_cell(path_cell)
             writer.close()
 
-class Racetrack(DC):
+class HalfRacetrack(DC):
+    """This class will create half of a ring resonator.
+
+    It takes in a radius and gap along with usual waveguide parameters. Ports are numbered as::
+
+        |      2 \           / 4       |
+        |         \         /          |
+        |          ---------           |
+        |      1---------------3       |
+
+    Parameters
+    ----------
+        width : float or ndarray
+            Width of the waveguide in nm
+        thickness : float or ndarray
+            Thickness of waveguide in nm
+        radius : float
+            Distance from center of ring to middle of waveguide in nm.
+        gap : float
+            Minimum distance from ring waveguide edge to straight waveguide edge in nm.
+        length : float
+            Length of straight portion of ring waveguide in nm.
+        sw_angle : float or ndarray, optional
+            Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
     def __init__(self, width, thickness, radius, gap, length,  sw_angle=90):
         super().__init__(width, thickness, sw_angle)
         self.radius = radius
@@ -793,6 +774,19 @@ class Racetrack(DC):
         return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
 
     def gds(self, filename=None, view=False, extra=0, units='nms'):
+        """Writes the geometry to the gds file
+
+        Parameters
+        ----------
+        filename : str, optional
+            Location to save file to. Defaults to None.
+        extra : int, optional
+            Extra straight portion to add to ends of waveguides to make room in simulation
+            (units same as units parameter). Defaults to 0.
+        units : {'microns' or 'nms'}, optional
+            Units to save gds file in. Defaults to microns.
+        view : bool, optional
+            Whether to visually show gds file. Defaults to False."""
         #check to make sure the geometry isn't an array
         if len(self._clean_args(None)[0]) != 1:
             raise ValueError("You have changing geometries, making gds doesn't make sense")
@@ -834,7 +828,26 @@ class Racetrack(DC):
             writer.write_cell(path_cell)
             writer.close()
 
-class Straight(DC):
+class StraightCoupler(DC):
+    """This class will create half of a ring resonator.
+
+    It takes in a radius and gap along with usual waveguide parameters. Ports are numbered as::
+
+        |      2---------------4       |
+        |      1---------------3       |
+
+    Parameters
+    ----------
+        width : float or ndarray
+            Width of the waveguide in nm
+        thickness : float or ndarray
+            Thickness of waveguide in nm
+        gap : float
+           Distance between the two waveguides edge in nm.
+        length : float
+            Length of both waveguides in nm.
+        sw_angle : float or ndarray, optional
+            Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
     def __init__(self, width, thickness, gap, length, sw_angle=90):
         super().__init__(width, thickness, sw_angle)
         self.gap    = gap
@@ -941,6 +954,31 @@ class Straight(DC):
             writer.close()
 
 class Standard(DC):
+    """Normal/Standard Shaped Directional Coupler.
+
+    This is what most people think of when they think directional coupler. Ports are numbered as::
+
+        |       2---\      /---4       | 
+        |            ------            | 
+        |            ------            | 
+        |       1---/      \---3       |
+        
+    Parameters
+    ----------
+        width : float or ndarray
+            Width of the waveguide in nm
+        thickness : float or ndarray
+            Thickness of waveguide in nm
+        gap : float
+           Minimum distance between the two waveguides edge in nm.
+        length : float
+            Length of the straight portion of both waveguides in nm.
+        H : float
+            Horizontal distance between end of coupler until straight portion in nm.
+        H : float
+            Vertical distance between end of coupler until straight portion in nm.
+        sw_angle : float or ndarray, optional
+            Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
     def __init__(self, width, thickness, gap, length, H, V, sw_angle=90):
         super().__init__(width, thickness, sw_angle)
         self.gap    = gap
@@ -1063,7 +1101,30 @@ class Standard(DC):
             writer.write_cell(path_cell)
             writer.close()
 
-class DoubleRR(DC):
+class DoubleHalfRing(DC):
+    """This class will create two equally sized halfrings coupling.
+
+    It takes in a radius and gap along with usual waveguide parameters. Ports are numbered as::
+
+        |         2 \     / 4          |
+        |            \   /             |
+        |             ---              |
+        |             ---              |
+        |            /   \             |
+        |         1 /     \ 3          |
+
+    Parameters
+    ----------
+        width : float or ndarray
+            Width of the waveguide in nm
+        thickness : float or ndarray
+            Thickness of waveguide in nm
+        radius : float
+            Distance from center of ring to middle of waveguide in nm.
+        gap : float
+            Minimum distance from ring waveguide edge to straight waveguide edge in nm.
+        sw_angle : float or ndarray, optional
+            Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
     def __init__(self, width, thickness, radius, gap, sw_angle=90):
         super().__init__(width, thickness, sw_angle)
         self.radius = radius
@@ -1115,11 +1176,47 @@ class DoubleRR(DC):
         xo = go*(radius + width/2)
         return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
 
-    def gds(filename, self, extra=0, units='nm'):
-        raise NotImplemented('TODO: Write to GDS file')
+    def gds(self, filename, extra=0, units='nm', view=False):
+        """Writes the geometry to the gds file
 
+        Parameters
+        ----------
+        filename : str, optional
+            Location to save file to. Defaults to None.
+        extra : int, optional
+            Extra straight portion to add to ends of waveguides to make room in simulation
+            (units same as units parameter). Defaults to 0.
+        units : {'microns' or 'nms'}, optional
+            Units to save gds file in. Defaults to microns.
+        view : bool, optional
+            Whether to visually show gds file. Defaults to False."""
+        raise NotImplementedError('TODO: Write to GDS file')
 
-class AngledRR(DC):
+class AngledHalfRing(DC):
+    """This class will create a halfring resonator with a pushed side.
+
+    It takes in a radius and gap along with usual waveguide parameters. Ports are numbered as::
+
+        |      2  \        / 4       |
+        |          \      /          |
+        |      1--- \    / ---3      |
+        |          \ \  / /          |
+        |           \ -- /           |
+        |            ----            |
+
+    Parameters
+    ----------
+        width : float or ndarray
+            Width of the waveguide in nm
+        thickness : float or ndarray
+            Thickness of waveguide in nm
+        radius : float
+            Distance from center of ring to middle of waveguide in nm.
+        gap : float
+            Minimum distance from ring waveguide edge to straight waveguide edge in nm.
+        theta : float
+            Angle that the straight waveguide is curved in radians (???).
+        sw_angle : float or ndarray, optional"""
     def __init__(self, width, thickness, radius, gap, theta, sw_angle=90):
         super().__init__(width, thickness, sw_angle)
         self.radius = radius
@@ -1173,14 +1270,40 @@ class AngledRR(DC):
         xo = go * theta * (radius + width/2 + gap/2)
         return get_closed_ans(ae, ao, ge, go, neff, wavelength, gap, B, xe, xo, offset, trig, z_dist)
 
-    def gds(filename, self, extra=0, units='nm'):
-        raise NotImplemented('TODO: Write to GDS file')
+    def gds(self, filename, extra=0, units='nm', view=False):
+        """Writes the geometry to the gds file
+
+        Parameters
+        ----------
+        filename : str, optional
+            Location to save file to. Defaults to None.
+        extra : int, optional
+            Extra straight portion to add to ends of waveguides to make room in simulation
+            (units same as units parameter). Defaults to 0.
+        units : {'microns' or 'nms'}, optional
+            Units to save gds file in. Defaults to microns.
+        view : bool, optional
+            Whether to visually show gds file. Defaults to False."""
+        raise NotImplementedError('TODO: Write to GDS file')
 
 class Waveguide(ABC):
-    """Lossless model for a straight waveguide. Ports are numbered as:
+    """Lossless model for a straight waveguide. 
+    
+    Simple model that makes sparameters for a straight waveguide. May not be 
+    the best option, but plays nice with other models in SCEE. Ports are numbered as::
 
-                1 ============== 2
-    """
+                1 ----------- 2
+
+    Parameters
+    ----------
+        width : float or ndarray
+            Width of the waveguide in nm
+        thickness : float or ndarray
+            Thickness of waveguide in nm
+        length : float
+            Length of waveguide in nm.
+        sw_angle : float or ndarray, optional
+            Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
     def __init__(self, width, thickness, length, sw_angle=90):
         self.width      = width
         self.thickness  = thickness
@@ -1188,31 +1311,55 @@ class Waveguide(ABC):
         self.sw_angle   = sw_angle
 
     def _clean_args(self, wavelength):
-        """Makes sure all attributes are the same size"""
+        """Makes sure all attributes are the same size
+
+        Parses through all self attributes to make sure they're all the same size for 
+        simulations. Must be reimplemented for all child classes if they have unique attributes.
+        Also takes in wavelength parameter to clean as is needed occasionally.
+        
+        Parameters
+        ----------
+        wavelength : float or ndarray
+            Wavelength
+
+        Returns
+        ----------
+        inputs : (tuple)
+            Cleaned array of all devices attributes (and wavelength if included.)
+        """        
         if wavelength is None:
             return clean_inputs((self.width, self.thickness, self.sw_angle, self.length))
         else:
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.length))
 
     def update(self, **kwargs):
-        """Takes in any parameter defined by __init__ and changes it."""
+        """Takes in any parameter defined by __init__ and changes it.
+        
+        Parameters
+        ----------
+        attribute : float or ndarray
+            Included if any device needs to have an attribute changed."""
         self.width      = kwargs.get('width', self.width)
         self.thickness  = kwargs.get('thickness', self.thickness)
         self.length     = kwargs.get('thickness', self.length)
         self.sw_angle   = kwargs.get('sw_angle', self.sw_angle)
 
     def sparams(self, wavelength):
-        """Returns sparams
+        """Returns scattering parameters
+
+        Runs SCEE to get scattering parameters at wavelength input. 
+        
         Parameters
         ----------
-            wavelength:    float or ndarray
-                wavelengths to get sparams at
+        wavelength:    float or ndarray
+            wavelengths to get sparams at
+
         Returns
         ----------
-            freq : ndarray
-                frequency for s_matrix in Hz, size n (number of wavelength points)
-            s_matrix : ndarray
-                size (4,4,n) complex matrix of scattering parameters
+        freq : ndarray
+            frequency for s_matrix in Hz, size n (number of wavelength points)
+        s_matrix : ndarray
+            size (2,2,n) complex matrix of scattering parameters
         """
         #get number of points to evaluate at
         if np.isscalar(wavelength):
@@ -1242,17 +1389,19 @@ class Waveguide(ABC):
         return (freq, s_matrix)
 
     def predict(self, wavelength, ports=(1,2)):
-        """Predicts the output when light is put in the bottom left port (see diagram above)
+        """Predicts the output when light is put in the specified port (see diagram above)
 
         Parameters
         ----------
-            wavelength : float or ndarray
-                wavelength(s) to predict at
-            ports               (2-tuple): Specifies the port coming in and coming out
+        ports : 2-tuple
+            Specifies the port coming in and coming out
+        wavelength : float or ndarray
+            Wavelength(s) to predict at
 
         Returns
         ----------
-            k/t (complex ndarray): returns the value of the light coming through"""
+        k/t : complex ndarray
+            The value of the light coming through"""
         wavelength, width, thickness, sw_angle, length = self._clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 

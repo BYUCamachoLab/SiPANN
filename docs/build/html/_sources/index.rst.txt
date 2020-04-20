@@ -7,7 +7,7 @@ SiPANN Documentation
    :maxdepth: 2
    :caption: Table of Contents:
 
-    Directional Couplers Module <dc>
+    SCEE - Direcional Couplers Module <scee>
 
 Indices and tables
 ==================
