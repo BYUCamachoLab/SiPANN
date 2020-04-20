@@ -1,5 +1,5 @@
 | Latest Release                                      | Version                                             | Documentation                                    | Last Commit                                                     | Activity
-| :--------------------------------------: | :-------------:                             | :--------------------------:                        | :----:                                              | :------:                                                        | :------:
+| :--------------------------------------: | :-------------:                             | :--------------------------:                        | :----:                                              | :------:
 | [![Github Release][release_shield]][github_release] | [![Github Version][version_shield]][github_version] | [![Documentation Status][doc_shield]][doc] | [![Github Last Commit][last_commit_shield]][github_last_commit] | [![Github commit activity][activity_shield]][github_activity]
 
 [release_shield]: https://img.shields.io/github/release/contagon/SiPANN.svg
