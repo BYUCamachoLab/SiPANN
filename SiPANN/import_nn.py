@@ -3,6 +3,20 @@ import tensorflow as tf
 import numpy as np
 
 class TensorMinMax():
+    """Copy of sklearn's MinMaxScaler implemented to work with tensorflow.
+
+    When used, tensorflow is able to take gradients on the transformation as 
+    well as on the network itself, allowing for gradient-based optimization in
+    inverse design problems.
+
+    Parameters
+    ----------
+        feature_range : 2-tuple, optional
+            Desired range of transformed data. Defaults to (0, 1)
+        copy : bool, optional
+            Set to false to perform inplace operations. Defaults to True.
+
+    """
     def __init__(self, feature_range=(0,1), copy=True):
         self.feature_range = feature_range
         self.copy = copy
@@ -12,12 +26,33 @@ class TensorMinMax():
         self.data_max = None
 
     def fit(self, X):
+        """Fits the transfomer to the data.
+
+        Essentially finds original min and max of data to be able to shift the data.
+
+        Parameters
+        ----------
+        X : tensor or ndarray
+            Data to fit """
         self.data_min = np.amin(X, axis=0)
         self.data_max = np.amax(X, axis=0)
         self.scale_ = ((self.feature_range[1] - self.feature_range[0]) / (self.data_max - self.data_min))
         self.min_ = self.feature_range[0] - self.data_min * self.scale_
 
     def transform(self, X, mode='numpy'):
+        """Actually does the transorm.
+
+        Parameters
+        ----------
+        X : tensor or ndarray
+            Data to transform
+        mode : {'numpy' or 'tensor'}, optional
+            Whether to use numpy or tensorflow operations.
+
+        Returns
+        -------
+        X : tensor or ndarray
+            Transformed data"""
         if mode == 'numpy':
             X *= self.scale_
             X += self.min_
@@ -27,6 +62,19 @@ class TensorMinMax():
         return X
 
     def inverse_transform(self, X, mode='numpy'):
+        """Undo the transorm.
+
+        Parameters
+        ----------
+        X : tensor or ndarray
+            Data to inverse transform
+        mode : {'numpy' or 'tensor'}, optional
+            Whether to use numpy or tensorflow operations.
+
+        Returns
+        -------
+        X : tensor or ndarray
+            Inverse transformed data"""
         if mode == 'numpy':
             X -= self.min_
             X /= self.scale_
@@ -36,20 +84,27 @@ class TensorMinMax():
         return X
 
 class ImportNN():
-    """
-    Class to import trained NN
+    """Class to import trained NN.
 
-    Attribute:
-        normX (TensorMinMax): Norm of the inputs
-        normY (TensorMinMax): Norm of the outputs
-        s_data (2-tuple): dimensions of input and outputs
+    This the way we've been saving and using our neural networks. After saving them
+    we can simply import them using this class and it keeps them open for as many
+    operations as we desire.
+
+    Attributes
+    ----------
+        normX : TensorMinMax
+            Norm of the inputs
+        normY: TensorMinMax)
+            Norm of the outputs
+        s_data : 2-tuple
+            dimensions (size) of input and outputs
+
+    Parameters
+    ----------
+        directory : str
+            The directory where the model has been stored
     """
     def __init__(self, directory):
-        """Intialize sess and all tensor names
-
-        Parameters:
-            directory (str): the directory where the model is stored
-        """
         #import all graph info
 
         with open(directory + '/Import.pkl', 'rb') as file:
@@ -74,10 +129,14 @@ class ImportNN():
             self.keep_prob = self.graph.get_tensor_by_name('KEEP_PROB:0')
 
     def validate_input(self, input):
-        """Used to check for valid input
+        """Used to check for valid input.
 
-        Parameters:
-            input (numpy array): numpy array with width s_data[0]
+        If it is only a single data point, expands the dimensions so it fits properly
+
+        Parameters
+        -----------
+        input : ndarray
+            Numpy array with width s_data[0]
         """
         #validate and prepare data
         input = np.array(input)
@@ -93,12 +152,17 @@ class ImportNN():
     def output(self, input, kp=1):
         """Runs input through neural network
 
-        Parameters:
-            input (numpy array): numpy array with width s_data[0]
-            kp (int): value from 0 to 1, 1 refers to keeping all nodes, 0 none of them
+        Parameters
+        ----------
+        input : ndarray
+            Numpy array with width s_data[0]
+        kp : int, optional
+                Value from 0 to 1, 1 refers to not performing any dropout on nodes, 0 drops all of them. Defaults to 1.
 
-        Returns:
-            output (numpy array): numpy array with width s_data[1]
+        Returns
+        ----------
+        output: ndarray 
+            numpy array with width s_data[1]
         """
         #validate data
         input = self.validate_input(input)
@@ -106,15 +170,21 @@ class ImportNN():
         return self.sess.run(self.normY.inverse_transform(self.output_tf), feed_dict={self.input_tf: input, self.keep_prob: kp})
 
     def differentiate(self, input, d, kp=1):
-        """Returns derivative of neural network
+        """Returns partial derivative of neural network
 
-        Parameters:
-            input (numpy array): numpy array with width s_data[0]
-            deriv (3-tuple of ints): first refers to output, 2nd input, 3rd the order of derivative
-            kp (int): value from 0 to 1, 1 refers to keeping all nodes, 0 none of them
+        Parameters
+        ----------
+        input : ndarray
+            numpy array with width s_data[0]
+        d : 3-tuple of ints
+            Refers to partial of first element wrt second element to the order of third element
+        kp : int, optional
+            Value from 0 to 1, 1 refers to not performing any dropout on nodes, 0 drops all of them. Defaults to 1.
 
-        Returns:
-            output (numpy array): numpy array with width s_data[1]
+        Returns
+        ----------
+            output : ndarray
+                numpy array with width s_data[1]
         """
         #validate data
         input = self.validate_input(input)
@@ -132,13 +202,19 @@ class ImportNN():
     def rel_error(self, input, output, kp=1):
         """Returns relative error of network
 
-        Parameters:
-            input (numpy array): numpy array with width s_data[0]
-            output (numpy array): numpy array with width s_data[1]
-            kp (int): value from 0 to 1, 1 refers to keeping all nodes, 0 none of them
+        Parameters
+        ----------
+        input : ndarray
+            Numpy array with width s_data[0]
+        output : ndarray
+            Numpy array with width s_data[1]
+        kp : int, optional
+            Value from 0 to 1, 1 refers to not performing any dropout on nodes, 0 drops all of them. Defaults to 1.
 
-        Returns:
-            relative error (scalar): the relative error of values
+        Returns
+        ----------
+        relative error : scalar
+            The relative error of inputs/outputs
         """
         #validate data
         input = self.validate_input(input)

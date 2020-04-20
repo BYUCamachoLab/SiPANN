@@ -8,6 +8,7 @@ SiPANN Documentation
    :caption: Table of Contents:
 
     SCEE - Direcional Couplers Module <scee>
+    Neural Network Utilities <nn_utils>
 
 Indices and tables
 ==================
