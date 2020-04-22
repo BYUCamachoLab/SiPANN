@@ -28,7 +28,7 @@ setup(
     # There are some restrictions on what makes a valid project name
     # specification here:
     # https://packaging.python.org/specifications/core-metadata/#name
-    name='SiP-ANN',  # Required
+    name='SiPANN',  # Required
 
     # Versions should comply with PEP 440:
     # https://www.python.org/dev/peps/pep-0440/
@@ -69,16 +69,16 @@ setup(
     #
     # This field corresponds to the "Home-Page" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#home-page-optional
-    url='https://github.com/contagon/SiP-ANN',  # Optional
+    url='https://github.com/contagon/SiPANN',  # Optional
 
     # This should be your name or the name of the organization which owns the
     # project.
-    author='Alec Hammond, Easton Potokar',  # Optional
+    author='Easton Potokar, Alec Hammond, R Scott Collings',  # Optional
 
     # This should be a valid email address corresponding to the author listed
     # above.
 
-    author_email='pypa-dev@googlegroups.com',  # Optional
+    author_email='contagon6@gmail.com',  # Optional
 
     # Classifiers help users find your project by categorizing it.
     #
@@ -103,6 +103,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
 
     # This field adds keywords for your project which will appear on the
@@ -131,7 +132,7 @@ setup(
     install_requires=[
         "tensorflow",
         "scikit-learn <= 0.20.4", 
-        "gdspy",
+        "gdspy >= 1.5.2",
         "joblib"
     ],
 

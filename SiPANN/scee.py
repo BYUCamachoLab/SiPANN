@@ -5,6 +5,7 @@ from scipy import special
 import pkg_resources
 import joblib
 import gdspy
+import warnings
 
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import PolynomialFeatures
@@ -198,7 +199,19 @@ class DC(ABC):
         self.width     = width
         self.thickness = thickness
         self.sw_angle  = sw_angle
-
+        if np.any(self.width<400):
+            warnings.warn("Width is less than 400nm, may produce invalid results", Warning)
+        if np.any(self.width>600):
+            warnings.warn("Width is greater than 600nm, may produce invalid results", Warning)
+        if np.any(self.thickness<180):
+            warnings.warn("Thickness is less than 180nm, may produce invalid results", Warning)
+        if np.any(self.thickness>240):
+            warnings.warn("Thickness is greater than 240nm, may produce invalid results", Warning)
+        if np.any(self.sw_angle<80):
+            warnings.warn("Sidewall Angle is less than 80 degrees, may produce invalid results", Warning)
+        if np.any(self.sw_angle<90):
+            warnings.warn("Sidewall Angle is greater than 90 degrees, may produce invalid results", Warning)
+        
     def _clean_args(self, wavelength):
         """Makes sure all attributes are the same size
 
@@ -231,6 +244,18 @@ class DC(ABC):
         self.width     = kwargs.get('width', self.width)
         self.thickness = kwargs.get('thickness', self.thickness)
         self.sw_angle  = kwargs.get('sw_angle', self.sw_angle)
+        if np.any(self.width<400):
+            warnings.warn("Width is less than 400nm, may produce invalid results", Warning)
+        if np.any(self.width>600):
+            warnings.warn("Width is greater than 600nm, may produce invalid results", Warning)
+        if np.any(self.thickness<180):
+            warnings.warn("Thickness is less than 180nm, may produce invalid results", Warning)
+        if np.any(self.thickness>240):
+            warnings.warn("Thickness is greater than 240nm, may produce invalid results", Warning)
+        if np.any(self.sw_angle<80):
+            warnings.warn("Sidewall Angle is less than 80 degrees, may produce invalid results", Warning)
+        if np.any(self.sw_angle<90):
+            warnings.warn("Sidewall Angle is greater than 90 degrees, may produce invalid results", Warning)
 
     def sparams(self, wavelength):
         """Returns scattering parameters
@@ -374,9 +399,17 @@ class GapFuncSymmetric(DC):
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle))
 
     def predict(self, ports, wavelength, extra_arc=0, part='both'):
+        #check to make sure wavelength is in valid range
+        if np.any(wavelength<1450):
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+        if np.any(wavelength>1650):
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+
+        #clean data and get coefficients
         wavelength, width, thickness, sw_angle = self._clean_args(wavelength)
         n = len(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
+
         #make sure ports are valid
         if not all(1 <= x <=4 for x in ports):
             raise ValueError('Invalid Ports')
@@ -464,7 +497,7 @@ class GapFuncSymmetric(DC):
         path_cell.add(pathBottom)
 
         if view:
-            gdspy.LayoutViewer(cells='C0')
+            gdspy.LayoutViewer(cells=path_cell)
 
         if filename is not None:
             writer = gdspy.GdsWriter(filename, unit=1.0e-6, precision=1.0e-9)
@@ -523,9 +556,17 @@ class GapFuncAntiSymmetric(DC):
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle))
 
     def predict(self, ports, wavelength, extra_arc=0, part='both'):
+        #check to make sure wavelength is in valid range
+        if np.any(wavelength<1450):
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+        if np.any(wavelength>1650):
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+
+        #clean data and get coefficients
         wavelength, width, thickness, sw_angle = self._clean_args(wavelength)
         n = len(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
+
         #make sure ports are valid
         if not all(1 <= x <=4 for x in ports):
             raise ValueError('Invalid Ports')
@@ -610,6 +651,13 @@ class HalfRing(DC):
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap))
 
     def predict(self, ports, wavelength):
+        #check to make sure wavelength is in valid range
+        if np.any(wavelength<1450):
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+        if np.any(wavelength>1650):
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+
+        #clean data and get coefficients
         wavelength, width, thickness, sw_angle, radius, gap = self._clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
@@ -689,7 +737,7 @@ class HalfRing(DC):
         path_cell.add(pathBottom)
 
         if view:
-            gdspy.LayoutViewer(cells='C0')
+            gdspy.LayoutViewer(cells=path_cell)
 
         if filename is not None:
             writer = gdspy.GdsWriter(filename, unit=1.0e-6, precision=1.0e-9)
@@ -739,6 +787,13 @@ class HalfRacetrack(DC):
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap, self.length))
 
     def predict(self, ports, wavelength):
+        #check to make sure wavelength is in valid range
+        if np.any(wavelength<1450):
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+        if np.any(wavelength>1650):
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+
+        #clean data and get coefficients
         wavelength, width, thickness, sw_angle, radius, gap, length = self._clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
@@ -821,7 +876,7 @@ class HalfRacetrack(DC):
         path_cell.add(pathBottom)
 
         if view:
-            gdspy.LayoutViewer(cells='C0')
+            gdspy.LayoutViewer(cells=path_cell)
 
         if filename is not None:
             writer = gdspy.GdsWriter(filename, unit=1.0e-6, precision=1.0e-9)
@@ -865,6 +920,13 @@ class StraightCoupler(DC):
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.gap, self.length))
 
     def predict(self, ports, wavelength):
+        #check to make sure wavelength is in valid range
+        if np.any(wavelength<1450):
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+        if np.any(wavelength>1650):
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+
+        #clean data and get coefficients
         wavelength, width, thickness, sw_angle, gap, length = self._clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
@@ -946,7 +1008,7 @@ class StraightCoupler(DC):
         path_cell.add(pathBottom)
 
         if view:
-            gdspy.LayoutViewer(cells='C0')
+            gdspy.LayoutViewer(cells=path_cell)
 
         if filename is not None:
             writer = gdspy.GdsWriter(filename, unit=1.0e-6, precision=1.0e-9)
@@ -1000,6 +1062,13 @@ class Standard(DC):
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.gap, self.length, self.H, self.V))
 
     def predict(self, ports, wavelength):
+        #check to make sure wavelength is in valid range
+        if np.any(wavelength<1450):
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+        if np.any(wavelength>1650):
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+
+        #clean data and get coefficients
         wavelength, width, thickness, sw_angle, gap, length, H, V = self._clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
@@ -1094,7 +1163,7 @@ class Standard(DC):
         path_cell.add(pathBottom)
 
         if view:
-            gdspy.LayoutViewer(cells='C0')
+            gdspy.LayoutViewer(cells=path_cell)
 
         if filename is not None:
             writer = gdspy.GdsWriter(filename, unit=1.0e-6, precision=1.0e-9)
@@ -1142,6 +1211,13 @@ class DoubleHalfRing(DC):
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap))
 
     def predict(self, ports, wavelength):
+        #check to make sure wavelength is in valid range
+        if np.any(wavelength<1450):
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+        if np.any(wavelength>1650):
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+
+        #clean data and get coefficients
         wavelength, width, thickness, sw_angle, radius, gap = self._clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
@@ -1236,6 +1312,13 @@ class AngledHalfRing(DC):
             return clean_inputs((wavelength, self.width, self.thickness, self.sw_angle, self.radius, self.gap, self.theta))
 
     def predict(self, ports, wavelength):
+        #check to make sure wavelength is in valid range
+        if np.any(wavelength<1450):
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+        if np.any(wavelength>1650):
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+
+        #clean data and get coefficients
         wavelength, width, thickness, sw_angle, radius, gap, theta = self._clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
@@ -1402,6 +1485,13 @@ class Waveguide(ABC):
         ----------
         k/t : complex ndarray
             The value of the light coming through"""
+        #check to make sure wavelength is in valid range
+        if np.any(wavelength<1450):
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+        if np.any(wavelength>1650):
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+
+        #clean data and get coefficients
         wavelength, width, thickness, sw_angle, length = self._clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
@@ -1410,7 +1500,7 @@ class Waveguide(ABC):
             raise ValueError('Invalid Ports')
 
         #calculate everything
-        z_dist = self.length
+        z_dist = length
         phase = 2*z_dist*neff*np.pi/wavelength
 
         return np.exp(-1j*phase)
@@ -1452,7 +1542,7 @@ class Waveguide(ABC):
         path_cell.add(path)
 
         if view:
-            gdspy.LayoutViewer(cells='C0')
+            gdspy.LayoutViewer(cells=path_cell)
 
         if filename is not None:
             writer = gdspy.GdsWriter(filename, unit=1.0e-6, precision=1.0e-9)
