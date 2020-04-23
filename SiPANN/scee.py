@@ -638,11 +638,15 @@ class HalfRing(DC):
         super().__init__(width, thickness, sw_angle)
         self.radius = radius
         self.gap    = gap
+        if np.any(self.gap<100):
+            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
 
     def update(self, **kwargs):
         super().update(**kwargs)
         self.radius = kwargs.get('radius', self.radius)
         self.gap    = kwargs.get('gap', self.gap)
+        if np.any(self.gap<100):
+            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
 
     def _clean_args(self, wavelength):
         if wavelength is None:
@@ -773,12 +777,16 @@ class HalfRacetrack(DC):
         self.radius = radius
         self.gap    = gap
         self.length = length
+        if np.any(self.gap<100):
+            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
 
     def update(self, **kwargs):
         super().update(**kwargs)
         self.radius = kwargs.get('radius', self.radius)
         self.gap    = kwargs.get('gap', self.gap)
         self.length = kwargs.get('length', self.length)
+        if np.any(self.gap<100):
+            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
 
     def _clean_args(self, wavelength):
         if wavelength is None:
@@ -907,11 +915,15 @@ class StraightCoupler(DC):
         super().__init__(width, thickness, sw_angle)
         self.gap    = gap
         self.length = length
+        if np.any(self.gap<100):
+            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
 
     def update(self, **kwargs):
         super().update(**kwargs)
         self.gap    = kwargs.get('gap', self.gap)
         self.length = kwargs.get('length', self.length)
+        if np.any(self.gap<100):
+            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
 
     def _clean_args(self, wavelength):
         if wavelength is None:
@@ -1047,6 +1059,8 @@ class Standard(DC):
         self.length = length
         self.H      = H
         self.V      = V
+        if np.any(self.gap<100):
+            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
 
     def update(self, **kwargs):
         super().update(**kwargs)
@@ -1054,6 +1068,8 @@ class Standard(DC):
         self.length = kwargs.get('length', self.length)
         self.H      = kwargs.get('H', self.H)
         self.V      = kwargs.get('V', self.V)
+        if np.any(self.gap<100):
+            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
 
     def _clean_args(self, wavelength):
         if wavelength is None:
@@ -1198,11 +1214,15 @@ class DoubleHalfRing(DC):
         super().__init__(width, thickness, sw_angle)
         self.radius = radius
         self.gap    = gap
+        if np.any(self.gap<100):
+            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
 
     def update(self, **kwargs):
         super().update(**kwargs)
         self.radius = kwargs.get('radius', self.radius)
         self.gap    = kwargs.get('gap', self.gap)
+        if np.any(self.gap<100):
+            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
 
     def _clean_args(self, wavelength):
         if wavelength is None:
@@ -1298,12 +1318,16 @@ class AngledHalfRing(DC):
         self.radius = radius
         self.gap    = gap
         self.theta  = theta
+        if np.any(self.gap<100):
+            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
 
     def update(self, **kwargs):
         super().update(**kwargs)
         self.radius = kwargs.get('radius', self.radius)
         self.gap    = kwargs.get('gap', self.gap)
         self.theta  = kwargs.get('theta', self.theta)
+        if np.any(self.gap<100):
+            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
 
     def _clean_args(self, wavelength):
         if wavelength is None:

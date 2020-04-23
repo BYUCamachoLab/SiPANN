@@ -79,7 +79,7 @@ def cartesian_product(arrays):
 # Strip waveguide
 # ---------------------------------------------------------------------------- #
 
-def straightWaveguide(wavelength,width,thickness,angle,derivative=None):
+def straightWaveguide(wavelength,width,thickness,angle=90,derivative=None):
     '''Calculates the first three effective index values of the TE and TM modes. Can also
     calculate derivatives with respect to any of the inputs. This is especially useful
     for calculating the group index, or running gradient based optimization routines.
@@ -106,25 +106,15 @@ def straightWaveguide(wavelength,width,thickness,angle,derivative=None):
         width of the waveguides in microns
     thickness : ndarray (N,) 
         thickness of the waveguides in microns
-    derivative : float (default=None) 
-        Order of the derivative to take
+    angle : ndarray (N,)
+        Sidewall angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
+    derivative : int
+        Order of the derivative to take. Defaults to None.
 
     Returns
     -------
     TE0 : ndarray (N,M,P) 
-        First TE effective index (or derivative)
-    TE1 : ndarray (N,M,P) 
-        Second TE effective index (or derivative)
-    TE2 : ndarray (N,M,P) 
-        Third TE effective index (or derivative)
-    TM0 : ndarray (N,M,P) 
-        First TM effective index (or derivative)
-    TM1 : ndarray (N,M,P) 
-        Second TM effective index (or derivative)
-    TM2 : ndarray (N,M,P) 
-        Third TM effective index (or derivative)
-
-    '''
+        First TE effective index (or derivative)'''
     # Santize the input
     if type(wavelength) is np.ndarray:
         wavelength = np.squeeze(wavelength)
@@ -148,9 +138,10 @@ def straightWaveguide(wavelength,width,thickness,angle,derivative=None):
 
     if derivative is None:
         OUTPUT = LR_straight.predict(INPUT)
+        print(OUTPUT.shape)
     else:
         numRows = INPUT.shape[0]
-        OUTPUT = np.zeros((numRows,12))
+        OUTPUT = np.zeros((numRows,4))
         # Loop through the derivative of all the outputs
         for k in range(12):
             OUTPUT[:,k] = np.squeeze(ANN_straight.differentiate(INPUT,d=(k,0,derivative)))
@@ -171,7 +162,7 @@ def straightWaveguide(wavelength,width,thickness,angle,derivative=None):
     TE0 = OUTPUT#np.reshape(OUTPUT[:,0],tensorSize)# + 1j*np.reshape(OUTPUT[:,1],tensorSize)
     return TE0
 
-def straightWaveguide_S(wavelength,width,thickness,length):
+def straightWaveguide_S(wavelength,width,thickness,length,angle=90):
     '''Calculates the analytic scattering matrix of a simple straight waveguide with
     length L.
 
@@ -183,6 +174,8 @@ def straightWaveguide_S(wavelength,width,thickness,length):
         width of the waveguides in microns
     thickness : float 
         thickness of the waveguides in microns
+    angle : float
+        Sidewall angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
     L : float 
         length of the waveguide in microns
 
@@ -190,7 +183,7 @@ def straightWaveguide_S(wavelength,width,thickness,length):
     -------
     S : ndarray (N,2,2) 
         scattering matrix for each wavelength'''
-    TE0,TE1,TE2,TM0,TM1,TM2 = straightWaveguide(wavelength,width,thickness)
+    TE0 = straightWaveguide(wavelength,width,thickness,angle)
 
     neff = np.squeeze(TE0)
 
@@ -205,7 +198,7 @@ def straightWaveguide_S(wavelength,width,thickness,length):
 # Bent waveguide
 # ---------------------------------------------------------------------------- #
 
-def bentWaveguide(wavelength,width,thickness,radius,angle,derivative=None):
+def bentWaveguide(wavelength,width,thickness,radius,angle=90,derivative=None):
     '''Calculates the analytic scattering matrix of a simple, parallel waveguide
     directional coupler using the ANN.
 
@@ -266,7 +259,7 @@ def bentWaveguide(wavelength,width,thickness,radius,angle,derivative=None):
 
     return TE0
 
-def bentWaveguide_S(wavelength,radius,width,thickness,gap,angle):
+def bentWaveguide_S(wavelength,width,thickness,radius,gap,angle):
     '''Calculates the analytic scattering matrix of bent waveguide with
     length L.
 
@@ -367,8 +360,8 @@ def evWGcoupler_S(wavelength,width,thickness,gap,couplerLength):
     N = wavelength.shape[0]
 
     # Get the fundamental mode of the waveguide itself
-    TE0,TE1,TE2,TM0,TM1,TM2 = straightWaveguide(wavelength,width,thickness)
-    n0 = np.squeeze(TE0)
+    # TE0 = straightWaveguide(wavelength,width,thickness)
+    # n0 = np.squeeze(TE0)
 
     # Get the modes of the coupler structure
     cTE0,cTE1 = evWGcoupler(wavelength,width,thickness,gap)
@@ -570,8 +563,6 @@ def rectangularRR(wavelength,radius=5,couplerLength=5,sideLength=5,gap=0.2,width
 # ---------------------------------------------------------------------------- #
 # Loss and coupling extractor
 # ---------------------------------------------------------------------------- #
-
-from matplotlib import pyplot as plt
 
 def extractor(power,wavelength):
     peakThreshold = 0.3
