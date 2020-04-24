@@ -1,3 +1,19 @@
+| Latest Release                                      | Version                                             | Documentation                                    | Last Commit                                                     | Activity
+| :--------------------------------------: | :-------------:                             | :--------------------------:                        | :----:                                              | :------:
+| [![Github Release][release_shield]][github_release] | [![Github Version][version_shield]][github_version] | [![Documentation Status][doc_shield]][doc] | [![Github Last Commit][last_commit_shield]][github_last_commit] | [![Github commit activity][activity_shield]][github_activity]
+
+[release_shield]: https://img.shields.io/github/release/contagon/SiPANN.svg
+[version_shield]: https://badge.fury.io/gh/contagon%SiPANN.svg
+[doc_shield]: https://readthedocs.org/projects/sipann/badge/?version=latest
+[last_commit_shield]: https://img.shields.io/github/last-commit/contagon/SiPANN.svg
+[activity_shield]: https://img.shields.io/github/commit-activity/y/contagon/SiPANN.svg
+
+[github_release]: https://github.com/contagon/SiPANN/releases/latest
+[github_version]: https://github.com/contagon/SiPANN/releases/latest
+[doc]: https://sipann.readthedocs.io/en/latest/?badge=latest
+[github_last_commit]: https://github.com/contagon/SiPANN/commits/master
+[github_activity]: https://github.com/contagon/SiPANN/graphs/commit-activity
+
 # SiP-ANN
 Artifical Neural Networks for use with Silicon Photonics
 

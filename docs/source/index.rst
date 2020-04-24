@@ -1,14 +1,16 @@
-Welcome to SiPANN's documentation!
+SiPANN Documentation
 ==================================
 
-.. automodule:: SiPANN.dc
-    :members:
+.. automodule:: SiPANN
     
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Table of Contents:
 
-    dc
+    SCEE - Direcional Couplers Models <scee>
+    Neural Network Based Models <nn>
+    Composite Devices Models <comp>
+    Machine Learning Utilities <nn_utils>
 
 Indices and tables
 ==================
