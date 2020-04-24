@@ -272,7 +272,7 @@ class DC(ABC):
         freq : ndarray
             frequency for s_matrix in Hz, size n (number of wavelength points)
         s_matrix : ndarray
-            size (4,4,n) complex matrix of scattering parameters
+            size (n,4,4) complex matrix of scattering parameters, in order of passed in wavelengths
         """
         #get number of points to evaluate at
         if np.isscalar(wavelength):
@@ -292,16 +292,10 @@ class DC(ABC):
 
         #apply symmetry (note diagonal is 0, no need to subtract it)
         s_matrix += np.transpose(s_matrix, (1,0,2))
-        freq = C/(wavelength*10**-9)
-
-        #flip them so frequency is increasing
-        if n != 1:
-            freq = freq[::-1]
-            s_matrix = s_matrix[:,:,::-1]
 
         #transpose so depth comes first
         s_matrix = np.transpose(s_matrix, (2, 0, 1))
-        return (freq, s_matrix)
+        return s_matrix
 
     @abstractmethod
     def predict(self, ports, wavelength):
