@@ -7,15 +7,13 @@ import joblib
 import gdspy
 import warnings
 
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.linear_model import LinearRegression
+from SiPANN.import_nn import ImportLR
 
 ##########################################################################################
 ####  We initialize all ANN's and regressions as global objects to speed things up.  #####
 ##########################################################################################
-cross_file = pkg_resources.resource_filename('SiPANN','LR/DC_coeffs.joblib')
-DC_coeffs  = joblib.load(cross_file)
+cross_file = pkg_resources.resource_filename('SiPANN','LR/DC_coeffs.pkl')
+DC_coeffs  = ImportLR(cross_file)
 
 # cross_file = pkg_resources.resource_filename('SiPANN','LR/R_bent_wide.joblib')
 # R_bent     = joblib.load(cross_file)

@@ -14,3 +14,8 @@ Neural Network Importer
 ====================================
 .. autoclass:: SiPANN.import_nn.ImportNN
     :members:
+
+Linear Regression Importer
+====================================
+.. autoclass:: SiPANN.import_nn.ImportLR
+    :members:

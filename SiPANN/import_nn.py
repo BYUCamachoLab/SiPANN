@@ -1,6 +1,7 @@
 import pickle
 import tensorflow as tf
 import numpy as np
+from itertools import combinations_with_replacement as comb_w_r
 
 class TensorMinMax():
     """Copy of sklearn's MinMaxScaler implemented to work with tensorflow.
@@ -97,7 +98,7 @@ class ImportNN():
         normY: TensorMinMax)
             Norm of the outputs
         s_data : 2-tuple
-            dimensions (size) of input and outputs
+            Dimensions (size) of input and outputs
 
     Parameters
     ----------
@@ -108,10 +109,10 @@ class ImportNN():
         #import all graph info
 
         with open(directory + '/Import.pkl', 'rb') as file:
-            self.dict = pickle.load(file)
-            self.normX = self.dict['normX']
-            self.normY = self.dict['normY']
-            self.s_data = self.dict['s_data']
+            dict_ = pickle.load(file)
+            self.normX = dict_['normX']
+            self.normY = dict_['normY']
+            self.s_data = dict_['s_data']
 
         self.graph = tf.Graph()
         self.sess = tf.compat.v1.Session(graph=self.graph)
@@ -137,7 +138,12 @@ class ImportNN():
         Parameters
         -----------
         input : ndarray
-            Numpy array with width s_data[0]
+            Numpy array with width s_data[0] (hopefully)
+
+        Returns
+        --------
+        input : ndarray
+            Numpy array with width s_data[0] (hopefully) and height 1
         """
         #validate and prepare data
         input = np.array(input)
@@ -226,3 +232,106 @@ class ImportNN():
         #make relative error
         re = np.abs( (output[mask] - output_nn[mask]) / output[mask] )
         return re.mean()
+
+class ImportLR():
+    """Class to import trained LR.
+
+    To remove independence on sklearn and it's updates, we manually implement an sklearn
+    Pipeline that includes (PolynomialFeatures, LinearRegression). We use the actual sklearn
+    implementation to train, save the coefficients, and then proceed to implement it here.
+
+    Attributes
+    -----------
+        coef_ : ndarray
+            Linear Regression Coefficients
+        degree_ : float
+            Degree to be used in PolynomialFeatures.
+        s_data : 2-tuple
+            Dimensions of inputs and outputs
+            
+    Parameters
+    ----------
+        directory : str
+            The directory where the model has been stored"""
+    def __init__(self, directory):
+        #import all graph info
+        with open(directory, 'rb') as file:
+            dict_ = pickle.load(file)
+            self.coef_ = dict_['coef_']
+            self.degree_ = dict_['degree_']
+            self.s_data = dict_['s_data']
+
+    def make_combos(self, X):
+        """Duplicates Polynomial Features
+
+        Takes in an input X, and makes all possibly combinations of it using
+        polynomials of degree.
+
+        Parameters
+        -----------
+        X : ndarray
+            Numpy array of size (N, s_data[0])
+
+        Returns
+        --------
+        polyCombos : ndarray
+            Numpy array of size (N, )"""
+        combos = []
+        for i in range(self.degree_+1):
+            combos += [k for k in comb_w_r(range(self.s_data[0]),i)]
+
+        #make matrix of all combinations
+        n = len(X)
+        polyCombos = np.ones((n,len(combos)))
+        for j,c in enumerate(combos):
+            if c == ():
+                polyCombos[:,j] = 1
+            else:
+                for k in c:
+                    polyCombos[:,j] *= X[:,k]
+
+        return polyCombos
+
+    def validate_input(self, input):
+        """Used to check for valid input.
+
+        If it is only a single data point, expands the dimensions so it fits properly
+
+        Parameters
+        -----------
+        input : ndarray
+            Numpy array with width s_data[0] (hopefully)
+
+        Returns
+        --------
+        input : ndarray
+            Numpy array with width s_data[0] (hopefully) and height 1
+        """
+        #validate and prepare data
+        input = np.array(input)
+        #make sure it's 2-dimensional
+        if len(input.shape) == 1:
+            input = np.expand_dims(input, axis=1).T
+        #make sure it's the right size
+        if input.shape[1] != self.s_data[0]:
+            raise ValueError("Data is the wrong size")
+
+        return input
+
+    def predict(self, X):
+        """Predict values
+
+        Runs X through Pipeline to make prediction
+
+        Parameters
+        -----------
+        X : ndarray
+            Numpy array of size (N, s_data[0])
+
+        Returns
+        --------
+        polyCombos : ndarray
+            Numpy array of size (N, )"""
+        X = self.validate_input(X)
+        Xcombo = self.make_combos(X)
+        return Xcombo@(self.coef_.T)

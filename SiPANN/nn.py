@@ -25,9 +25,6 @@ import pkg_resources
 from scipy.signal import find_peaks, peak_widths
 from scipy.interpolate import UnivariateSpline
 import joblib
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.linear_model import LinearRegression
-from sklearn.pipeline import Pipeline
 
 # ---------------------------------------------------------------------------- #
 # Initialize ANNs
@@ -52,14 +49,15 @@ ANN_bent = import_nn.ImportNN(bent_FILE)
 Let's initialize all of the linear regression functions.
 '''
 
-gap_FILE = pkg_resources.resource_filename('SiPANN', 'LR/R_gap.joblib')
-LR_gap = joblib.load(gap_FILE)
+gap_FILE0 = pkg_resources.resource_filename('SiPANN', 'LR/R_gap0.pkl')
+gap_FILE1 = pkg_resources.resource_filename('SiPANN', 'LR/R_gap1.pkl')
+LR_gap = [import_nn.ImportLR(gap_FILE0), import_nn.ImportLR(gap_FILE1)]
 
-straight_FILE = pkg_resources.resource_filename('SiPANN', 'LR/R_straight.joblib')
-LR_straight = joblib.load(straight_FILE)
+straight_FILE = pkg_resources.resource_filename('SiPANN', 'LR/R_straight.pkl')
+LR_straight = import_nn.ImportLR(straight_FILE)
 
-bent_FILE = pkg_resources.resource_filename('SiPANN', 'LR/R_bent.joblib')
-LR_bent = joblib.load(bent_FILE)
+bent_FILE = pkg_resources.resource_filename('SiPANN', 'LR/R_bent.pkl')
+LR_bent = import_nn.ImportLR(bent_FILE)
 
 # ---------------------------------------------------------------------------- #
 # Helper functions
