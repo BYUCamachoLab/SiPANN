@@ -130,8 +130,7 @@ setup(
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        "tensorflow >= 2.1.0",
-        "scikit-learn <= 0.20.4", 
+        "tensorflow >= 2.1",
         "gdspy >= 1.5.2",
         "joblib",
         "scikit-rf"
