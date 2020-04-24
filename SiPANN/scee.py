@@ -15,9 +15,6 @@ from SiPANN.import_nn import ImportLR
 cross_file = pkg_resources.resource_filename('SiPANN','LR/DC_coeffs.pkl')
 DC_coeffs  = ImportLR(cross_file)
 
-# cross_file = pkg_resources.resource_filename('SiPANN','LR/R_bent_wide.joblib')
-# R_bent     = joblib.load(cross_file)
-
 C          = 299792458
 
 #########################################################################################
@@ -198,17 +195,17 @@ class DC(ABC):
         self.thickness = thickness
         self.sw_angle  = sw_angle
         if np.any(self.width<400):
-            warnings.warn("Width is less than 400nm, may produce invalid results", Warning)
+            warnings.warn("Width is less than 400nm, may produce invalid results", UserWarning)
         if np.any(self.width>600):
-            warnings.warn("Width is greater than 600nm, may produce invalid results", Warning)
+            warnings.warn("Width is greater than 600nm, may produce invalid results", UserWarning)
         if np.any(self.thickness<180):
-            warnings.warn("Thickness is less than 180nm, may produce invalid results", Warning)
+            warnings.warn("Thickness is less than 180nm, may produce invalid results", UserWarning)
         if np.any(self.thickness>240):
-            warnings.warn("Thickness is greater than 240nm, may produce invalid results", Warning)
+            warnings.warn("Thickness is greater than 240nm, may produce invalid results", UserWarning)
         if np.any(self.sw_angle<80):
-            warnings.warn("Sidewall Angle is less than 80 degrees, may produce invalid results", Warning)
+            warnings.warn("Sidewall Angle is less than 80 degrees, may produce invalid results", UserWarning)
         if np.any(self.sw_angle<90):
-            warnings.warn("Sidewall Angle is greater than 90 degrees, may produce invalid results", Warning)
+            warnings.warn("Sidewall Angle is greater than 90 degrees, may produce invalid results", UserWarning)
         
     def _clean_args(self, wavelength):
         """Makes sure all attributes are the same size
@@ -243,17 +240,17 @@ class DC(ABC):
         self.thickness = kwargs.get('thickness', self.thickness)
         self.sw_angle  = kwargs.get('sw_angle', self.sw_angle)
         if np.any(self.width<400):
-            warnings.warn("Width is less than 400nm, may produce invalid results", Warning)
+            warnings.warn("Width is less than 400nm, may produce invalid results", UserWarning)
         if np.any(self.width>600):
-            warnings.warn("Width is greater than 600nm, may produce invalid results", Warning)
+            warnings.warn("Width is greater than 600nm, may produce invalid results", UserWarning)
         if np.any(self.thickness<180):
-            warnings.warn("Thickness is less than 180nm, may produce invalid results", Warning)
+            warnings.warn("Thickness is less than 180nm, may produce invalid results", UserWarning)
         if np.any(self.thickness>240):
-            warnings.warn("Thickness is greater than 240nm, may produce invalid results", Warning)
+            warnings.warn("Thickness is greater than 240nm, may produce invalid results", UserWarning)
         if np.any(self.sw_angle<80):
-            warnings.warn("Sidewall Angle is less than 80 degrees, may produce invalid results", Warning)
+            warnings.warn("Sidewall Angle is less than 80 degrees, may produce invalid results", UserWarning)
         if np.any(self.sw_angle<90):
-            warnings.warn("Sidewall Angle is greater than 90 degrees, may produce invalid results", Warning)
+            warnings.warn("Sidewall Angle is greater than 90 degrees, may produce invalid results", UserWarning)
 
     def sparams(self, wavelength):
         """Returns scattering parameters
@@ -393,9 +390,9 @@ class GapFuncSymmetric(DC):
     def predict(self, ports, wavelength, extra_arc=0, part='both'):
         #check to make sure wavelength is in valid range
         if np.any(wavelength<1450):
-            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", UserWarning)
         if np.any(wavelength>1650):
-            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", UserWarning)
 
         #clean data and get coefficients
         wavelength, width, thickness, sw_angle = self._clean_args(wavelength)
@@ -550,9 +547,9 @@ class GapFuncAntiSymmetric(DC):
     def predict(self, ports, wavelength, extra_arc=0, part='both'):
         #check to make sure wavelength is in valid range
         if np.any(wavelength<1450):
-            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", UserWarning)
         if np.any(wavelength>1650):
-            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", UserWarning)
 
         #clean data and get coefficients
         wavelength, width, thickness, sw_angle = self._clean_args(wavelength)
@@ -620,9 +617,9 @@ class HalfRing(DC):
             Width of the waveguide in nm
         thickness : float or ndarray
             Thickness of waveguide in nm
-        radius : float
+        radius : float or ndarray
             Distance from center of ring to middle of waveguide in nm.
-        gap : float
+        gap : float or ndarray
             Minimum distance from ring waveguide edge to straight waveguide edge in nm.
         sw_angle : float or ndarray, optional
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
@@ -631,14 +628,14 @@ class HalfRing(DC):
         self.radius = radius
         self.gap    = gap
         if np.any(self.gap<100):
-            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
+            warnings.warn("Gap is less than 100nm, may produce invalid results", UserWarning)
 
     def update(self, **kwargs):
         super().update(**kwargs)
         self.radius = kwargs.get('radius', self.radius)
         self.gap    = kwargs.get('gap', self.gap)
         if np.any(self.gap<100):
-            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
+            warnings.warn("Gap is less than 100nm, may produce invalid results", UserWarning)
 
     def _clean_args(self, wavelength):
         if wavelength is None:
@@ -649,9 +646,9 @@ class HalfRing(DC):
     def predict(self, ports, wavelength):
         #check to make sure wavelength is in valid range
         if np.any(wavelength<1450):
-            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", UserWarning)
         if np.any(wavelength>1650):
-            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", UserWarning)
 
         #clean data and get coefficients
         wavelength, width, thickness, sw_angle, radius, gap = self._clean_args(wavelength)
@@ -756,11 +753,11 @@ class HalfRacetrack(DC):
             Width of the waveguide in nm
         thickness : float or ndarray
             Thickness of waveguide in nm
-        radius : float
+        radius : float or ndarray
             Distance from center of ring to middle of waveguide in nm.
-        gap : float
+        gap : float or ndarray
             Minimum distance from ring waveguide edge to straight waveguide edge in nm.
-        length : float
+        length : float or ndarray
             Length of straight portion of ring waveguide in nm.
         sw_angle : float or ndarray, optional
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
@@ -770,7 +767,7 @@ class HalfRacetrack(DC):
         self.gap    = gap
         self.length = length
         if np.any(self.gap<100):
-            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
+            warnings.warn("Gap is less than 100nm, may produce invalid results", UserWarning)
 
     def update(self, **kwargs):
         super().update(**kwargs)
@@ -778,7 +775,7 @@ class HalfRacetrack(DC):
         self.gap    = kwargs.get('gap', self.gap)
         self.length = kwargs.get('length', self.length)
         if np.any(self.gap<100):
-            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
+            warnings.warn("Gap is less than 100nm, may produce invalid results", UserWarning)
 
     def _clean_args(self, wavelength):
         if wavelength is None:
@@ -789,9 +786,9 @@ class HalfRacetrack(DC):
     def predict(self, ports, wavelength):
         #check to make sure wavelength is in valid range
         if np.any(wavelength<1450):
-            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", UserWarning)
         if np.any(wavelength>1650):
-            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", UserWarning)
 
         #clean data and get coefficients
         wavelength, width, thickness, sw_angle, radius, gap, length = self._clean_args(wavelength)
@@ -897,9 +894,9 @@ class StraightCoupler(DC):
             Width of the waveguide in nm
         thickness : float or ndarray
             Thickness of waveguide in nm
-        gap : float
+        gap : float or ndarray
            Distance between the two waveguides edge in nm.
-        length : float
+        length : float or ndarray
             Length of both waveguides in nm.
         sw_angle : float or ndarray, optional
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
@@ -908,14 +905,14 @@ class StraightCoupler(DC):
         self.gap    = gap
         self.length = length
         if np.any(self.gap<100):
-            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
+            warnings.warn("Gap is less than 100nm, may produce invalid results", UserWarning)
 
     def update(self, **kwargs):
         super().update(**kwargs)
         self.gap    = kwargs.get('gap', self.gap)
         self.length = kwargs.get('length', self.length)
         if np.any(self.gap<100):
-            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
+            warnings.warn("Gap is less than 100nm, may produce invalid results", UserWarning)
 
     def _clean_args(self, wavelength):
         if wavelength is None:
@@ -926,9 +923,9 @@ class StraightCoupler(DC):
     def predict(self, ports, wavelength):
         #check to make sure wavelength is in valid range
         if np.any(wavelength<1450):
-            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", UserWarning)
         if np.any(wavelength>1650):
-            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", UserWarning)
 
         #clean data and get coefficients
         wavelength, width, thickness, sw_angle, gap, length = self._clean_args(wavelength)
@@ -1035,13 +1032,13 @@ class Standard(DC):
             Width of the waveguide in nm
         thickness : float or ndarray
             Thickness of waveguide in nm
-        gap : float
+        gap : float or ndarray
            Minimum distance between the two waveguides edge in nm.
-        length : float
+        length : float or ndarray
             Length of the straight portion of both waveguides in nm.
-        H : float
+        H : float or ndarray
             Horizontal distance between end of coupler until straight portion in nm.
-        H : float
+        H : float or ndarray
             Vertical distance between end of coupler until straight portion in nm.
         sw_angle : float or ndarray, optional
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
@@ -1052,7 +1049,7 @@ class Standard(DC):
         self.H      = H
         self.V      = V
         if np.any(self.gap<100):
-            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
+            warnings.warn("Gap is less than 100nm, may produce invalid results", UserWarning)
 
     def update(self, **kwargs):
         super().update(**kwargs)
@@ -1061,7 +1058,7 @@ class Standard(DC):
         self.H      = kwargs.get('H', self.H)
         self.V      = kwargs.get('V', self.V)
         if np.any(self.gap<100):
-            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
+            warnings.warn("Gap is less than 100nm, may produce invalid results", UserWarning)
 
     def _clean_args(self, wavelength):
         if wavelength is None:
@@ -1072,9 +1069,9 @@ class Standard(DC):
     def predict(self, ports, wavelength):
         #check to make sure wavelength is in valid range
         if np.any(wavelength<1450):
-            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", UserWarning)
         if np.any(wavelength>1650):
-            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", UserWarning)
 
         #clean data and get coefficients
         wavelength, width, thickness, sw_angle, gap, length, H, V = self._clean_args(wavelength)
@@ -1196,9 +1193,9 @@ class DoubleHalfRing(DC):
             Width of the waveguide in nm
         thickness : float or ndarray
             Thickness of waveguide in nm
-        radius : float
+        radius : float or ndarray
             Distance from center of ring to middle of waveguide in nm.
-        gap : float
+        gap : float or ndarray
             Minimum distance from ring waveguide edge to straight waveguide edge in nm.
         sw_angle : float or ndarray, optional
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
@@ -1207,14 +1204,14 @@ class DoubleHalfRing(DC):
         self.radius = radius
         self.gap    = gap
         if np.any(self.gap<100):
-            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
+            warnings.warn("Gap is less than 100nm, may produce invalid results", UserWarning)
 
     def update(self, **kwargs):
         super().update(**kwargs)
         self.radius = kwargs.get('radius', self.radius)
         self.gap    = kwargs.get('gap', self.gap)
         if np.any(self.gap<100):
-            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
+            warnings.warn("Gap is less than 100nm, may produce invalid results", UserWarning)
 
     def _clean_args(self, wavelength):
         if wavelength is None:
@@ -1225,9 +1222,9 @@ class DoubleHalfRing(DC):
     def predict(self, ports, wavelength):
         #check to make sure wavelength is in valid range
         if np.any(wavelength<1450):
-            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", UserWarning)
         if np.any(wavelength>1650):
-            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", UserWarning)
 
         #clean data and get coefficients
         wavelength, width, thickness, sw_angle, radius, gap = self._clean_args(wavelength)
@@ -1298,11 +1295,11 @@ class AngledHalfRing(DC):
             Width of the waveguide in nm
         thickness : float or ndarray
             Thickness of waveguide in nm
-        radius : float
+        radius : float or ndarray
             Distance from center of ring to middle of waveguide in nm.
-        gap : float
+        gap : float or ndarray
             Minimum distance from ring waveguide edge to straight waveguide edge in nm.
-        theta : float
+        theta : float or ndarray
             Angle that the straight waveguide is curved in radians (???).
         sw_angle : float or ndarray, optional"""
     def __init__(self, width, thickness, radius, gap, theta, sw_angle=90):
@@ -1311,7 +1308,7 @@ class AngledHalfRing(DC):
         self.gap    = gap
         self.theta  = theta
         if np.any(self.gap<100):
-            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
+            warnings.warn("Gap is less than 100nm, may produce invalid results", UserWarning)
 
     def update(self, **kwargs):
         super().update(**kwargs)
@@ -1319,7 +1316,7 @@ class AngledHalfRing(DC):
         self.gap    = kwargs.get('gap', self.gap)
         self.theta  = kwargs.get('theta', self.theta)
         if np.any(self.gap<100):
-            warnings.warn("Gap is less than 100nm, may produce invalid results", Warning)
+            warnings.warn("Gap is less than 100nm, may produce invalid results", UserWarning)
 
     def _clean_args(self, wavelength):
         if wavelength is None:
@@ -1330,9 +1327,9 @@ class AngledHalfRing(DC):
     def predict(self, ports, wavelength):
         #check to make sure wavelength is in valid range
         if np.any(wavelength<1450):
-            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", UserWarning)
         if np.any(wavelength>1650):
-            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", UserWarning)
 
         #clean data and get coefficients
         wavelength, width, thickness, sw_angle, radius, gap, theta = self._clean_args(wavelength)
@@ -1391,7 +1388,7 @@ class Waveguide(ABC):
     Simple model that makes sparameters for a straight waveguide. May not be 
     the best option, but plays nice with other models in SCEE. Ports are numbered as::
 
-                1 ----------- 2
+        |  1 ----------- 2   |
 
     Parameters
     ----------
@@ -1399,7 +1396,7 @@ class Waveguide(ABC):
             Width of the waveguide in nm
         thickness : float or ndarray
             Thickness of waveguide in nm
-        length : float
+        length : float or ndarray
             Length of waveguide in nm.
         sw_angle : float or ndarray, optional
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
@@ -1408,6 +1405,18 @@ class Waveguide(ABC):
         self.thickness  = thickness
         self.length     = length
         self.sw_angle   = sw_angle
+        if np.any(self.width<400):
+            warnings.warn("Width is less than 400nm, may produce invalid results", UserWarning)
+        if np.any(self.width>600):
+            warnings.warn("Width is greater than 600nm, may produce invalid results", UserWarning)
+        if np.any(self.thickness<180):
+            warnings.warn("Thickness is less than 180nm, may produce invalid results", UserWarning)
+        if np.any(self.thickness>240):
+            warnings.warn("Thickness is greater than 240nm, may produce invalid results", UserWarning)
+        if np.any(self.sw_angle<80):
+            warnings.warn("Sidewall Angle is less than 80 degrees, may produce invalid results", UserWarning)
+        if np.any(self.sw_angle<90):
+            warnings.warn("Sidewall Angle is greater than 90 degrees, may produce invalid results", UserWarning)
 
     def _clean_args(self, wavelength):
         """Makes sure all attributes are the same size
@@ -1442,6 +1451,18 @@ class Waveguide(ABC):
         self.thickness  = kwargs.get('thickness', self.thickness)
         self.length     = kwargs.get('thickness', self.length)
         self.sw_angle   = kwargs.get('sw_angle', self.sw_angle)
+        if np.any(self.width<400):
+            warnings.warn("Width is less than 400nm, may produce invalid results", UserWarning)
+        if np.any(self.width>600):
+            warnings.warn("Width is greater than 600nm, may produce invalid results", UserWarning)
+        if np.any(self.thickness<180):
+            warnings.warn("Thickness is less than 180nm, may produce invalid results", UserWarning)
+        if np.any(self.thickness>240):
+            warnings.warn("Thickness is greater than 240nm, may produce invalid results", UserWarning)
+        if np.any(self.sw_angle<80):
+            warnings.warn("Sidewall Angle is less than 80 degrees, may produce invalid results", UserWarning)
+        if np.any(self.sw_angle<90):
+            warnings.warn("Sidewall Angle is greater than 90 degrees, may produce invalid results", UserWarning)
 
     def sparams(self, wavelength):
         """Returns scattering parameters
@@ -1472,7 +1493,7 @@ class Waveguide(ABC):
         s_matrix = np.zeros((2,2,n), dtype='complex')
 
         #calculate upper half of matrix (diagonal is 0)
-        s_matrix[0,1] = self.predict(wavelength, (1,2))
+        s_matrix[0,1] = self.predict(wavelength)
 
         #apply symmetry (note diagonal is 0, no need to subtract it)
         s_matrix += np.transpose(s_matrix, (1,0,2))
@@ -1487,13 +1508,11 @@ class Waveguide(ABC):
         s_matrix = np.transpose(s_matrix, (2, 0, 1))
         return (freq, s_matrix)
 
-    def predict(self, wavelength, ports=(1,2)):
-        """Predicts the output when light is put in the specified port (see diagram above)
+    def predict(self, wavelength):
+        """Predicts the output when light is put in port 1 and out port 2
 
         Parameters
         ----------
-        ports : 2-tuple
-            Specifies the port coming in and coming out
         wavelength : float or ndarray
             Wavelength(s) to predict at
 
@@ -1503,17 +1522,13 @@ class Waveguide(ABC):
             The value of the light coming through"""
         #check to make sure wavelength is in valid range
         if np.any(wavelength<1450):
-            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is less than 1450nm, may produce invalid results", UserWarning)
         if np.any(wavelength>1650):
-            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", Warning)
+            warnings.warn("Wavelength is greater than 1650nm, may produce invalid results", UserWarning)
 
         #clean data and get coefficients
         wavelength, width, thickness, sw_angle, length = self._clean_args(wavelength)
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
-
-        #make sure ports are valid
-        if not all(1 <= x <= 2 for x in ports):
-            raise ValueError('Invalid Ports')
 
         #calculate everything
         z_dist = length

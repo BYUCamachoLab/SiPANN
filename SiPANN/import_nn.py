@@ -234,11 +234,12 @@ class ImportNN():
         return re.mean()
 
 class ImportLR():
-    """Class to import trained LR.
+    """Class to import trained Linear Regression.
 
     To remove independence on sklearn and it's updates, we manually implement an sklearn
     Pipeline that includes (PolynomialFeatures, LinearRegression). We use the actual sklearn
-    implementation to train, save the coefficients, and then proceed to implement it here.
+    implementation to train, save the coefficients, and then proceed to implement it here. 
+    To see how to save a pipeline like above to be used here see SiPANN/LR/regress.py
 
     Attributes
     -----------
@@ -265,7 +266,7 @@ class ImportLR():
         """Duplicates Polynomial Features
 
         Takes in an input X, and makes all possibly combinations of it using
-        polynomials of degree.
+        polynomials of specified degree.
 
         Parameters
         -----------

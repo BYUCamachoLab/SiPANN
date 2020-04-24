@@ -1,5 +1,5 @@
 #############################
-Neural Network Applications
+Neural Network Based Models
 #############################
 
 These are various applications of Neural Networks and Linear Regressions we've trained to 
@@ -49,7 +49,7 @@ Evanescent Waveguide Coupler Scattering Parameters
 
 
 ************************************
-Racetrack Resonator Model
+Racetrack Resonator Models
 ************************************
 
 Racetrack Resonator Model 1

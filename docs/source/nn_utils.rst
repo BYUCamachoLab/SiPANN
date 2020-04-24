@@ -2,7 +2,7 @@
 Neural Network Utilities
 #############################
 
-These are a couple of classes that help use perform the operations we need on our neural networks
+These are a couple of classes that help use perform the operations we need on our neural networks and linear regressions.
 
 TensorMinMax (sklearn MinMaxScaler)
 ====================================
