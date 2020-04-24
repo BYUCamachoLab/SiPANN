@@ -79,8 +79,8 @@ def cartesian_product(arrays):
 # Strip waveguide
 # ---------------------------------------------------------------------------- #
 
-def straightWaveguide(wavelength,width,thickness,angle=90,derivative=None):
-    '''Calculates the first three effective index values of the TE and TM modes. Can also
+def straightWaveguide(wavelength,width,thickness,sw_angle=90,derivative=None):
+    '''Calculates the first effective index value of the TE mode. Can also
     calculate derivatives with respect to any of the inputs. This is especially useful
     for calculating the group index, or running gradient based optimization routines.
 
@@ -93,28 +93,29 @@ def straightWaveguide(wavelength,width,thickness,angle=90,derivative=None):
     DIM1 = size(wavelength)
     DIM2 = size(width)
     DIM3 = size(thickness)
+    DIM4 = size(sw_angle)
 
-    So if I swept 100 wavelength points, 1 width, and 10 possible thicknesses, then
+    So if I swept 100 wavelength points, 1 width, 10 possible thicknesses, and 2 sw_angles, then
     the dimension of each output effective index (or higher order derivative) would
-    be: (100,1,10).
+    be: (100,1,10,2).
 
     Parameters
     ----------
-    wavelength : ndarray (N,) 
+    wavelength : float or ndarray (W1,) 
         wavelength points to evaluate
-    width : ndarray (N,) 
+    width : float or ndarray (W2,) 
         width of the waveguides in microns
-    thickness : ndarray (N,) 
+    thickness : float or ndarray (T,) 
         thickness of the waveguides in microns
-    angle : ndarray (N,)
-        Sidewall angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
+    sw_angle : float or ndarray (A,)
+        Sidewall sw_angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
     derivative : int
         Order of the derivative to take. Defaults to None.
 
     Returns
     -------
-    TE0 : ndarray (N,M,P) 
-        First TE effective index (or derivative)'''
+    TE0 : ndarray
+        First TE effective index with size (W1,W2,T,A,), or if derivative's are included (W1,W2,T,A,4,)'''
     # Santize the input
     if type(wavelength) is np.ndarray:
         wavelength = np.squeeze(wavelength)
@@ -128,41 +129,32 @@ def straightWaveguide(wavelength,width,thickness,angle=90,derivative=None):
         thickness = np.squeeze(thickness)
     else:
         thickness = np.array([thickness])
-    if type(angle) is np.ndarray:
-        angle = np.squeeze(angle)
+    if type(sw_angle) is np.ndarray:
+        sw_angle = np.squeeze(sw_angle)
     else:
-        angle = np.array([angle])
+        sw_angle = np.array([sw_angle])
 
     # Run through neural network
-    INPUT  = cartesian_product([wavelength,width,thickness,angle])
+    INPUT  = cartesian_product([wavelength,width,thickness,sw_angle])
 
     if derivative is None:
         OUTPUT = LR_straight.predict(INPUT)
-        print(OUTPUT.shape)
     else:
         numRows = INPUT.shape[0]
         OUTPUT = np.zeros((numRows,4))
         # Loop through the derivative of all the outputs
-        for k in range(12):
-            OUTPUT[:,k] = np.squeeze(ANN_straight.differentiate(INPUT,d=(k,0,derivative)))
+        for k in range(4):
+            OUTPUT[:,k] = np.squeeze(ANN_straight.differentiate(INPUT,d=(0,k,derivative)))
 
     # process the output
-    '''
-    tensorSize = (wavelength.size,width.size,thickness.size)
-    TE0 = np.reshape(OUTPUT[:,0],tensorSize) + 1j*np.reshape(OUTPUT[:,6],tensorSize)
-    TE1 = np.reshape(OUTPUT[:,1],tensorSize) + 1j*np.reshape(OUTPUT[:,7],tensorSize)
-    TE2 = np.reshape(OUTPUT[:,2],tensorSize) + 1j*np.reshape(OUTPUT[:,8],tensorSize)
-    TM0 = np.reshape(OUTPUT[:,3],tensorSize) + 1j*np.reshape(OUTPUT[:,9],tensorSize)
-    TM1 = np.reshape(OUTPUT[:,4],tensorSize) + 1j*np.reshape(OUTPUT[:,10],tensorSize)
-    TM2 = np.reshape(OUTPUT[:,5],tensorSize) + 1j*np.reshape(OUTPUT[:,11],tensorSize)
-
-    return TE0,TE1,TE2,TM0,TM1,TM2
-    '''
-    tensorSize = (wavelength.size,width.size,thickness.size)
-    TE0 = OUTPUT#np.reshape(OUTPUT[:,0],tensorSize)# + 1j*np.reshape(OUTPUT[:,1],tensorSize)
+    if derivative is None:
+        tensorSize = (wavelength.size,width.size,thickness.size, sw_angle.size)
+    else:
+        tensorSize = (wavelength.size,width.size,thickness.size, sw_angle.size, 4)
+    TE0 = np.reshape(OUTPUT,tensorSize)# + 1j*np.reshape(OUTPUT[:,1],tensorSize)
     return TE0
 
-def straightWaveguide_S(wavelength,width,thickness,length,angle=90):
+def straightWaveguide_S(wavelength,width,thickness,length,sw_angle=90):
     '''Calculates the analytic scattering matrix of a simple straight waveguide with
     length L.
 
@@ -174,8 +166,8 @@ def straightWaveguide_S(wavelength,width,thickness,length,angle=90):
         width of the waveguides in microns
     thickness : float 
         thickness of the waveguides in microns
-    angle : float
-        Sidewall angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
+    sw_angle : float
+        Sidewall sw_angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
     L : float 
         length of the waveguide in microns
 
@@ -183,7 +175,7 @@ def straightWaveguide_S(wavelength,width,thickness,length,angle=90):
     -------
     S : ndarray (N,2,2) 
         scattering matrix for each wavelength'''
-    TE0 = straightWaveguide(wavelength,width,thickness,angle)
+    TE0 = straightWaveguide(wavelength,width,thickness,sw_angle)
 
     neff = np.squeeze(TE0)
 
@@ -198,27 +190,46 @@ def straightWaveguide_S(wavelength,width,thickness,length,angle=90):
 # Bent waveguide
 # ---------------------------------------------------------------------------- #
 
-def bentWaveguide(wavelength,width,thickness,radius,angle=90,derivative=None):
-    '''Calculates the analytic scattering matrix of a simple, parallel waveguide
-    directional coupler using the ANN.
+def bentWaveguide(wavelength,width,thickness,radius,sw_angle=90,derivative=None):
+    '''Calculates the first effective index value of the TE mode of a bent waveguide. Can also
+    calculate derivatives with respect to any of the inputs. This is especially useful
+    for calculating the group index, or running gradient based optimization routines.
+
+    Each of the inputs can either be a one dimensional numpy array or a scalar. This
+    is especially useful if you want to sweep over multiple parameters and include
+    all of the possible permutations of the sweeps.
+
+    The output is a multidimensional array. The size of each dimension corresponds with
+    the size of each of the inputs, such that
+    DIM1 = size(wavelength)
+    DIM2 = size(width)
+    DIM3 = size(thickness)
+    DIM4 = size(radius)
+    DIM5 = size(sw_angle)
+
+    So if I swept 100 wavelength points, 1 width, 10 possible thicknesses, 5 radii, and 2 sw_angles, then
+    the dimension of each output effective index (or higher order derivative) would
+    be: (100,1,10,5,2).
 
     Parameters
-    -----------
-    wavelength : ndarray (N,) 
+    ----------
+    wavelength : float or ndarray (W1,) 
         wavelength points to evaluate
-    gap : float 
-        gap in the coupler region in microns
-    width : float 
+    width : float or ndarray (W2,) 
         width of the waveguides in microns
-    thickness : float 
+    thickness : float or ndarray (T,) 
         thickness of the waveguides in microns
-    length : float 
-        length of the waveguide in microns
+    radius : float or ndarray (R,)
+        radius of waveguide in microns.
+    sw_angle : float or ndarray (A,)
+        Sidewall sw_angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
+    derivative : int
+        Order of the derivative to take. Defaults to None.
 
     Returns
     -------
-    S : ndarray (N,2,2) 
-        Scattering matrix'''
+    TE0 : ndarray
+        First TE effective index with size (W1,W2,T,R,A,), or if derivative's are included (W1,W2,T,R,A,5,)'''
     # Santize the input
     if type(wavelength) is np.ndarray:
         wavelength = np.squeeze(wavelength)
@@ -236,13 +247,13 @@ def bentWaveguide(wavelength,width,thickness,radius,angle=90,derivative=None):
         radius = np.squeeze(radius)
     else:
         radius = np.array([radius])
-    if type(angle) is np.ndarray:
-        angle = np.squeeze(angle)
+    if type(sw_angle) is np.ndarray:
+        sw_angle = np.squeeze(sw_angle)
     else:
-        angle = np.array([angle])
+        sw_angle = np.array([sw_angle])
 
     # Run through neural network
-    INPUT  = cartesian_product([wavelength,width,thickness,radius,angle])
+    INPUT  = cartesian_product([wavelength,width,thickness,radius,sw_angle])
 
     if derivative is None:
         OUTPUT = LR_bent.predict(INPUT)
@@ -251,17 +262,19 @@ def bentWaveguide(wavelength,width,thickness,radius,angle=90,derivative=None):
         OUTPUT = np.zeros((numRows,2))
         # Loop through the derivative of all the outputs
         for k in range(2):
-            OUTPUT[:,k] = np.squeeze(ANN_bent.differentiate(INPUT,d=(k,0,derivative)))
+            OUTPUT[:,k] = np.squeeze(ANN_bent.differentiate(INPUT,d=(0,k,derivative)))
 
     # process the output
-    tensorSize = (wavelength.size,width.size,thickness.size,radius.size)
-    TE0 = OUTPUT#np.reshape(OUTPUT[:,0],tensorSize)# + 1j*np.reshape(OUTPUT[:,1],tensorSize)
-
+    if derivative is None:
+        tensorSize = (wavelength.size,width.size,thickness.size, radius.size, sw_angle.size)
+    else:
+        tensorSize = (wavelength.size,width.size,thickness.size, radius.size, sw_angle.size, 5)
+    TE0 = np.reshape(OUTPUT,tensorSize)
     return TE0
 
-def bentWaveguide_S(wavelength,width,thickness,radius,gap,angle):
+def bentWaveguide_S(wavelength,width,thickness,radius,angle,sw_angle=90):
     '''Calculates the analytic scattering matrix of bent waveguide with
-    length L.
+    specific radius and circle length.
 
     Parameters
     -----------
@@ -271,15 +284,19 @@ def bentWaveguide_S(wavelength,width,thickness,radius,gap,angle):
         width of the waveguides in microns
     thickness : float 
         thickness of the waveguides in microns
-    L : float 
-        length of the waveguide in microns
+    radius : float
+        radius of waveguide in microns.
+    angle : float
+        number of radians of circle that bent waveguide transverses
+    sw_angle : float
+        Sidewall sw_angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
 
     Returns
     -------
     S : ndarray (N,2,2) 
         scattering matrix for each wavelength'''
     # Pull effective indices from ANN
-    TE0 = bentWaveguide(wavelength,width,thickness,radius)
+    TE0 = bentWaveguide(wavelength,width,thickness,radius,sw_angle)
     neff = np.squeeze(TE0)
 
     N = wavelength.shape[0]
@@ -293,27 +310,46 @@ def bentWaveguide_S(wavelength,width,thickness,radius,gap,angle):
 # Evanescent waveguide coupler
 # ---------------------------------------------------------------------------- #
 
-def evWGcoupler(wavelength,width,thickness,gap,angle,derivative=None):
-    '''Calculates the analytic scattering matrix of a simple, parallel waveguide
-    directional coupler using the ANN.
+def evWGcoupler(wavelength,width,thickness,gap,sw_angle=90,derivative=None):
+    '''Calculates the even and odd effective indice values of the TE mode of parallel waveguides. Can also
+    calculate derivatives with respect to any of the inputs. This is especially useful
+    for calculating the group index, or running gradient based optimization routines.
+
+    Each of the inputs can either be a one dimensional numpy array or a scalar. This
+    is especially useful if you want to sweep over multiple parameters and include
+    all of the possible permutations of the sweeps.
+
+    The output is a multidimensional array. The size of each dimension corresponds with
+    the size of each of the inputs, such that
+    DIM1 = size(wavelength)
+    DIM2 = size(width)
+    DIM3 = size(thickness)
+    DIM4 = size(gap)
+    DIM5 = size(sw_angle)
+
+    So if I swept 100 wavelength points, 1 width, 10 possible thicknesses, 5 radii, and 2 sw_angles, then
+    the dimension of each output effective index (or higher order derivative) would
+    be: (100,1,10,5,2).
 
     Parameters
-    -----------
-    wavelength : ndarray (N,) 
+    ----------
+    wavelength : float or ndarray (W1,) 
         wavelength points to evaluate
-    couplerLength : float 
-        length of the coupling region in microns
-    gap : float 
-        gap in the coupler region in microns
-    width : float 
+    width : float or ndarray (W2,) 
         width of the waveguides in microns
-    thickness : float 
+    thickness : float or ndarray (T,) 
         thickness of the waveguides in microns
+    gap : float or ndarray (G,)
+        Gap distance between waveguides
+    sw_angle : float or ndarray (A,)
+        Sidewall sw_angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
+    derivative : int
+        Order of the derivative to take. Defaults to None.
 
     Returns
     -------
-    S : ndarray (N,4,4) 
-        Scattering matrix'''
+    TE0 : ndarray
+        First TE effective index with size (W1,W2,T,G,A,), or if derivative's are included (W1,W2,T,G,A,5,)'''
     # Santize the input
     if type(wavelength) is np.ndarray:
         wavelength = np.squeeze(wavelength)
@@ -331,13 +367,13 @@ def evWGcoupler(wavelength,width,thickness,gap,angle,derivative=None):
         gap = np.squeeze(gap)
     else:
         gap = np.array([gap])
-    if type(angle) is np.ndarray:
-        angle = np.squeeze(angle)
+    if type(sw_angle) is np.ndarray:
+        sw_angle = np.squeeze(sw_angle)
     else:
-        angle = np.array([angle])
+        sw_angle = np.array([sw_angle])
 
     # Run through neural network
-    INPUT  = cartesian_product([wavelength,width,thickness,gap,angle])
+    INPUT  = cartesian_product([wavelength,width,thickness,gap,sw_angle])
 
     if derivative is None:
         OUTPUT0 = LR_gap[0].predict(INPUT)
@@ -347,16 +383,39 @@ def evWGcoupler(wavelength,width,thickness,gap,angle,derivative=None):
         OUTPUT = np.zeros((numRows,4))
         # Loop through the derivative of all the outputs
         for k in range(4):
-            OUTPUT[:,k] = np.squeeze(ANN_gap.differentiate(INPUT,d=(k,0,derivative)))
+            OUTPUT[:,k] = np.squeeze(ANN_gap.differentiate(INPUT,d=(0,k,derivative)))
 
-    # process the output
-    tensorSize = (wavelength.size,width.size,thickness.size,gap.size)
-    TE0 = OUTPUT0#np.reshape(OUTPUT0[:,0],tensorSize)# + 1j*np.reshape(OUTPUT[:,2],tensorSize)
-    TE1 = OUTPUT1#np.reshape(OUTPUT1[:,1],tensorSize)# + 1j*np.reshape(OUTPUT[:,3],tensorSize)
 
+     # process the output
+    if derivative is None:
+        tensorSize = (wavelength.size,width.size,thickness.size, gap.size, sw_angle.size)
+    else:
+        tensorSize = (wavelength.size,width.size,thickness.size, gap.size, sw_angle.size, 5)
+    TE0 = np.reshape(OUTPUT0, tensorSize)
+    TE1 = np.reshape(OUTPUT1, tensorSize)
     return TE0,TE1
 
-def evWGcoupler_S(wavelength,width,thickness,gap,couplerLength):
+def evWGcoupler_S(wavelength,width,thickness,gap,couplerLength,sw_angle=90):
+    '''Calculates the analytic scattering matrix of a simple, parallel waveguide
+    directional coupler using the ANN.
+
+    Parameters
+    -----------
+    wavelength : ndarray (N,) 
+        wavelength points to evaluate
+    width : float 
+        width of the waveguides in microns
+    thickness : float 
+        thickness of the waveguides in microns
+    gap : float 
+        gap in the coupler region in microns
+    couplerLength : float 
+        length of the coupling region in microns
+
+    Returns
+    -------
+    S : ndarray (N,4,4) 
+        Scattering matrix'''
     N = wavelength.shape[0]
 
     # Get the fundamental mode of the waveguide itself
@@ -364,7 +423,7 @@ def evWGcoupler_S(wavelength,width,thickness,gap,couplerLength):
     # n0 = np.squeeze(TE0)
 
     # Get the modes of the coupler structure
-    cTE0,cTE1 = evWGcoupler(wavelength,width,thickness,gap)
+    cTE0,cTE1 = evWGcoupler(wavelength,width,thickness,gap,sw_angle)
     n1 = np.squeeze(cTE0)     # Get the first mode of the coupler region
     n2 = np.squeeze(cTE1)     # Get the second mode of the coupler region
     dn = n1 - n2  # Find the modal differences
@@ -433,7 +492,7 @@ def racetrack_AP_RR(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickn
     couplerS = evWGcoupler_S(wavelength,width,thickness,gap,couplerLength)
 
     # Calculate bent scattering matrix
-    bentS = bentWaveguide_S(wavelength,radius,width,thickness,gap,np.pi)
+    bentS = bentWaveguide_S(wavelength,width,thickness,radius,np.pi)
 
     # Calculate straight scattering matrix
     straightS = straightWaveguide_S(wavelength,width,thickness,couplerLength)
@@ -455,14 +514,40 @@ def racetrack_AP_RR(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickn
     # Output final s matrix
     return S
 
-def racetrack_AP_RR_TF(wavelength,angle=90,radius=12,couplerLength=4.5,gap=0.2,width=0.5,thickness=0.2,widthCoupler=0.5,loss=[0.99],coupling=[0]):
+def racetrack_AP_RR_TF(wavelength,sw_angle=90,radius=12,couplerLength=4.5,gap=0.2,width=0.5,thickness=0.2,widthCoupler=0.5,loss=[0.99],coupling=[0]):
+    '''This particular transfer function assumes that the coupling sides of the ring
+    resonator are straight, and the other two sides are curved. Therefore, the
+    roundtrip length of the RR is 2*pi*radius + 2*couplerLength. This model also includes
+    loss. (??? Need Verification on last line)
 
+    We assume that the round parts of the ring have negligble coupling compared to
+    the straight sections.
+
+    Parameters
+    -----------
+    wavelength : ndarray (N,) 
+        wavelength points to evaluate
+    radius : float 
+        radius of the sides in microns
+    couplerLength : float 
+        length of the coupling region in microns
+    gap : float 
+        gap in the coupler region in microns
+    width : float 
+        width of the waveguides in microns
+    thickness : float 
+        thickness of the waveguides in microns
+
+    Returns
+    -------
+    S : ndarray (N,4,4) 
+        Scattering matrix'''
     # Sanitize the input
     wavelength = np.squeeze(wavelength)
     N          = wavelength.shape[0]
 
     # calculate coupling
-    cTE0,cTE1 = evWGcoupler(wavelength=wavelength,width=widthCoupler,thickness=thickness,angle=angle,gap=gap)
+    cTE0,cTE1 = evWGcoupler(wavelength=wavelength,width=widthCoupler,thickness=thickness,sw_angle=sw_angle,gap=gap)
     n1 = np.squeeze(cTE0)     # Get the first mode of the coupler region
     n2 = np.squeeze(cTE1)     # Get the second mode of the coupler region
     Beta1 = 2*np.pi*n1 / wavelength
@@ -483,10 +568,10 @@ def racetrack_AP_RR_TF(wavelength,angle=90,radius=12,couplerLength=4.5,gap=0.2,w
     k = np.abs(y)
 
     # calculate bent waveguide
-    TE0_B = np.squeeze(bentWaveguide(wavelength=wavelength,width=width,thickness=thickness,angle=angle,radius=radius))
+    TE0_B = np.squeeze(bentWaveguide(wavelength=wavelength,width=width,thickness=thickness,sw_angle=sw_angle,radius=radius))
 
     # calculate straight waveguide
-    TE0 = np.squeeze(straightWaveguide(wavelength=wavelength,width=width,thickness=thickness,angle=angle))
+    TE0 = np.squeeze(straightWaveguide(wavelength=wavelength,width=width,thickness=thickness,sw_angle=sw_angle))
 
     # Calculate round trip length
     L = 2*np.pi*radius + 2*couplerLength
