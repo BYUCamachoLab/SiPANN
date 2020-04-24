@@ -114,10 +114,10 @@ class ImportNN():
             self.s_data = self.dict['s_data']
 
         self.graph = tf.Graph()
-        self.sess = tf.Session(graph=self.graph)
+        self.sess = tf.compat.v1.Session(graph=self.graph)
         with self.graph.as_default():
             #Import graph
-            imported_meta = tf.train.import_meta_graph(directory + "/model.meta")
+            imported_meta = tf.compat.v1.train.import_meta_graph(directory + "/model.meta")
             imported_meta.restore(self.sess, directory +  "/model")
 
             #get all tensor names
@@ -127,6 +127,7 @@ class ImportNN():
             for i in range(self.s_data[0]):
                  self.input_tf_parts.append(self.graph.get_tensor_by_name('INPUT_{}:0'.format(i)))
             self.keep_prob = self.graph.get_tensor_by_name('KEEP_PROB:0')
+        tf.compat.v1.disable_eager_execution()
 
     def validate_input(self, input):
         """Used to check for valid input.

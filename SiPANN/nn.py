@@ -102,13 +102,13 @@ def straightWaveguide(wavelength,width,thickness,sw_angle=90,derivative=None):
     Parameters
     ----------
     wavelength : float or ndarray (W1,) 
-        wavelength points to evaluate
+        Wavelength points to evaluate
     width : float or ndarray (W2,) 
-        width of the waveguides in microns
+        Width of the waveguides in microns
     thickness : float or ndarray (T,) 
-        thickness of the waveguides in microns
+        Thickness of the waveguides in microns
     sw_angle : float or ndarray (A,)
-        Sidewall sw_angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
+        Sidewall angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
     derivative : int
         Order of the derivative to take. Defaults to None.
 
@@ -161,20 +161,20 @@ def straightWaveguide_S(wavelength,width,thickness,length,sw_angle=90):
     Parameters
     -----------
     wavelength : ndarray (N,) 
-        wavelength points to evaluate
+        Wavelength points to evaluate
     width : float 
-        width of the waveguides in microns
+        Width of the waveguides in microns
     thickness : float 
-        thickness of the waveguides in microns
+        Thickness of the waveguides in microns
     sw_angle : float
-        Sidewall sw_angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
+        Sidewall angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
     L : float 
-        length of the waveguide in microns
+        Length of the waveguide in microns
 
     Returns
     -------
     S : ndarray (N,2,2) 
-        scattering matrix for each wavelength'''
+        Scattering matrix for each wavelength'''
     TE0 = straightWaveguide(wavelength,width,thickness,sw_angle)
 
     neff = np.squeeze(TE0)
@@ -214,15 +214,15 @@ def bentWaveguide(wavelength,width,thickness,radius,sw_angle=90,derivative=None)
     Parameters
     ----------
     wavelength : float or ndarray (W1,) 
-        wavelength points to evaluate
+        Wavelength points to evaluate
     width : float or ndarray (W2,) 
-        width of the waveguides in microns
+        Width of the waveguides in microns
     thickness : float or ndarray (T,) 
-        thickness of the waveguides in microns
+        Thickness of the waveguides in microns
     radius : float or ndarray (R,)
-        radius of waveguide in microns.
+        Radius of waveguide in microns.
     sw_angle : float or ndarray (A,)
-        Sidewall sw_angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
+        Sidewall angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
     derivative : int
         Order of the derivative to take. Defaults to None.
 
@@ -279,22 +279,22 @@ def bentWaveguide_S(wavelength,width,thickness,radius,angle,sw_angle=90):
     Parameters
     -----------
     wavelength : ndarray (N,) 
-        wavelength points to evaluate
+        Wavelength points to evaluate
     width : float 
-        width of the waveguides in microns
+        Width of the waveguides in microns
     thickness : float 
-        thickness of the waveguides in microns
+        Thickness of the waveguides in microns
     radius : float
-        radius of waveguide in microns.
+        Radius of waveguide in microns.
     angle : float
-        number of radians of circle that bent waveguide transverses
+        Number of radians of circle that bent waveguide transverses
     sw_angle : float
-        Sidewall sw_angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
+        Sidewall angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
 
     Returns
     -------
     S : ndarray (N,2,2) 
-        scattering matrix for each wavelength'''
+        Scattering matrix for each wavelength'''
     # Pull effective indices from ANN
     TE0 = bentWaveguide(wavelength,width,thickness,radius,sw_angle)
     neff = np.squeeze(TE0)
@@ -334,15 +334,15 @@ def evWGcoupler(wavelength,width,thickness,gap,sw_angle=90,derivative=None):
     Parameters
     ----------
     wavelength : float or ndarray (W1,) 
-        wavelength points to evaluate
+        Wavelength points to evaluate
     width : float or ndarray (W2,) 
-        width of the waveguides in microns
+        Width of the waveguides in microns
     thickness : float or ndarray (T,) 
-        thickness of the waveguides in microns
+        Thickness of the waveguides in microns
     gap : float or ndarray (G,)
         Gap distance between waveguides
     sw_angle : float or ndarray (A,)
-        Sidewall sw_angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
+        Sidewall angle from horizontal in degrees, ie 90 makes a square. Defaults to 90.
     derivative : int
         Order of the derivative to take. Defaults to None.
 
@@ -402,15 +402,15 @@ def evWGcoupler_S(wavelength,width,thickness,gap,couplerLength,sw_angle=90):
     Parameters
     -----------
     wavelength : ndarray (N,) 
-        wavelength points to evaluate
+        Wavelength points to evaluate
     width : float 
-        width of the waveguides in microns
+        Width of the waveguides in microns
     thickness : float 
-        thickness of the waveguides in microns
+        Thickness of the waveguides in microns
     gap : float 
         gap in the coupler region in microns
     couplerLength : float 
-        length of the coupling region in microns
+        Length of the coupling region in microns
 
     Returns
     -------
@@ -468,17 +468,17 @@ def racetrack_AP_RR(wavelength,radius=5,couplerLength=5,gap=0.2,width=0.5,thickn
     Parameters
     -----------
     wavelength : ndarray (N,) 
-        wavelength points to evaluate
+        Wavelength points to evaluate
     radius : float 
-        radius of the sides in microns
+        Radius of the sides in microns
     couplerLength : float 
-        length of the coupling region in microns
+        Length of the coupling region in microns
     gap : float 
-        gap in the coupler region in microns
+        Gap in the coupler region in microns
     width : float 
-        width of the waveguides in microns
+        Width of the waveguides in microns
     thickness : float 
-        thickness of the waveguides in microns
+        Thickness of the waveguides in microns
 
     Returns
     -------
@@ -526,22 +526,30 @@ def racetrack_AP_RR_TF(wavelength,sw_angle=90,radius=12,couplerLength=4.5,gap=0.
     Parameters
     -----------
     wavelength : ndarray (N,) 
-        wavelength points to evaluate
+        Wavelength points to evaluate
     radius : float 
-        radius of the sides in microns
+        Radius of the sides in microns
     couplerLength : float 
-        length of the coupling region in microns
+        Length of the coupling region in microns
     gap : float 
-        gap in the coupler region in microns
+        Gap in the coupler region in microns
     width : float 
-        width of the waveguides in microns
+        Width of the waveguides in microns
     thickness : float 
-        thickness of the waveguides in microns
+        Thickness of the waveguides in microns
 
     Returns
     -------
-    S : ndarray (N,4,4) 
-        Scattering matrix'''
+    E : ndarray
+        Complex array of size (N,)
+    alpha : ndarray
+        Array of size (N,)
+    t : ndarray
+        Array of size (N,)
+    alpha_s : ndarray
+        Array of size (N,)
+    phi : ndarray
+        Array of size (N,)'''
     # Sanitize the input
     wavelength = np.squeeze(wavelength)
     N          = wavelength.shape[0]
@@ -619,19 +627,19 @@ def rectangularRR(wavelength,radius=5,couplerLength=5,sideLength=5,gap=0.2,width
     Parameters
     -----------
     wavelength : ndarray (N,) 
-        wavelength points to evaluate
+        Wavelength points to evaluate
     radius : float 
-        radius of the sides in microns
+        Radius of the sides in microns
     couplerLength : float 
-        length of the coupling region in microns
+        Length of the coupling region in microns
     sideLength : float 
-        length of each side not coupling in microns
+        Length of each side not coupling in microns
     gap : float 
-        gap in the coupler region in microns
+        Gap in the coupler region in microns
     width : float 
-        width of the waveguides in microns
+        Width of the waveguides in microns
     thickness : float 
-        thickness of the waveguides in microns
+        Thickness of the waveguides in microns
 
     Returns
     -------
