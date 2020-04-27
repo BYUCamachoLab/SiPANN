@@ -132,7 +132,6 @@ setup(
     install_requires=[
         "tensorflow",
         "gdspy >= 1.5.2",
-        "joblib",
         "scikit-rf"
     ],
 

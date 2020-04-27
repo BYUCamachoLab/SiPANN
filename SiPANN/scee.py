@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 from scipy.integrate import quad
 from scipy import special
 import pkg_resources
-import joblib
 import gdspy
 import warnings
 
@@ -204,7 +203,7 @@ class DC(ABC):
             warnings.warn("Thickness is greater than 240nm, may produce invalid results", UserWarning)
         if np.any(self.sw_angle<80):
             warnings.warn("Sidewall Angle is less than 80 degrees, may produce invalid results", UserWarning)
-        if np.any(self.sw_angle<90):
+        if np.any(self.sw_angle>90):
             warnings.warn("Sidewall Angle is greater than 90 degrees, may produce invalid results", UserWarning)
         
     def _clean_args(self, wavelength):
@@ -249,7 +248,7 @@ class DC(ABC):
             warnings.warn("Thickness is greater than 240nm, may produce invalid results", UserWarning)
         if np.any(self.sw_angle<80):
             warnings.warn("Sidewall Angle is less than 80 degrees, may produce invalid results", UserWarning)
-        if np.any(self.sw_angle<90):
+        if np.any(self.sw_angle>90):
             warnings.warn("Sidewall Angle is greater than 90 degrees, may produce invalid results", UserWarning)
 
     def sparams(self, wavelength):
@@ -1196,7 +1195,7 @@ class DoubleHalfRing(DC):
         radius : float or ndarray
             Distance from center of ring to middle of waveguide in nm.
         gap : float or ndarray
-            Minimum distance from ring waveguide edge to straight waveguide edge in nm.
+            Minimum distance from ring waveguide edge to other ring waveguide edge in nm.
         sw_angle : float or ndarray, optional
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90."""
     def __init__(self, width, thickness, radius, gap, sw_angle=90):
@@ -1415,7 +1414,7 @@ class Waveguide(ABC):
             warnings.warn("Thickness is greater than 240nm, may produce invalid results", UserWarning)
         if np.any(self.sw_angle<80):
             warnings.warn("Sidewall Angle is less than 80 degrees, may produce invalid results", UserWarning)
-        if np.any(self.sw_angle<90):
+        if np.any(self.sw_angle>90):
             warnings.warn("Sidewall Angle is greater than 90 degrees, may produce invalid results", UserWarning)
 
     def _clean_args(self, wavelength):
@@ -1461,7 +1460,7 @@ class Waveguide(ABC):
             warnings.warn("Thickness is greater than 240nm, may produce invalid results", UserWarning)
         if np.any(self.sw_angle<80):
             warnings.warn("Sidewall Angle is less than 80 degrees, may produce invalid results", UserWarning)
-        if np.any(self.sw_angle<90):
+        if np.any(self.sw_angle>90):
             warnings.warn("Sidewall Angle is greater than 90 degrees, may produce invalid results", UserWarning)
 
     def sparams(self, wavelength):

@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 import scipy.integrate as integrate
 import scipy.special as special
 import pkg_resources
-import joblib
 import gdspy
 from SiPANN.scee import *
 from SiPANN.nn import *

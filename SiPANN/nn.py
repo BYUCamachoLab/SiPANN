@@ -24,7 +24,6 @@ import skrf as rf
 import pkg_resources
 from scipy.signal import find_peaks, peak_widths
 from scipy.interpolate import UnivariateSpline
-import joblib
 
 # ---------------------------------------------------------------------------- #
 # Initialize ANNs

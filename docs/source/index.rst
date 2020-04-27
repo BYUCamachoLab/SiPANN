@@ -7,7 +7,7 @@ SiPANN Documentation
    :maxdepth: 2
    :caption: Table of Contents:
 
-    SCEE - Direcional Couplers Models <scee>
+    SCEE - Directional Couplers Models <scee>
     Neural Network Based Models <nn>
     Composite Devices Models <comp>
     Machine Learning Utilities <nn_utils>
