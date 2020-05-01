@@ -72,3 +72,13 @@ Crossover at 1550nm
 .. autoclass:: SiPANN.scee_simp.FiftyFifty
     :members:
     :inherited-members:
+
+*****************************
+Miscellaneous
+*****************************
+
+Waveguide
+==========================
+.. autoclass:: SiPANN.scee_simp.Waveguide
+    :members:
+    :inherited-members:

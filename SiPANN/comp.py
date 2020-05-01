@@ -7,10 +7,6 @@ import gdspy
 from SiPANN.scee import *
 from SiPANN.nn import *
 
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.linear_model import LinearRegression
-
 
 '''
 Similarly to before, we initialize all ANN's and regressions as global objects to speed things up. 
