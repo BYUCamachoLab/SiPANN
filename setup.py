@@ -36,7 +36,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.1.0',  # Required
+    version='1.1.1',  # Required
 
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
@@ -122,6 +122,9 @@ setup(
     #   py_modules=["my_module"],
     #
     packages=find_packages(exclude=['contrib', 'docs', 'tests', 'examples']),  # Required
+    package_data={'SiPANN': ['COUPLER/*.npz', 'LR/*.pkl','ANN/TIGHT_ANGLE_GAP/*',
+                            'ANN/TIGHT_ANGLE_STRAIGHT/*', 'ANN/TIGHT_ANGLE_BENT_RAND/*']},
+
     # This field lists other packages that your project depends on to run.
     # Any package you put here will be installed by pip when your project is
     # installed, so they must be valid existing projects.
