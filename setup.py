@@ -36,7 +36,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.0',  # Required
+    version='1.0.1',  # Required
 
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
@@ -51,7 +51,7 @@ setup(
     #
     # This field corresponds to the "Description" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#description-optional
-    long_description='',  # Optional
+    long_description=long_description,  # Optional
 
     # Denotes that our long_description is in Markdown; valid values are
     # text/plain, text/x-rst, and text/markdown
@@ -78,7 +78,7 @@ setup(
     # This should be a valid email address corresponding to the author listed
     # above.
 
-    author_email='contagon6@gmail.com',  # Optional
+    author_email='eastonpots@byu.edu',  # Optional
 
     # Classifiers help users find your project by categorizing it.
     #
@@ -88,7 +88,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
@@ -110,7 +110,7 @@ setup(
     # project page. What does your project relate to?
     #
     # Note that this is a string of words separated by whitespace, not a list.
-    keywords='artificial neural networks',  # Optional
+    keywords='artificial neural networks silicon photonics coupling',  # Optional
 
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
@@ -122,7 +122,6 @@ setup(
     #   py_modules=["my_module"],
     #
     packages=find_packages(exclude=['contrib', 'docs', 'tests', 'examples']),  # Required
-
     # This field lists other packages that your project depends on to run.
     # Any package you put here will be installed by pip when your project is
     # installed, so they must be valid existing projects.
@@ -132,7 +131,8 @@ setup(
     install_requires=[
         "tensorflow",
         "gdspy >= 1.5.2",
-        "scikit-rf"
+        "scikit-rf",
+        "simphony",
     ],
 
     # List additional groups of dependencies here (e.g. development
@@ -149,9 +149,9 @@ setup(
     #
     # If using Python 2.6 or earlier, then these have to be included in
     # MANIFEST.in as well.
-    apackage_data={  # Optional
-        'ANN': ['ANN/**/*','LR/*']
-    }
+    # apackage_data={  # Optional
+    #     'ANN': ['ANN/**/*','LR/*']
+    # }
 )
 '''
 

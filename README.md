@@ -12,7 +12,7 @@
 [github_last_commit]: https://github.com/contagon/SiPANN/commits/master
 [github_activity]: https://github.com/contagon/SiPANN/graphs/commit-activity
 
-# SiP-ANN
+# SiPANN
 Artifical Neural Networks for use with Silicon Photonics
 
 ## Installation Instructions

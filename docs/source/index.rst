@@ -8,6 +8,7 @@ SiPANN Documentation
    :caption: Table of Contents:
 
     SCEE - Directional Couplers Models <scee>
+    Simphony Wrapper of SCEE <scee_simp>
     Neural Network Based Models <nn>
     Composite Devices Models <comp>
     Machine Learning Utilities <nn_utils>
