@@ -1,6 +1,6 @@
-#############################
-SCEE Module
-#############################
+###################################
+SCEE - Directional Couplers Models
+###################################
 
 These methods are based on the model SCEE found in [CITE PAPER WHEN PUBLISHED].
 

@@ -1,21 +1,22 @@
-SiPANN Documentation
-==================================
+.. include:: ../../README.rst
 
-.. automodule:: SiPANN
-    
 .. toctree::
-   :maxdepth: 2
-   :caption: Table of Contents:
+    :maxdepth: 2
+    :glob:
+    :caption: Getting Started
 
-    SCEE - Directional Couplers Models <scee>
-    Simphony Wrapper of SCEE <scee_simp>
-    Neural Network Based Models <nn>
-    Composite Devices Models <comp>
-    Machine Learning Utilities <nn_utils>
+    *
 
-Indices and tables
-==================
+.. toctree::
+    :maxdepth: 2
+    :glob:
+    :caption: Tutorials:
+    
+    tutorials/*
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. toctree::
+    :maxdepth: 2
+    :glob:
+    :caption: API Reference:
+    
+    api/*
