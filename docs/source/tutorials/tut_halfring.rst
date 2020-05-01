@@ -55,7 +55,7 @@ And plotting the output gives us
     plt.savefig("halfring_output_wavelength.png")
 
 .. image:: halfring_output_wavelength.png
-    :scale: 50 %
+    :scale: 75 %
 
 SCEE also supports sweeping over geometries while holding wavelengths fixed. This can be done as:
 
@@ -80,8 +80,8 @@ SCEE also supports sweeping over geometries while holding wavelengths fixed. Thi
     plt.savefig("halfring_output_radius.png")
 
 .. image:: halfring_output_radius.png
-    :scale: 50 %
+    :scale: 75 %
 
-All elements found in `SiPANN.scee` can be simulated basically identically. If you'd like this in script form, it can be found on github, here_.
+All elements found in ``SiPANN.scee`` can be simulated basically identically. If you'd like this in script form, it can be found on github, here_.
 
 .. _here: https://github.com/contagon/SiPANN/blob/master/examples/HalfRing.ipynb
