@@ -16,14 +16,16 @@ SiPANN
 
 
 **Si**\ licon **P**\ hotonics with **A**\ rtificial **N**\ eural **N**\ etworks. SiPANN aims to implement various silicon photonics simulators based on machine learning techniques found in literature. The majority of these techniques are linear regression or neural networks. As a results SiPANN can return scattering parameters of (but not limited to)
- * Half Rings
- * Arbitrarily shaped directional couplers
- * Racetrack Resonators
- * Waveguides
+
+* Half Rings
+* Arbitrarily shaped directional couplers
+* Racetrack Resonators
+* Waveguides
 And with the help of `simphony`_ and SiPANN's accompanying simphony wrapper
- * Ring Resonators
- * Doubly Coupled Rings
- * Hybrid Devices (ie Green Machine)
+
+* Ring Resonators
+* Doubly Coupled Rings
+* Hybrid Devices (ie Green Machine)
 
 .. _simphony: https://github.com/BYUCamachoLab/simphony
 
@@ -38,6 +40,7 @@ SiPANN is distributed on PyPI_ and can be installed with ``pip``:
 
 Developmental Build
 #####################
+
 
 If you want a developmental build, it can be had by executing
 
