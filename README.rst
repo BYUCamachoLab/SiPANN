@@ -21,6 +21,7 @@ SiPANN
 * Arbitrarily shaped directional couplers
 * Racetrack Resonators
 * Waveguides
+
 And with the help of `simphony`_ and SiPANN's accompanying simphony wrapper
 
 * Ring Resonators
@@ -78,12 +79,12 @@ SiPANN is based on a variety of methods found in various papers, including:
 Bibtex citation
 =================
 
-@misc{SiP-ANN_2019,
-	title={SiP-ANN},
-	author={Easton Potokar, Alec M. Hammond, Ryan M. Camacho},
-	year={2019},
-	publisher={GitHub},
-	howpublished={{https://github.com/contagon/SiP-ANN}}
-}
+.. code::
 
-
+    @misc{SiP-ANN_2019,
+    	    title={SiP-ANN},
+	    author={Easton Potokar, Alec M. Hammond, Ryan M. Camacho},
+	    year={2019},
+	    publisher={GitHub},
+	    howpublished={{https://github.com/contagon/SiP-ANN}}
+    }
