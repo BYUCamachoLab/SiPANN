@@ -14,15 +14,16 @@ SiPANN
   :target: https://github.com/contagon/SiPANN/commits/master
   :alt: Latest Commit
 
+
 **Si**\ licon **P**\ hotonics with **A**\ rtificial **N**\ eural **N**\ etworks. SiPANN aims to implement various silicon photonics simulators based on machine learning techniques found in literature. The majority of these techniques are linear regression or neural networks. As a results SiPANN can return scattering parameters of (but not limited to)
-* Half Rings
-* Arbitrarily shaped directional couplers
-* Racetrack Resonators
-* Waveguides
+ * Half Rings
+ * Arbitrarily shaped directional couplers
+ * Racetrack Resonators
+ * Waveguides
 And with the help of `simphony`_ and SiPANN's accompanying simphony wrapper
-* Ring Resonators
-* Doubly Coupled Rings
-* Hybrid Devices (ie Green Machine)
+ * Ring Resonators
+ * Doubly Coupled Rings
+ * Hybrid Devices (ie Green Machine)
 
 .. _simphony: https://github.com/BYUCamachoLab/simphony
 
@@ -73,14 +74,13 @@ SiPANN is based on a variety of methods found in various papers, including:
 
 Bibtex citation
 =================
-.. code::
 
-	@misc{SiP-ANN_2019,
-		title={SiP-ANN},
-		author={Easton Potokar, Alec M. Hammond, Ryan M. Camacho},
-		year={2019},
-		publisher={GitHub},
-		howpublished={{https://github.com/contagon/SiP-ANN}}
-	}
+@misc{SiP-ANN_2019,
+	title={SiP-ANN},
+	author={Easton Potokar, Alec M. Hammond, Ryan M. Camacho},
+	year={2019},
+	publisher={GitHub},
+	howpublished={{https://github.com/contagon/SiP-ANN}}
+}
 
 
