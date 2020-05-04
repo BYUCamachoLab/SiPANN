@@ -1,5 +1,5 @@
-Export SCEE -> Interconnect
-===========================
+SCEE and Interconnect
+=====================
 
 The SCEE module in SiPANN also has built in functionality to export any
 of it’s models directly into a format readable by Lumerical Interconnect
