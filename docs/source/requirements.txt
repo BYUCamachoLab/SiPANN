@@ -1,1 +1,2 @@
 ipython
+-e git+git@github.com:BYUCamachoLab/simphony.git#egg=simphony

@@ -6,7 +6,6 @@ import pkg_resources
 import gdspy
 import warnings
 
-from simphony.tools import wl2freq
 from SiPANN.import_nn import ImportLR
 
 ##########################################################################################
