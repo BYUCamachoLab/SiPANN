@@ -72,6 +72,9 @@ And plotting the output gives us
 .. image:: HalfRing_files/HalfRing_11_0.png
 
 
+SCEE also supports sweeping over geometries while holding wavelengths
+fixed. This can be done as:
+
 .. code:: ipython3
 
     r = np.linspace(5000, 50000, 100)
@@ -94,6 +97,11 @@ And plotting the output gives us
 
 
 
-.. image:: HalfRing_files/HalfRing_12_0.png
+.. image:: HalfRing_files/HalfRing_13_0.png
 
+
+All elements found in SiPANN.scee can be simulated basically
+identically. If you’d like this in script form, it can be found on
+github,
+`here <https://github.com/contagon/SiPANN/blob/master/examples/Tutorials/HalfRing.ipynb>`__
 

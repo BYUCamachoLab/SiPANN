@@ -27,9 +27,9 @@ arbitrarily choose a half ring resonator here)
     hr = scee.HalfRing(w, t, r, gap)
     sparams = hr.sparams(wavelength)
 
-And then export. Note ``export_sparams`` takes in wavelengths in nms,
-but the Lumerical file will have frequency in meters, as is standard in
-Interconnect. To export:
+And then export. Note ``export_interconnect`` takes in wavelengths in
+nms, but the Lumerical file will have frequency in meters, as is
+standard in Interconnect. To export:
 
 .. code:: ipython3
 
@@ -39,3 +39,7 @@ Interconnect. To export:
 As a final parameter, ``export_interconnect`` also has a ``clear=True``
 parameter that will empty the file being written to before writing. If
 you’d like to append to an existing file, simply set ``clear=False``.
+
+This is available in script form
+`here <https://github.com/contagon/SiPANN/blob/master/examples/Tutorials/ExportToInterConnect.ipynb>`__
+

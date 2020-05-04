@@ -164,3 +164,6 @@ necessarily going to be equal), but for simplicity using our
 .. image:: Simphony_files/Simphony_17_0.png
 
 
+This is available in script form
+`here <https://github.com/contagon/SiPANN/blob/master/examples/Tutorials/Simphony.ipynb>`__
+
