@@ -6,6 +6,7 @@ import pkg_resources
 import gdspy
 import warnings
 
+from simphony.tools import wl2freq
 from SiPANN.import_nn import ImportLR
 
 ##########################################################################################
@@ -13,8 +14,6 @@ from SiPANN.import_nn import ImportLR
 ##########################################################################################
 cross_file = pkg_resources.resource_filename('SiPANN','LR/DC_coeffs.pkl')
 DC_coeffs  = ImportLR(cross_file)
-
-C          = 299792458
 
 #########################################################################################
 ######################  Helper Functions used throughout classes  #######################
@@ -168,6 +167,45 @@ def clean_inputs(inputs):
             inputs[i] = np.full((n), inputs[i][0])
 
     return inputs
+
+def export_interconnect(sparams, wavelength, filename, clear=True):
+    """Exports scattering parameters to a file readable by interconnect
+
+    Parameters
+    -----------
+    sparams : ndarray
+        Numpy array of size (N, d, d) where N is the number of frequency points and d the number of ports
+    wavelength : ndarray
+        Numpy array of wavelengths (in nm, like the rest of SCEE) of size (N)
+    filename : string
+        Location to save file
+    clear : bool, optional
+        If True, empties the file first. Defaults to True.
+    """
+    #set things up
+    N, d, _ = sparams.shape
+    if clear:
+        open(filename, 'w').close()
+    file = open(filename, 'ab')
+
+    #make frequencies
+    freq = wl2freq( wavelength * 1e-9)
+
+    #iterate through sparams saving
+    for in_ in range(d):
+        for out in range(d):
+            #put things together
+            sp = sparams[:,in_, out]
+            temp = np.vstack(( freq, np.abs(sp), np.unwrap(np.angle(sp)) )).T
+
+            # Save header
+            header = f'("port {out+1}", "TE", 1, "port {in_+1}", 1, "transmission")\n'
+            header += f'{temp.shape}'
+
+            #save data
+            np.savetxt(file, temp, header=header, comments='')
+            
+    file.close()
 
 class DC(ABC):
     """Abstract Class that all directional couplers inherit from. Each DC will inherit from it.
