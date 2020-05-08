@@ -48,9 +48,9 @@ And if you want to visualize what the device looks like,
     hr.gds(view=True,extra=0,units='microns')
 
 .. figure:: HalfRing_files/gdsView.png
-   :alt: gds
+   :alt: halfring
 
-   gds
+   halfring
 
 And plotting the output gives us
 
@@ -65,7 +65,6 @@ And plotting the output gives us
     plt.plot(wavelength, np.unwrap(np.angle(k)), label='k')
     plt.plot(wavelength, np.unwrap(np.angle(t)), label='t')
     pltAttr('Wavelength (nm)', 'Phase (rad)', 'HalfRing 10 Microns')
-    plt.savefig("halfring_output_wavelength.png")
 
 
 
@@ -93,7 +92,6 @@ fixed. This can be done as:
     plt.plot(r, np.unwrap(np.angle(k)), label='k')
     plt.plot(r, -np.unwrap(np.angle(t)), label='t')
     pltAttr('Radius (nm)', 'Phase (rad)', 'HalfRing $\lambda=1550$')
-    plt.savefig("halfring_output_radius.png")
 
 
 
@@ -101,7 +99,7 @@ fixed. This can be done as:
 
 
 All elements found in SiPANN.scee can be simulated basically
-identically. If you’d like this in script form, it can be found on
-github,
+identically. If you’d like this tutorial as a jupyter notebook, it can
+be found on github,
 `here <https://github.com/contagon/SiPANN/blob/master/examples/Tutorials/HalfRing.ipynb>`__
 

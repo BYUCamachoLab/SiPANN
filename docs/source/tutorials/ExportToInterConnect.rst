@@ -40,6 +40,6 @@ As a final parameter, ``export_interconnect`` also has a ``clear=True``
 parameter that will empty the file being written to before writing. If
 you’d like to append to an existing file, simply set ``clear=False``.
 
-This is available in script form
+This is available as a jupyter notebook
 `here <https://github.com/contagon/SiPANN/blob/master/examples/Tutorials/ExportToInterConnect.ipynb>`__
 

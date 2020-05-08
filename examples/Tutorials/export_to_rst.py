@@ -2,8 +2,9 @@ import os
 
 """
 We write all of our tutorials in jupyter notebooks (b/c it handle images and plots natively and is easier),
-and then convert them to restructured text. That's what this file does. The only drawback is if you want to put 
-inline images in, then you basically have to put the image in a folder named {file}_files.
+and then convert them to restructured text. Run this file to do the conversion and put everything in it's 
+correct place. The only drawback is if you want to put  inline images in, put the image in a folder 
+named {file}_files.
 
 Requires that nbconvert is installed on your system as well.
 """
