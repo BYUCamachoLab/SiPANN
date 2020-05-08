@@ -22,7 +22,7 @@ def export_interconnect(sparams, wavelength, filename, clear=True):
         If True, empties the file first. Defaults to True.
     """
     #set things up
-    N, d, _ = sparams.shape
+    _, d, _ = sparams.shape
     if clear:
         open(filename, 'w').close()
     file = open(filename, 'ab')
