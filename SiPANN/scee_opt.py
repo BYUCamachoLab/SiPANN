@@ -2,7 +2,6 @@ import nlopt
 import numpy as np
 import matplotlib.pyplot as plt
 from SiPANN import scee
-import pickle
 from scipy import special
 import os
 from tables import *
@@ -139,6 +138,7 @@ def make_coupler(goalK=.4, arrayK=None, waveSweep=np.linspace(1500,1600,4), gapN
     coupler = scee.GapFuncSymmetric(width, thickness, lambda x: gapMax, lambda x: 0, 0, couplingWidth)
     curvatureFunc = lambda x: 0
     localOpt = False
+    waveN = len(waveSweep)
 
     #set up progress bars
     if verbose == 1:

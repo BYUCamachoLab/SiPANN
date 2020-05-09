@@ -18,7 +18,7 @@ def convert_jupyter(file):
     files = fr'{filename}_files'
     os.system(f'rm -rf ../../docs/source/tutorials/{files}')
     os.system(f'cp -r {files} ../../docs/source/tutorials')
-    os.system(f'rm {files}/*_0.png')
+    os.system(f'rm {files}/**_**_**.png')
     os.system(f'mv {filename}.rst ../../docs/source/tutorials/{filename}.rst')
 
 def convert_all():

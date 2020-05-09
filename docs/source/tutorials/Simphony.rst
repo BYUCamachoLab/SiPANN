@@ -20,6 +20,16 @@ The SCEE wrapper can be found in ``SiPANN.scee_int``.
     
     import matplotlib.pyplot as plt
     import numpy as np
+    
+    def pltAttr(x, y, title=None, legend='upper right', save=None):
+        if legend is not None:
+            plt.legend(loc=legend)
+        plt.xlabel(x)
+        plt.ylabel(y)
+        if title is not None:
+            plt.title(title)
+        if save is not None:
+            plt.savefig(save)
 
 Standard Simulation
 -------------------
@@ -78,13 +88,18 @@ ring resonator as an example.
     f1, s = res1.data(res1.pinlist['in'], res1.pinlist['pass'])
     plt.figure(figsize=(10,6))
     plt.plot(f1, s)
-    plt.title("10-micron Ring Resonator")
+    pltAttr('Frequency (Hz)', 'Magnitude', "10-micron Ring Resonator")
     plt.tight_layout()
     plt.show()
 
 
+.. parsed-literal::
 
-.. image:: Simphony_files/Simphony_10_0.png
+    No handles with labels found to put in legend.
+
+
+
+.. image:: Simphony_files/Simphony_10_1.png
 
 
 Monte-Carlo Simulations
@@ -120,7 +135,7 @@ simulations
     # The data located at the 0 position is the ideal values.
     f, s = result.data('in', 'pass', 0)
     plt.plot(f, s, 'k')
-    plt.title("10-micron RR Monte-Carlo (width and thickness)")
+    pltAttr('Frequency (Hz)', 'Magnitude', "10-micron RR Monte-Carlo (width and thickness)", legend=None)
     plt.tight_layout()
     plt.show()
 
@@ -155,7 +170,7 @@ necessarily going to be equal), but for simplicity using our
     # The data located at the 0 position is the ideal values.
     f, s = result.data('in', 'pass', 0)
     plt.plot(f, s, 'k')
-    plt.title("10-micron RR Monte-Carlo (radius)")
+    pltAttr('Frequency (Hz)', 'Magnitude', "10-micron RR Monte-Carlo (radius)", legend=None)
     plt.tight_layout()
     plt.show()
 
