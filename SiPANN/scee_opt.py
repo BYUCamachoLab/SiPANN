@@ -85,7 +85,7 @@ class Optimization(IsDescription):
 ###                 ACTUAL OPTIMIZING                 ###
 ###  this function does all of the heavy lifting here ###
 #########################################################
-def make_coupler(goalK=.4, arrayK=None, waveN=8, gapN=16, algo=35, edgeN=8, plot=False, collectData=False, width=500, thickness=220, radius=5000, waveStart=1500, waveStop=1600, verbose=0):
+def make_coupler(goalK=.4, arrayK=None, waveSweep=np.linspace(1500,1600,4), gapN=16, algo=35, edgeN=8, plot=False, collectData=False, width=500, thickness=220, radius=5000, maxiter=None, verbose=0):
     """Optimizes output from a directional coupler defined by a bezier curve to a specified output magnitude
     
     Parameters
@@ -94,10 +94,10 @@ def make_coupler(goalK=.4, arrayK=None, waveN=8, gapN=16, algo=35, edgeN=8, plot
         [0-1] mandatory, unless using arrayK. Desired \|kappa\|^2 magnitude
     arrayK :  ndarray, optional
         Has to have size (2,). [0-1] can specify a \|kappa\|^2 magnitude at start and end of wavelength sweep. Defaults to None
-    waveN :  int, optional
-        Number of wavelength in the wavelength sweep. Defaults to 4.
+    waveSweep :  ndarray, optional
+        Sweep of wavelengths to evaluate objective function at. Defaults to ``np.linspace(1500,1600,4)``
     gapN :  int, optional
-        Number of control points that can vary. Defaults to 8.
+        Number of control points that can vary. Defaults to 16.
     algo :  int, optional
         Optimization algorithm that nlopt uses. Defaults to 35
     edgeN :  int, optional
@@ -112,10 +112,8 @@ def make_coupler(goalK=.4, arrayK=None, waveN=8, gapN=16, algo=35, edgeN=8, plot
         Thickness of waveguides in nm. Defaults to 220.
     radius :  float, optional
         Radius of allowable curve in directional coupler in nm. Defaults to 5000. 
-    waveStart :  float, optional
-        Xtart value for wavelength sweep in nm. Default to 1500.
-    waveStop :  float, optional
-        Stop value for wavelength sweep in nm. Defaults to 1600.
+    maxiter : int, optional
+        The number of max iterations to run each of the gloabl and local optimization for. If None, doesn't apply. Defaults to None.
     verbose :  int, optional
         Amount of logging to output. If 0, none. If 1, tqdm bar. If 2, prints all information (can be cumbersome). Defaults to 0.
     
@@ -144,14 +142,17 @@ def make_coupler(goalK=.4, arrayK=None, waveN=8, gapN=16, algo=35, edgeN=8, plot
 
     #set up progress bars
     if verbose == 1:
-        loop = tqdm(total=float('inf'), position=0, leave=True)
+        if maxiter is not None:
+            loop = tqdm(total=maxiter*2, position=0, leave=True)
+        else:
+            loop = tqdm(total=float('inf'), position=0, leave=True)
 
     # varying values of goal coupling if desired
     if arrayK is not None:
         goalK = np.array([arrayK[0] if k < waveN/2 else arrayK[1] for k in range(waveN)])
 
     # sweep of wavelength to optimize over
-    waveSweep = np.linspace(waveStart, waveStop, waveN)
+    #waveSweep = np.linspace(waveStart, waveStop, waveN)
     #dataPoints = {str(wave):{'g': [], 'k': [], 't': []} for wave in range(waveStart,waveStop+1)}
 
     # define plot for debugging and final result
@@ -331,7 +332,8 @@ def make_coupler(goalK=.4, arrayK=None, waveN=8, gapN=16, algo=35, edgeN=8, plot
 
     opt.set_xtol_rel(1e-5)
     opt.set_ftol_abs(1e-7)
-    # opt.set_maxeval(100)
+    if maxiter is not None:
+        opt.set_maxeval(maxiter)
 
     opt.add_equality_constraint(lambda x,grad: constraint(x,grad,radius),1e-8)
 
@@ -358,8 +360,9 @@ def make_coupler(goalK=.4, arrayK=None, waveN=8, gapN=16, algo=35, edgeN=8, plot
     opt.set_xtol_rel(1e-5)
     opt.set_ftol_abs(1e-7)
     opt.set_ftol_rel(1e-6)
-    # opt.set_maxeval(100)
-
+    if maxiter is not None:
+        opt.set_maxeval(maxiter)
+        
     gap_final = opt.optimize(gap_final)
 
     # close data collection file (h5 used so data is still collected if interrupted)
@@ -454,6 +457,8 @@ def load_coupler(filename):
     ----------
     coupler : GapFuncSymmetric
         Saved coupler
+    length : float
+        Length of coupler
     """
     #load all the data
     data = np.load(filename)
@@ -464,7 +469,7 @@ def load_coupler(filename):
 
     #make curve and return object
     bez = bezier_quick(g, l)
-    return scee.GapFuncSymmetric(width, thickness, bez['f'], bez['df'], 0, bez['w'])
+    return scee.GapFuncSymmetric(width, thickness, bez['f'], bez['df'], 0, bez['w']), l
 
 def premade_coupler(split):
     """
