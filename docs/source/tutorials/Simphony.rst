@@ -13,14 +13,14 @@ The SCEE wrapper can be found in ``SiPANN.scee_int``.
 
     from SiPANN import scee
     from SiPANN.scee_int import SimphonyWrapper
-    
+
     from simphony.library import ebeam
     from simphony.netlist import Subcircuit
     from simphony.simulation import SweepSimulation, MonteCarloSweepSimulation
-    
+
     import matplotlib.pyplot as plt
     import numpy as np
-    
+
     def pltAttr(x, y, title=None, legend='upper right', save=None):
         if legend is not None:
             plt.legend(loc=legend)
@@ -43,7 +43,7 @@ First we’ll make our device like we always have using ``SiPANN.scee``.
     t = 220
     wavelength = np.linspace(1500, 1600)
     gap = 100
-    
+
     hr = scee.HalfRing(w, t, r, gap)
 
 Simply put our device into the simphony wrapper.
@@ -59,23 +59,23 @@ ring resonator as an example.
 
     def make_ring(half_ring):
         term = ebeam.ebeam_terminator_te1550()
-    
+
         circuit = Subcircuit()
         circuit.add([
             (half_ring, 'input'),
             (half_ring, 'output'),
             (term, 'terminator')
         ])
-    
+
         circuit.elements['input'].pins = ('pass', 'midb', 'in', 'midt')
         circuit.elements['output'].pins = ('out', 'midt', 'term', 'midb')
-    
+
         circuit.connect_many([
             ('input', 'midb', 'output', 'midb'),
             ('input', 'midt', 'output', 'midt'),
             ('terminator', 'n1', 'output', 'term')
         ])
-        
+
         return circuit
 
 .. code:: ipython3
@@ -84,7 +84,7 @@ ring resonator as an example.
     circuit = make_ring(s_hr)
     sim1 = SweepSimulation(circuit, 1500e-9, 1600e-9)
     res1 = sim1.simulate()
-    
+
     f1, s = res1.data(res1.pinlist['in'], res1.pinlist['pass'])
     plt.figure(figsize=(10,6))
     plt.plot(f1, s)
@@ -125,13 +125,13 @@ simulations
     simulation = MonteCarloSweepSimulation(circuit, 1500e-9, 1600e-9)
     runs = 5
     result = simulation.simulate(runs=runs)
-    
+
     #plot
     plt.figure(figsize=(10,6))
     for i in range(1, runs + 1):
         f, s = result.data('in', 'pass', i)
         plt.plot(f, s)
-    
+
     # The data located at the 0 position is the ideal values.
     f, s = result.data('in', 'pass', 0)
     plt.plot(f, s, 'k')
@@ -154,19 +154,19 @@ necessarily going to be equal), but for simplicity using our
 
     sigmas = {"radius": 20}
     s_hr = SimphonyWrapper(hr, sigmas)
-    
+
     circuit = make_ring(s_hr)
     #run monte carlo simulation
     simulation = MonteCarloSweepSimulation(circuit, 1500e-9, 1600e-9)
     runs = 5
     result = simulation.simulate(runs=runs)
-    
+
     #plot
     plt.figure(figsize=(10,6))
     for i in range(1, runs + 1):
         f, s = result.data('in', 'pass', i)
         plt.plot(f, s)
-    
+
     # The data located at the 0 position is the ideal values.
     f, s = result.data('in', 'pass', 0)
     plt.plot(f, s, 'k')
@@ -181,4 +181,3 @@ necessarily going to be equal), but for simplicity using our
 
 This is available as a jupyter notebook
 `here <https://github.com/contagon/SiPANN/blob/master/examples/Tutorials/Simphony.ipynb>`__
-

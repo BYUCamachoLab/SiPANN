@@ -15,7 +15,7 @@ Developmental Build
 If you want a developmental build, it can be had by executing
 
 .. code:: console
-   
+
    git clone https://github.com/contagon/SiPANN.git
    pip install -e SiPANN/
 

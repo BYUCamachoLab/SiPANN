@@ -23,7 +23,7 @@ arbitrarily choose a half ring resonator here)
     t = 220
     wavelength = np.linspace(1500, 1600)
     gap = 100
-    
+
     hr = scee.HalfRing(w, t, r, gap)
     sparams = hr.sparams(wavelength)
 
@@ -42,4 +42,3 @@ you’d like to append to an existing file, simply set ``clear=False``.
 
 This is available as a jupyter notebook
 `here <https://github.com/contagon/SiPANN/blob/master/examples/Tutorials/ExportToInterConnect.ipynb>`__
-

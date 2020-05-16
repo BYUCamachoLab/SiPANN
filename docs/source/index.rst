@@ -11,12 +11,12 @@
     :maxdepth: 2
     :glob:
     :caption: Tutorials:
-    
+
     tutorials/*
 
 .. toctree::
     :maxdepth: 2
     :glob:
     :caption: API Reference:
-    
+
     api/*
