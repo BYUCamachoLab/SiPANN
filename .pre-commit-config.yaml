@@ -6,10 +6,11 @@ repos:
           - id: end-of-file-fixer
           - id: trailing-whitespace
 
-    - repo: https://github.com/pre-commit/mirrors-isort
-      rev: "" # Use the revision sha / tag you want to point at
+
+    - repo: https://github.com/asottile/reorder_python_imports
+      rev: ""
       hooks:
-          - id: isort
+          - id: reorder-python-imports
 
     - repo: https://github.com/psf/black
       rev: ""
