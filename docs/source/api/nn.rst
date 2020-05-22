@@ -2,7 +2,7 @@
 Neural Network Based Models
 #############################
 
-These are various applications of Neural Networks and Linear Regressions we've trained to 
+These are various applications of Neural Networks and Linear Regressions we've trained to
 estimate effective indices.
 
 

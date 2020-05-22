@@ -11,7 +11,7 @@ First do the imports
     import numpy as np
     import matplotlib.pyplot as plt
     from SiPANN.scee import HalfRing
-    
+
     def pltAttr(x, y, title=None, legend='upper right', save=None):
         if legend is not None:
             plt.legend(loc=legend)
@@ -79,10 +79,10 @@ fixed. This can be done as:
     r = np.linspace(5000, 50000, 100)
     wavelength = 1550
     hr.update(radius=r)
-    
+
     k = hr.predict((1,4), wavelength)
     t = hr.predict((1,3), wavelength)
-    
+
     plt.figure(figsize=(15,5))
     plt.subplot(121)
     plt.plot(r, np.abs(k)**2, label='k')
@@ -102,4 +102,3 @@ All elements found in SiPANN.scee can be simulated basically
 identically. If you’d like this tutorial as a jupyter notebook, it can
 be found on github,
 `here <https://github.com/contagon/SiPANN/blob/master/examples/Tutorials/HalfRing.ipynb>`__
-

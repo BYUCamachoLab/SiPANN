@@ -2,7 +2,7 @@
 SCEE Optimization
 #############################
 
-These are various functions to perform and aid in using SCEE as an inverse design optimizer. 
+These are various functions to perform and aid in using SCEE as an inverse design optimizer.
 
 Do to how fast SCEE is, inverse design of power splitting directional couplers can be achieved via an optimizer. This has been implemented and can be used via the `SiPANN.scee_opt` module, speficially the `make_coupler` function. It implements a global optimization, then a local optimization to best find the ideal coupler.
 
@@ -43,6 +43,3 @@ Bernstein Transformation
 Bezier Function
 ==============================
 .. autofunction:: SiPANN.scee_opt.bezier_quick
-
-
-
