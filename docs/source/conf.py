@@ -21,7 +21,7 @@ copyright = "2020, Easton Potokar, R Scott Collings, Alec Hammond"
 author = "Easton Potokar, R Scott Collings, Alec Hammond"
 
 # The full version, including alpha/beta/rc tags
-release = "1.3.0"
+release = "1.3.1"
 
 
 # -- General configuration ---------------------------------------------------
