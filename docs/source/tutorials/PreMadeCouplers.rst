@@ -12,7 +12,7 @@ them here.
     import numpy as np
     import matplotlib.pyplot as plt
     from SiPANN import scee_opt, scee
-    
+
     def pltAttr(x, y, title=None, legend='upper right', save=None):
         if legend is not None:
             plt.legend(loc=legend)
@@ -52,7 +52,7 @@ be used to make arbitrary splitting ratios.
     wavelength = np.linspace(1500, 1600, 500)
     k = crossover.predict((1,4), wavelength)
     t = crossover.predict((1,3), wavelength)
-    
+
     plt.figure(figsize=(15,5))
     plt.subplot(121)
     plt.plot(wavelength, np.abs(k)**2, label='k')
@@ -88,7 +88,7 @@ For further demonstration, we also load a 30/70 splitter.
     wavelength = np.linspace(1500, 1600, 500)
     k = splitter.predict((1,4), wavelength)
     t = splitter.predict((1,3), wavelength)
-    
+
     plt.figure(figsize=(15,5))
     plt.subplot(121)
     plt.axhline(.3, c='k', label="Desired Ratios")
@@ -109,4 +109,3 @@ For further demonstration, we also load a 30/70 splitter.
 If you’d like this tutorial as a jupyter notebook, it can be found on
 github,
 `here <https://github.com/contagon/SiPANN/blob/master/examples/Tutorials/PreMadeCouplers.ipynb>`__
-

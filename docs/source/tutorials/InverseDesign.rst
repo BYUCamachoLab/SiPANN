@@ -28,7 +28,7 @@ about the process, see [INSERT PAPER WHEN PUBLISHED].
     import numpy as np
     import matplotlib.pyplot as plt
     from SiPANN import scee_opt, scee
-    
+
     def pltAttr(x, y, title=None, legend='upper right', save=None):
         if legend is not None:
             plt.legend(loc=legend)
@@ -60,8 +60,8 @@ trying to push the endpoints to our desired ratio is enough.
 
     width = 500
     thickness = 220
-    coupler, gap_pts, length = scee_opt.make_coupler(goalK=.25, verbose=1, 
-                                                     width=width, thickness=thickness, 
+    coupler, gap_pts, length = scee_opt.make_coupler(goalK=.25, verbose=1,
+                                                     width=width, thickness=thickness,
                                                      waveSweep=np.array([1500,1600]), maxiter=15000)
 
 
@@ -100,7 +100,7 @@ anticipated.
     wavelength = np.linspace(1500, 1600, 100)
     k = coupler.predict((1,4), wavelength)
     t = coupler.predict((1,3), wavelength)
-    
+
     plt.figure(figsize=(15,5))
     plt.subplot(121)
     plt.axhline(.25, c='k', label="Desired Output")
@@ -140,7 +140,7 @@ For an example, we show this for :math:`\lambda=1530nm` and a ratio of
 
     width = 500
     thickness = 220
-    coupler, gap_pts, length = scee_opt.make_coupler(goalK=.45, verbose=1, 
+    coupler, gap_pts, length = scee_opt.make_coupler(goalK=.45, verbose=1,
                                                      width=width, thickness=thickness, maxiter=30000,
                                                      waveSweep=np.array([1530]))
     scee_opt.save_coupler(width, thickness, gap_pts, length, "split_45_55_1530.npz")
@@ -148,7 +148,7 @@ For an example, we show this for :math:`\lambda=1530nm` and a ratio of
 
 .. parsed-literal::
 
-    LOCAL, MSE: 0.1523, Mean currK: 0.1832:  18%|█▊        | 10975/60000 [18:09<1:31:59,  8.88it/s] 
+    LOCAL, MSE: 0.1523, Mean currK: 0.1832:  18%|█▊        | 10975/60000 [18:09<1:31:59,  8.88it/s]
 
 .. code:: ipython3
 
@@ -165,7 +165,7 @@ For an example, we show this for :math:`\lambda=1530nm` and a ratio of
     wavelength = np.linspace(1500, 1600, 100)
     k = coupler.predict((1,4), wavelength)
     t = coupler.predict((1,3), wavelength)
-    
+
     plt.figure(figsize=(15,5))
     plt.subplot(121)
     plt.axhline(.45, c='k', label="Desired Output")
