@@ -1,5 +1,5 @@
 **************************
-SiPANN
+SiPANN 1.3.0
 **************************
 .. image:: https://img.shields.io/pypi/v/SiPANN.svg
    :target: https://pypi.python.org/pypi/SiPANN
@@ -46,7 +46,7 @@ Developmental Build
 If you want a developmental build, it can be had by executing
 
 .. code:: console
-   
+
    git clone https://github.com/contagon/SiPANN.git
    pip install -e SiPANN/
 
@@ -73,7 +73,7 @@ References
 
 SiPANN is based on a variety of methods found in various papers, including:
 
-[1] A. Hammond, E. Potokar, and R. Camacho, "Accelerating silicon photonic parameter extraction using artificial neural networks," OSA Continuum  2, 1964-1973 (2019). 
+[1] A. Hammond, E. Potokar, and R. Camacho, "Accelerating silicon photonic parameter extraction using artificial neural networks," OSA Continuum  2, 1964-1973 (2019).
 
 
 Bibtex citation
