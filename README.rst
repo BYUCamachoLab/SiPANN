@@ -13,7 +13,9 @@ SiPANN 1.3.0
 .. image:: https://img.shields.io/github/last-commit/contagon/SiPANN.svg
   :target: https://github.com/contagon/SiPANN/commits/master
   :alt: Latest Commit
-
+.. image:: https://github.com/contagon/SiPANN/workflows/build%20(pip)/badge.svg
+  :target: https://github.com/contagon/SiPANN/actions?query=workflow%3A%22build+%28pip%29%22
+  :alt: build
 
 **Si**\ licon **P**\ hotonics with **A**\ rtificial **N**\ eural **N**\ etworks. SiPANN aims to implement various silicon photonics simulators based on machine learning techniques found in literature. The majority of these techniques are linear regression or neural networks. As a results SiPANN can return scattering parameters of (but not limited to)
 
