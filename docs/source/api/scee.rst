@@ -2,7 +2,7 @@
 SCEE - Directional Couplers Models
 ###################################
 
-These methods are based on the model SCEE found in [CITE PAPER WHEN PUBLISHED].
+These methods are based on the model SCEE found in [CITE PAPER WHEN PUBLISHED]. Valid ranges for wavelength is 1450nm-1650nm, width 400nm-600nm, thickness 180nm-240nm, sidewall angle 80-90 degrees and gap distance greater than 100nm. Will issue warning when outside of these ranges since results will likely be inaccurate.
 
 *********************
 Helper Functions

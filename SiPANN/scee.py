@@ -28,13 +28,13 @@ def get_neff(wavelength, width, thickness, sw_angle=90):
 
     Parameters
     ----------
-        wavelength:  float or ndarray
+        wavelength:  float or ndarray (Valid for 1450nm-1650nm)
             wavelength
-        width:    float or ndarray
+        width:    float or ndarray (Valid for 400nm-600nm)
             width
-        thickness:    float or ndarray
+        thickness:    float or ndarray (Valid for 180nm-240nm)
                 thickness
-        sw_angle:    float or ndarray
+        sw_angle:    float or ndarray (Valid for 80-90 degrees)
             sw_angle
 
     Returns
@@ -63,13 +63,13 @@ def get_coeffs(wavelength, width, thickness, sw_angle):
 
     Parameters
     ----------
-        wavelength:    float or ndarray
+        wavelength:    float or ndarray (Valid for 1450nm-1650nm)
             wavelength
-        width:    float or ndarray
+        width:    float or ndarray (Valid for 400nm-600nm)
             width
-        thickness:    float or ndarray
+        thickness:    float or ndarray (Valid for 180nm-240nm)
             thickness
-        sw_angle:    float or ndarray
+        sw_angle:    float or ndarray (Valid for 80-90 degrees)
             sw_angle
 
     Returns
@@ -117,7 +117,7 @@ def get_closed_ans(
             used in odd mode estimation in neff + ao exp(go * g)
         neff:    float or ndarray
             effective index of waveguide
-        wavelength:    float or ndarray
+        wavelength:    float or ndarray (Valid for 1450nm-1650nm)
             wavelength
         gap:    float or ndarray
             gap distance
@@ -197,11 +197,11 @@ class DC(ABC):
 
     Parameters
     ----------
-        width : float or ndarray
+        width : float or ndarray (Valid for 400nm-600nm)
             Width of the waveguide in nm
-        thickness : float or ndarray
+        thickness : float or ndarray (Valid for 180nm-240nm)
             Thickness of waveguide in nm
-        sw_angle : float or ndarray, optional
+        sw_angle : float or ndarray, optional (Valid for 80-90 degrees)
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90.
     """
 
@@ -246,7 +246,7 @@ class DC(ABC):
 
         Parameters
         ----------
-        wavelength : float or ndarray
+        wavelength : float or ndarray (Valid for 1450nm-1650nm)
             Wavelength
 
         Returns
@@ -305,7 +305,7 @@ class DC(ABC):
 
         Parameters
         ----------
-        wavelength:    float or ndarray
+        wavelength:    float or ndarray (Valid for 1450nm-1650nm)
             wavelengths to get sparams at
 
         Returns
@@ -349,7 +349,7 @@ class DC(ABC):
         ----------
         ports : 2-tuple
             Specifies the port coming in and coming out
-        wavelength : float or ndarray
+        wavelength : float or ndarray (Valid for 1450nm-1650nm)
             Wavelength(s) to predict at
         extra_arc : float, optional
             Adds phase to compensate for waveguides getting to gap function. Defaults to 0.
@@ -407,11 +407,11 @@ class GapFuncSymmetric(DC):
 
     Parameters
     ----------
-        width : float or ndarray
+        width : float or ndarray (Valid for 400nm-600nm)
             Width of the waveguide in nm
-        thickness : float or ndarray
+        thickness : float or ndarray (Valid for 180nm-240nm)
             Thickness of waveguide in nm
-        gap : function
+        gap : function (Must always be > 100nm)
             Gap function as one progresses along the waveguide
         dgap : function
             Derivative of the gap function
@@ -419,7 +419,7 @@ class GapFuncSymmetric(DC):
             Where to begin integration in the gap function
         zmax : float
             Where to end integration in the gap function
-        sw_angle : float or ndarray, optional
+        sw_angle : float or ndarray, optional (Valid for 80-90 degrees)
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90.
     """
 
@@ -606,11 +606,11 @@ class GapFuncAntiSymmetric(DC):
 
     Parameters
     ----------
-        width : float or ndarray
+        width : float or ndarray (Valid for 400nm-600nm)
             Width of the waveguide in nm
-        thickness : float or ndarray
+        thickness : float or ndarray (Valid for 180nm-240nm)
             Thickness of waveguide in nm
-        gap : function
+        gap : function (Must always be > 100nm)
             Gap function as one progresses along the waveguide
         zmin : float
             Where to begin integration in the gap function
@@ -618,7 +618,7 @@ class GapFuncAntiSymmetric(DC):
             Where to end integration in the gap function
         arc1, arc2, arc3, arc4 : float
             Arclength from entrance of each port till minimum coupling point
-        sw_angle : float or ndarray, optional
+        sw_angle : float or ndarray, optional (Valid for 80-90 degrees)
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90.
     """
 
@@ -740,15 +740,15 @@ class HalfRing(DC):
 
     Parameters
     ----------
-        width : float or ndarray
+        width : float or ndarray (Valid for 400nm-600nm)
             Width of the waveguide in nm
-        thickness : float or ndarray
+        thickness : float or ndarray (Valid for 180nm-240nm)
             Thickness of waveguide in nm
         radius : float or ndarray
             Distance from center of ring to middle of waveguide in nm.
-        gap : float or ndarray
+        gap : float or ndarray (Must be > 100nm)
             Minimum distance from ring waveguide edge to straight waveguide edge in nm.
-        sw_angle : float or ndarray, optional
+        sw_angle : float or ndarray, optional (Valid for 80-90 degrees)
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90.
     """
 
@@ -916,17 +916,17 @@ class HalfRacetrack(DC):
 
     Parameters
     ----------
-        width : float or ndarray
+        width : float or ndarray (Valid for 400nm-600nm)
             Width of the waveguide in nm
-        thickness : float or ndarray
+        thickness : float or ndarray (Valid for 180nm-240nm)
             Thickness of waveguide in nm
         radius : float or ndarray
             Distance from center of ring to middle of waveguide in nm.
-        gap : float or ndarray
+        gap : float or ndarray (Must be > 100nm)
             Minimum distance from ring waveguide edge to straight waveguide edge in nm.
         length : float or ndarray
             Length of straight portion of ring waveguide in nm.
-        sw_angle : float or ndarray, optional
+        sw_angle : float or ndarray, optional (Valid for 80-90 degrees)
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90.
     """
 
@@ -1107,15 +1107,15 @@ class StraightCoupler(DC):
 
     Parameters
     ----------
-        width : float or ndarray
+        width : float or ndarray (Valid for 400nm-600nm)
             Width of the waveguide in nm
-        thickness : float or ndarray
+        thickness : float or ndarray (Valid for 180nm-240nm)
             Thickness of waveguide in nm
-        gap : float or ndarray
+        gap : float or ndarray (Must be > 100nm)
            Distance between the two waveguides edge in nm.
         length : float or ndarray
             Length of both waveguides in nm.
-        sw_angle : float or ndarray, optional
+        sw_angle : float or ndarray, optional (Valid for 80-90 degrees)
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90.
     """
 
@@ -1287,11 +1287,11 @@ class Standard(DC):
 
     Parameters
     ----------
-        width : float or ndarray
+        width : float or ndarray (Valid for 400nm-600nm)
             Width of the waveguide in nm
-        thickness : float or ndarray
+        thickness : float or ndarray (Valid for 180nm-240nm)
             Thickness of waveguide in nm
-        gap : float or ndarray
+        gap : float or ndarray (Must be > 100nm)
            Minimum distance between the two waveguides edge in nm.
         length : float or ndarray
             Length of the straight portion of both waveguides in nm.
@@ -1299,7 +1299,7 @@ class Standard(DC):
             Horizontal distance between end of coupler until straight portion in nm.
         H : float or ndarray
             Vertical distance between end of coupler until straight portion in nm.
-        sw_angle : float or ndarray, optional
+        sw_angle : float or ndarray, optional (Valid for 80-90 degrees)
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90.
     """
 
@@ -1510,15 +1510,15 @@ class DoubleHalfRing(DC):
 
     Parameters
     ----------
-        width : float or ndarray
+        width : float or ndarray (Valid for 400nm-600nm)
             Width of the waveguide in nm
-        thickness : float or ndarray
+        thickness : float or ndarray (Valid for 180nm-240nm)
             Thickness of waveguide in nm
         radius : float or ndarray
             Distance from center of ring to middle of waveguide in nm.
-        gap : float or ndarray
+        gap : float or ndarray (Must be > 100nm)
             Minimum distance from ring waveguide edge to other ring waveguide edge in nm.
-        sw_angle : float or ndarray, optional
+        sw_angle : float or ndarray, optional (Valid for 80-90 degrees)
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90.
     """
 
@@ -1648,17 +1648,17 @@ class AngledHalfRing(DC):
 
     Parameters
     ----------
-        width : float or ndarray
+        width : float or ndarray (Valid for 400nm-600nm)
             Width of the waveguide in nm
-        thickness : float or ndarray
+        thickness : float or ndarray (Valid for 180nm-240nm)
             Thickness of waveguide in nm
         radius : float or ndarray
             Distance from center of ring to middle of waveguide in nm.
-        gap : float or ndarray
+        gap : float or ndarray (Must be > 100nm)
             Minimum distance from ring waveguide edge to straight waveguide edge in nm.
         theta : float or ndarray
             Angle that the straight waveguide is curved in radians (???).
-        sw_angle : float or ndarray, optional
+        sw_angle : float or ndarray, optional (Valid for 80-90 degrees)
     """
 
     def __init__(self, width, thickness, radius, gap, theta, sw_angle=90):
@@ -1786,13 +1786,13 @@ class Waveguide(ABC):
 
     Parameters
     ----------
-        width : float or ndarray
+        width : float or ndarray (Valid for 400nm-600nm)
             Width of the waveguide in nm
-        thickness : float or ndarray
+        thickness : float or ndarray (Valid for 180nm-240nm)
             Thickness of waveguide in nm
         length : float or ndarray
             Length of waveguide in nm.
-        sw_angle : float or ndarray, optional
+        sw_angle : float or ndarray, optional (Valid for 80-90 degrees)
             Sidewall angle of waveguide from horizontal in degrees. Defaults to 90.
     """
 
@@ -1938,7 +1938,7 @@ class Waveguide(ABC):
 
         Parameters
         ----------
-        wavelength : float or ndarray
+        wavelength : float or ndarray (Valid for 1450nm-1650nm)
             Wavelength(s) to predict at
 
         Returns
