@@ -292,7 +292,7 @@ class racetrack_sb_rr:
         s_matrix = np.zeros((2, 2, n), dtype="complex")
 
         # calculate upper half of matrix (diagonal is 0)
-        s_matrix[0, 1] = self.predict(wavelength)
+        s_matrix[0, 1] = self.predict(wavelength)[0]
 
         # apply symmetry (note diagonal is 0, no need to subtract it)
         s_matrix += np.transpose(s_matrix, (1, 0, 2))
