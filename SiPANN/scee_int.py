@@ -27,26 +27,23 @@ def export_interconnect(sparams, wavelength, filename, clear=True):
     _, d, _ = sparams.shape
     if clear:
         open(filename, "w").close()
-    file = open(filename, "ab")
+    with open(filename, "ab") as file:
+        # make frequencies
+        freq = wl2freq(wavelength * 1e-9)
 
-    # make frequencies
-    freq = wl2freq(wavelength * 1e-9)
+        # iterate through sparams saving
+        for in_ in range(d):
+            for out in range(d):
+                # put things together
+                sp = sparams[:, in_, out]
+                temp = np.vstack((freq, np.abs(sp), np.unwrap(np.angle(sp)))).T
 
-    # iterate through sparams saving
-    for in_ in range(d):
-        for out in range(d):
-            # put things together
-            sp = sparams[:, in_, out]
-            temp = np.vstack((freq, np.abs(sp), np.unwrap(np.angle(sp)))).T
+                # Save header
+                header = f'("port {out+1}", "TE", 1, "port {in_+1}", 1, "transmission")\n'
+                header += f"{temp.shape}"
 
-            # Save header
-            header = f'("port {out+1}", "TE", 1, "port {in_+1}", 1, "transmission")\n'
-            header += f"{temp.shape}"
-
-            # save data
-            np.savetxt(file, temp, header=header, comments="")
-
-    file.close()
+                # save data
+                np.savetxt(file, temp, header=header, comments="")
 
 
 class SimphonyWrapper(Model):
@@ -77,7 +74,7 @@ class SimphonyWrapper(Model):
 
         # save actual parameters for switching back from monte_carlo
         self.og_params = self.model.__dict__.copy()
-        self.rand_params = dict()
+        self.rand_params = {}
 
         # make sure there's no varying geometries
         args = self.model._clean_args(None)

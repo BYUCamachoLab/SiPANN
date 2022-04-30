@@ -121,7 +121,7 @@ class ImportNN:
     def __init__(self, directory):
         # import all graph info
 
-        with open(directory + "/Import.pkl", "rb") as file:
+        with open(f"{directory}/Import.pkl", "rb") as file:
             dict_ = pickle.load(file)
             self.normX = dict_["normX"]
             self.normY = dict_["normY"]
@@ -131,19 +131,14 @@ class ImportNN:
         self.sess = tf.compat.v1.Session(graph=self.graph)
         with self.graph.as_default():
             # Import graph
-            imported_meta = tf.compat.v1.train.import_meta_graph(
-                directory + "/model.meta"
-            )
-            imported_meta.restore(self.sess, directory + "/model")
+            imported_meta = tf.compat.v1.train.import_meta_graph(f"{directory}/model.meta")
+            imported_meta.restore(self.sess, f"{directory}/model")
 
             # get all tensor names
             self.output_tf = self.graph.get_tensor_by_name("OUTPUT:0")
             self.input_tf = self.graph.get_tensor_by_name("INPUT:0")
-            self.input_tf_parts = []
-            for i in range(self.s_data[0]):
-                self.input_tf_parts.append(
-                    self.graph.get_tensor_by_name("INPUT_{}:0".format(i))
-                )
+            self.input_tf_parts = [self.graph.get_tensor_by_name(f"INPUT_{i}:0") for i in range(self.s_data[0])]
+
             self.keep_prob = self.graph.get_tensor_by_name("KEEP_PROB:0")
         tf.compat.v1.disable_eager_execution()
 
@@ -224,7 +219,7 @@ class ImportNN:
             self.normY.inverse_transform(self.output_tf)[:, d[0] : d[0] + 1],
             self.input_tf_parts[d[1]],
         )[0]
-        for i in range(1, d[2]):
+        for _ in range(1, d[2]):
             deriv = tf.gradients(deriv, self.input_tf_parts[d[1]])[0]
 
         return self.sess.run(deriv, feed_dict=fd)
@@ -306,7 +301,7 @@ class ImportLR:
         """
         combos = []
         for i in range(self.degree_ + 1):
-            combos += [k for k in comb_w_r(range(self.s_data[0]), i)]
+            combos += list(comb_w_r(range(self.s_data[0]), i))
 
         # make matrix of all combinations
         n = len(X)
