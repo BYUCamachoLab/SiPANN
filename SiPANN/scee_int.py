@@ -1,5 +1,5 @@
 import numpy as np
-from simphony.elements import Model
+from simphony import Model
 from simphony.tools import freq2wl
 from simphony.tools import wl2freq
 
