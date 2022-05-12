@@ -335,16 +335,13 @@ def make_coupler(
 
         # # print iteration progress
         if verbose == 2:
-            print("MSE: {}".format(mse))
-            print("currK: {}".format(np.abs(currK) ** 2))
-            print("g: {}".format(g))
+            print(f"MSE: {mse}")
+            print(f"currK: {np.abs(currK)**2}")
+            print(f"g: {g}")
             # if the optimization changed from global constrained to local optimization
             print("local optimization:", localOpt, "\n")
         elif verbose == 1:
-            if localOpt:
-                o = "LOCAL"
-            else:
-                o = "GLOBAL"
+            o = "LOCAL" if localOpt else "GLOBAL"
             loop.update(1)
             loop.set_description(
                 f"{o}, MSE: {np.round(mse,4)}, Mean currK: {np.round((np.abs(currK)**2).mean(),4)}"
@@ -385,7 +382,7 @@ def make_coupler(
             waves = range(waveStart, waveStop + 1)
             currK = coupler.predict((1, 4), waves)
             currT = coupler.predict((1, 3), waves)
-            for i in range(0, 101):
+            for i in range(101):
                 point["width"] = width
                 point["thickness"] = thickness
                 point["wavelength"] = waves[i]

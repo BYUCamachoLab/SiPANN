@@ -124,10 +124,7 @@ def straightWaveguide(wavelength, width, thickness, sw_angle=90, derivative=None
         wavelength = np.squeeze(wavelength)
     else:
         wavelength = np.array([wavelength])
-    if type(width) is np.ndarray:
-        width = np.squeeze(width)
-    else:
-        width = np.array([width])
+    width = np.squeeze(width) if type(width) is np.ndarray else np.array([width])
     if type(thickness) is np.ndarray:
         thickness = np.squeeze(thickness)
     else:
@@ -156,8 +153,7 @@ def straightWaveguide(wavelength, width, thickness, sw_angle=90, derivative=None
         tensorSize = (wavelength.size, width.size, thickness.size, sw_angle.size)
     else:
         tensorSize = (wavelength.size, width.size, thickness.size, sw_angle.size, 4)
-    TE0 = np.reshape(OUTPUT, tensorSize)  # + 1j*np.reshape(OUTPUT[:,1],tensorSize)
-    return TE0
+    return np.reshape(OUTPUT, tensorSize)
 
 
 def straightWaveguide_S(wavelength, width, thickness, length, sw_angle=90):
@@ -245,10 +241,7 @@ def bentWaveguide(wavelength, width, thickness, radius, sw_angle=90, derivative=
         wavelength = np.squeeze(wavelength)
     else:
         wavelength = np.array([wavelength])
-    if type(width) is np.ndarray:
-        width = np.squeeze(width)
-    else:
-        width = np.array([width])
+    width = np.squeeze(width) if type(width) is np.ndarray else np.array([width])
     if type(thickness) is np.ndarray:
         thickness = np.squeeze(thickness)
     else:
@@ -294,8 +287,7 @@ def bentWaveguide(wavelength, width, thickness, radius, sw_angle=90, derivative=
             sw_angle.size,
             5,
         )
-    TE0 = np.reshape(OUTPUT, tensorSize)
-    return TE0
+    return np.reshape(OUTPUT, tensorSize)
 
 
 def bentWaveguide_S(wavelength, width, thickness, radius, angle, sw_angle=90):
@@ -385,18 +377,12 @@ def evWGcoupler(wavelength, width, thickness, gap, sw_angle=90, derivative=None)
         wavelength = np.squeeze(wavelength)
     else:
         wavelength = np.array([wavelength])
-    if type(width) is np.ndarray:
-        width = np.squeeze(width)
-    else:
-        width = np.array([width])
+    width = np.squeeze(width) if type(width) is np.ndarray else np.array([width])
     if type(thickness) is np.ndarray:
         thickness = np.squeeze(thickness)
     else:
         thickness = np.array([thickness])
-    if type(gap) is np.ndarray:
-        gap = np.squeeze(gap)
-    else:
-        gap = np.array([gap])
+    gap = np.squeeze(gap) if type(gap) is np.ndarray else np.array([gap])
     if type(sw_angle) is np.ndarray:
         sw_angle = np.squeeze(sw_angle)
     else:
@@ -778,11 +764,11 @@ def extractor(power, wavelength):
     peaks, _ = find_peaks(1 - power, height=peakThreshold, distance=distanceThreshold)
     results_half = peak_widths(1 - power, peaks, rel_height=0.5)
 
-    FWHM = results_half[0][0:-1] * (wavelength[1] - wavelength[0])
+    FWHM = results_half[0][:-1] * (wavelength[1] - wavelength[0])
     FSR = np.diff(wavelength[peaks])
 
     F = FSR / FWHM
-    E = 1 / (power[peaks[0:-1]])
+    E = 1 / power[peaks[:-1]]
 
     A = np.cos(np.pi / F) / (1 + np.sin(np.pi / F))
     B = 1 - 1 / E * (1 - np.cos(np.pi / F)) / (1 + np.cos(np.pi / F))
@@ -790,5 +776,5 @@ def extractor(power, wavelength):
     a = np.sqrt(A / B) + np.sqrt(A / B - A)
     b = np.sqrt(A / B) - np.sqrt(A / B - A)
 
-    w = wavelength[peaks[0:-1]]
+    w = wavelength[peaks[:-1]]
     return a, b, w

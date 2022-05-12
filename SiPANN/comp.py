@@ -279,11 +279,7 @@ class racetrack_sb_rr:
             size (2,2,n) complex matrix of scattering parameters
         """
         # get number of points to evaluate at
-        if np.isscalar(wavelength):
-            n = 1
-        else:
-            n = len(wavelength)
-
+        n = 1 if np.isscalar(wavelength) else len(wavelength)
         # check to make sure the geometry isn't an array
         if len(self._clean_args(None)[0]) != 1:
             raise ValueError(
