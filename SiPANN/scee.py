@@ -171,7 +171,7 @@ def clean_inputs(inputs):
             inputs[i] = np.array([inputs[i]])
 
     # take largest size of numpy arrays, or set value (if it's not 0)
-    n = max([len(i) for i in inputs])
+    n = max(len(i) for i in inputs)
 
     # if it's smaller than largest, make array full of same value
     for i in range(len(inputs)):
@@ -316,11 +316,7 @@ class DC(ABC):
             size (n,4,4) complex matrix of scattering parameters, in order of passed in wavelengths
         """
         # get number of points to evaluate at
-        if np.isscalar(wavelength):
-            n = 1
-        else:
-            n = len(wavelength)
-
+        n = 1 if np.isscalar(wavelength) else len(wavelength)
         # check to make sure the geometry isn't an array
         if len(self._clean_args(None)[0]) != 1:
             raise ValueError(
@@ -462,7 +458,7 @@ class GapFuncSymmetric(DC):
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         # make sure ports are valid
-        if not all(1 <= x <= 4 for x in ports):
+        if any((1 <= x <= 4 for x in ports)):
             raise ValueError("Invalid Ports")
 
         # if it's coming to itself, or to adjacent port
@@ -489,7 +485,7 @@ class GapFuncSymmetric(DC):
         mag = np.ones(n)
         phase = np.zeros(n)
         for i in range(n):
-            if part == "both" or part == "mag":
+            if part in ["both", "mag"]:
                 f_mag = lambda z: float(
                     ae[i] * np.exp(-ge[i] * self.gap(z))
                     + ao[i] * np.exp(-go[i] * self.gap(z))
@@ -497,7 +493,7 @@ class GapFuncSymmetric(DC):
                 mag[i] = trig(
                     np.pi * quad(f_mag, self.zmin, self.zmax)[0] / wavelength[i]
                 )
-            if part == "both" or part == "ph":
+            if part in ["both", "ph"]:
                 f_phase = lambda z: float(
                     ae[i] * np.exp(-ge[i] * self.gap(z))
                     - ao[i] * np.exp(-go[i] * self.gap(z))
@@ -544,12 +540,7 @@ class GapFuncSymmetric(DC):
             -scale * self.gap(x * (self.zmax - self.zmin) + self.zmin) / 2
             - sc_width / 2,
         )
-        # dparaTop    = lambda x: (sc_zmax-sc_zmin, scale*(self.zmax-self.zmin)*self.dgap(x*(self.zmax-self.zmin)+self.zmin)/2)
-        # dparaBottom = lambda x: (sc_zmax-sc_zmin, -scale*(self.zmax-self.zmin)*self.dgap(x*(self.zmax-self.zmin)+self.zmin)/2)
-
-        sbend = False
-        if sbend_h != 0 and sbend_v != 0:
-            sbend = True
+        sbend = sbend_h != 0 and sbend_v != 0
         sbendDown = lambda x: (sbend_h * x, -sbend_v / 2 * (1 - np.cos(np.pi * x)))
         sbendUp = lambda x: (sbend_h * x, sbend_v / 2 * (1 - np.cos(np.pi * x)))
         dsbendDown = lambda x: (sbend_h, -np.pi * sbend_v / 2 * np.sin(np.pi * x))
@@ -667,7 +658,7 @@ class GapFuncAntiSymmetric(DC):
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         # make sure ports are valid
-        if not all(1 <= x <= 4 for x in ports):
+        if any((1 <= x <= 4 for x in ports)):
             raise ValueError("Invalid Ports")
 
         # determine if cross or through port
@@ -695,7 +686,7 @@ class GapFuncAntiSymmetric(DC):
         mag = np.ones(n)
         phase = np.zeros(n)
         for i in range(n):
-            if part == "both" or part == "mag":
+            if part in ["both", "mag"]:
                 f_mag = lambda z: float(
                     ae[i] * np.exp(-ge[i] * self.gap(z))
                     + ao[i] * np.exp(-go[i] * self.gap(z))
@@ -703,7 +694,7 @@ class GapFuncAntiSymmetric(DC):
                 mag[i] = trig(
                     np.pi * quad(f_mag, self.zmin, self.zmax)[0] / wavelength[i]
                 )
-            if part == "both" or part == "ph":
+            if part in ["both", "ph"]:
                 f_phase = lambda z: float(
                     ae[i] * np.exp(-ge[i] * self.gap(z))
                     - ao[i] * np.exp(-go[i] * self.gap(z))
@@ -807,7 +798,7 @@ class HalfRing(DC):
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         # make sure ports are valid
-        if not all(1 <= x <= 4 for x in ports):
+        if any((1 <= x <= 4 for x in ports)):
             raise ValueError("Invalid Ports")
 
         # determine if cross or through port
@@ -821,13 +812,10 @@ class HalfRing(DC):
         # determine z distance
         if 1 in ports and 3 in ports:
             z_dist = 2 * (radius + width / 2)
-        elif 1 in ports and 4 in ports:
+        elif 1 in ports and 4 in ports or (2 not in ports or 4 not in ports) and 2 in ports and 3 in ports:
             z_dist = np.pi * radius / 2 + radius + width / 2
         elif 2 in ports and 4 in ports:
             z_dist = np.pi * radius
-        elif 2 in ports and 3 in ports:
-            z_dist = np.pi * radius / 2 + radius + width / 2
-        # if it's coming to itself, or to adjacent port
         else:
             return np.zeros(len(wavelength))
 
@@ -995,7 +983,7 @@ class HalfRacetrack(DC):
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         # make sure ports are valid
-        if not all(1 <= x <= 4 for x in ports):
+        if any((1 <= x <= 4 for x in ports)):
             raise ValueError("Invalid Ports")
 
         # determine if cross or through port
@@ -1009,13 +997,10 @@ class HalfRacetrack(DC):
         # determine z distance
         if 1 in ports and 3 in ports:
             z_dist = 2 * (radius + width / 2) + length
-        elif 1 in ports and 4 in ports:
+        elif 1 in ports and 4 in ports or (2 not in ports or 4 not in ports) and 2 in ports and 3 in ports:
             z_dist = np.pi * radius / 2 + radius + width / 2 + length
         elif 2 in ports and 4 in ports:
             z_dist = np.pi * radius + length
-        elif 2 in ports and 3 in ports:
-            z_dist = np.pi * radius / 2 + radius + width / 2 + length
-        # if it's coming to itself, or to adjacent port
         else:
             return np.zeros(len(wavelength))
 
@@ -1174,7 +1159,7 @@ class StraightCoupler(DC):
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         # make sure ports are valid
-        if not all(1 <= x <= 4 for x in ports):
+        if any((1 <= x <= 4 for x in ports)):
             raise ValueError("Invalid Ports")
 
         # determine if cross or through port
@@ -1186,15 +1171,8 @@ class StraightCoupler(DC):
             offset = np.pi / 2
 
         # determine z distance
-        if 1 in ports and 3 in ports:
+        if 1 in ports and 3 in ports or 1 in ports and 4 in ports or 2 in ports and 4 in ports or 2 in ports and 3 in ports:
             z_dist = length
-        elif 1 in ports and 4 in ports:
-            z_dist = length
-        elif 2 in ports and 4 in ports:
-            z_dist = length
-        elif 2 in ports and 3 in ports:
-            z_dist = length
-        # if it's coming to itself, or to adjacent port
         else:
             return np.zeros(len(wavelength))
 
@@ -1227,10 +1205,7 @@ class StraightCoupler(DC):
         sc_gap = self.gap * scale
         sc_length = self.length * scale
 
-        # make parametric functions
-        sbend = False
-        if sbend_h != 0 and sbend_v != 0:
-            sbend = True
+        sbend = sbend_h != 0 and sbend_v != 0
         sbendDown = lambda x: (sbend_h * x, -sbend_v / 2 * (1 - np.cos(np.pi * x)))
         sbendUp = lambda x: (sbend_h * x, sbend_v / 2 * (1 - np.cos(np.pi * x)))
         dsbendDown = lambda x: (sbend_h, -np.pi * sbend_v / 2 * np.sin(np.pi * x))
@@ -1372,7 +1347,7 @@ class Standard(DC):
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         # make sure ports are valid
-        if not all(1 <= x <= 4 for x in ports):
+        if any((1 <= x <= 4 for x in ports)):
             raise ValueError("Invalid Ports")
 
         # determine if cross or through port
@@ -1388,15 +1363,8 @@ class Standard(DC):
         z_dist = length + 2 * np.sqrt(
             H ** 2 + (V * np.pi / 2) ** 2
         ) / np.pi * special.ellipeinc(np.pi, m)
-        if 1 in ports and 3 in ports:
+        if 1 in ports and 3 in ports or 1 in ports and 4 in ports or 2 in ports and 4 in ports or 2 in ports and 3 in ports:
             z_dist = z_dist
-        elif 1 in ports and 4 in ports:
-            z_dist = z_dist
-        elif 2 in ports and 4 in ports:
-            z_dist = z_dist
-        elif 2 in ports and 3 in ports:
-            z_dist = z_dist
-        # if it's coming to itself, or to adjacent port
         else:
             return np.zeros(len(wavelength))
 
@@ -1439,9 +1407,7 @@ class Standard(DC):
         dsbendDown = lambda x: (sc_H, -np.pi * sc_V / 2 * np.sin(np.pi * x))
         dsbendUp = lambda x: (sc_H, np.pi * sc_V / 2 * np.sin(np.pi * x))
 
-        sbend = False
-        if sbend_h != 0 and sbend_v != 0:
-            sbend = True
+        sbend = sbend_h != 0 and sbend_v != 0
         sbendDownExtra = lambda x: (sbend_h * x, -sbend_v / 2 * (1 - np.cos(np.pi * x)))
         sbendUpExtra = lambda x: (sbend_h * x, sbend_v / 2 * (1 - np.cos(np.pi * x)))
         dsbendDownExtra = lambda x: (sbend_h, -np.pi * sbend_v / 2 * np.sin(np.pi * x))
@@ -1577,7 +1543,7 @@ class DoubleHalfRing(DC):
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         # make sure ports are valid
-        if not all(1 <= x <= 4 for x in ports):
+        if any((1 <= x <= 4 for x in ports)):
             raise ValueError("Invalid Ports")
 
         # determine if cross or through port
@@ -1589,15 +1555,8 @@ class DoubleHalfRing(DC):
             offset = np.pi / 2
 
         # determine z distance
-        if 1 in ports and 3 in ports:
+        if 1 in ports and 3 in ports or 1 in ports and 4 in ports or 2 in ports and 4 in ports or 2 in ports and 3 in ports:
             z_dist = np.pi * radius
-        elif 1 in ports and 4 in ports:
-            z_dist = np.pi * radius
-        elif 2 in ports and 4 in ports:
-            z_dist = np.pi * radius
-        elif 2 in ports and 3 in ports:
-            z_dist = np.pi * radius
-        # if it's coming to itself, or to adjacent port
         else:
             return np.zeros(len(wavelength))
 
@@ -1726,7 +1685,7 @@ class AngledHalfRing(DC):
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         # make sure ports are valid
-        if not all(1 <= x <= 4 for x in ports):
+        if any((1 <= x <= 4 for x in ports)):
             raise ValueError("Invalid Ports")
 
         # determine if cross or through port
@@ -1740,13 +1699,10 @@ class AngledHalfRing(DC):
         # determine z distance
         if 1 in ports and 3 in ports:
             z_dist = np.pi * (radius + width + gap)
-        elif 1 in ports and 4 in ports:
+        elif 1 in ports and 4 in ports or (2 not in ports or 4 not in ports) and 2 in ports and 3 in ports:
             z_dist = np.pi * (radius + width + gap) / 2 + np.pi * radius / 2
         elif 2 in ports and 4 in ports:
             z_dist = np.pi * radius
-        elif 2 in ports and 3 in ports:
-            z_dist = np.pi * (radius + width + gap) / 2 + np.pi * radius / 2
-        # if it's coming to itself, or to adjacent port
         else:
             return np.zeros(len(wavelength))
 
@@ -1911,11 +1867,7 @@ class Waveguide(ABC):
             size (2,2,n) complex matrix of scattering parameters
         """
         # get number of points to evaluate at
-        if np.isscalar(wavelength):
-            n = 1
-        else:
-            n = len(wavelength)
-
+        n = 1 if np.isscalar(wavelength) else len(wavelength)
         # check to make sure the geometry isn't an array
         if len(self._clean_args(None)[0]) != 1:
             raise ValueError(
