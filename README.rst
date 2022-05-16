@@ -97,7 +97,8 @@ For Developers
 
 To bump version prior to a release, run one of the following commands:
 
-.. code-block:: bash
+.. code:: bash
+   
    bumpversion major
    bumpversion minor
    bumpversion patch
