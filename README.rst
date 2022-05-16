@@ -71,7 +71,7 @@ You should then be able to run the examples and tutorials in the examples folder
 
 
 References
-=============
+==========
 
 SiPANN is based on a variety of methods found in various papers, including:
 
@@ -79,7 +79,7 @@ SiPANN is based on a variety of methods found in various papers, including:
 
 
 Bibtex citation
-=================
+===============
 
 .. code::
 
@@ -90,3 +90,21 @@ Bibtex citation
 	    publisher={GitHub},
 	    howpublished={{https://github.com/contagon/SiP-ANN}}
     }
+
+
+For Developers
+==============
+
+To bump version prior to a release, run one of the following commands:
+
+.. code-block:: bash
+   bumpversion major
+   bumpversion minor
+   bumpversion patch
+
+For code quality, please run isort and black before committing (note that the
+latest release of isort may not work through VSCode's integrated terminal, and
+it's safest to run it separately through another terminal).
+
+Releases are automatically created when git tags matching the "v*" pattern
+are created (e.g. "v0.2.1").
