@@ -30,7 +30,7 @@ jobs:
       - name: Load Release text
         id: get_text
         run: |
-          BODY=$(cat ./docs/changelog/${{ env.VERSION }}-changelog.md)
+          BODY=$(cat ./docs/changelog/${{ steps.get_version.outputs.VERSION }}-changelog.md)
           BODY="${BODY//'%'/'%25'}"
           BODY="${BODY//$'\n'/'%0A'}"
           BODY="${BODY//$'\r'/'%0D'}"
