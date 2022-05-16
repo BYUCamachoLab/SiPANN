@@ -92,20 +92,30 @@ Bibtex citation
     }
 
 
-For Developers
-==============
+Releasing
+=========
+
+Make sure you have committed a changelog file titled 
+"[major].[minor].[patch]-changelog.md" before bumping version. 
 
 To bump version prior to a release, run one of the following commands:
 
 .. code:: bash
-   
+
    bumpversion major
    bumpversion minor
    bumpversion patch
 
+This will automatically create a git tag in the repository with the 
+corrresponding version number and commit the modified files (where version
+numbers were updated). Pushing the tags (a manual process) to the remote will 
+automatically create a new release. Releases are automatically published to 
+PyPI and GitHub when git tags matching the "v*" pattern are created 
+(e.g. "v0.2.1"), as bumpversion does.
+
+To view the tags on the local machine, run :code:`git tag`. To push the tags to
+the remote server, you can run :code:`git push origin <tagname>`.
+
 For code quality, please run isort and black before committing (note that the
 latest release of isort may not work through VSCode's integrated terminal, and
 it's safest to run it separately through another terminal).
-
-Releases are automatically created when git tags matching the "v*" pattern
-are created (e.g. "v0.2.1").
