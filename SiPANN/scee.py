@@ -458,7 +458,7 @@ class GapFuncSymmetric(DC):
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         # make sure ports are valid
-        if any((1 <= x <= 4 for x in ports)):
+        if not all(1 <= x <= 4 for x in ports):
             raise ValueError("Invalid Ports")
 
         # if it's coming to itself, or to adjacent port
@@ -658,7 +658,7 @@ class GapFuncAntiSymmetric(DC):
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         # make sure ports are valid
-        if any((1 <= x <= 4 for x in ports)):
+        if not all(1 <= x <= 4 for x in ports):
             raise ValueError("Invalid Ports")
 
         # determine if cross or through port
@@ -798,7 +798,7 @@ class HalfRing(DC):
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         # make sure ports are valid
-        if any((1 <= x <= 4 for x in ports)):
+        if not all(1 <= x <= 4 for x in ports):
             raise ValueError("Invalid Ports")
 
         # determine if cross or through port
@@ -983,7 +983,7 @@ class HalfRacetrack(DC):
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         # make sure ports are valid
-        if any((1 <= x <= 4 for x in ports)):
+        if not all(1 <= x <= 4 for x in ports):
             raise ValueError("Invalid Ports")
 
         # determine if cross or through port
@@ -1159,7 +1159,7 @@ class StraightCoupler(DC):
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         # make sure ports are valid
-        if any((1 <= x <= 4 for x in ports)):
+        if not all(1 <= x <= 4 for x in ports):
             raise ValueError("Invalid Ports")
 
         # determine if cross or through port
@@ -1347,7 +1347,7 @@ class Standard(DC):
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         # make sure ports are valid
-        if any((1 <= x <= 4 for x in ports)):
+        if not all(1 <= x <= 4 for x in ports):
             raise ValueError("Invalid Ports")
 
         # determine if cross or through port
@@ -1543,7 +1543,7 @@ class DoubleHalfRing(DC):
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         # make sure ports are valid
-        if any((1 <= x <= 4 for x in ports)):
+        if not all(1 <= x <= 4 for x in ports):
             raise ValueError("Invalid Ports")
 
         # determine if cross or through port
@@ -1685,7 +1685,7 @@ class AngledHalfRing(DC):
         ae, ao, ge, go, neff = get_coeffs(wavelength, width, thickness, sw_angle)
 
         # make sure ports are valid
-        if any((1 <= x <= 4 for x in ports)):
+        if not all(1 <= x <= 4 for x in ports):
             raise ValueError("Invalid Ports")
 
         # determine if cross or through port
