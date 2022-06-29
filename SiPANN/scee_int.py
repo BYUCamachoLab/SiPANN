@@ -1,5 +1,7 @@
 import numpy as np
 from simphony import Model
+from simphony.layout import Circuit
+from simphony.pins import Pin, PinList
 from simphony.tools import freq2wl
 from simphony.tools import wl2freq
 
@@ -62,15 +64,21 @@ class SimphonyWrapper(Model):
         be in values of nm. Defaults to an empty dictionary.
     """
 
-    pins = ("n1", "n2", "n3", "n4")  #: The default pin names of the device
-    freq_range = (
-        182800279268292.0,
-        205337300000000.0,
-    )  #: The valid frequency range for this model.
-
     def __init__(self, model, sigmas=dict()):
         self.model = model
         self.sigmas = sigmas
+        self.pins = PinList([Pin(self.model, "n1"), Pin(self.model, "n2"), Pin(self.model, "n3"), Pin(self.model, "n4")])  #: The default pin names of the device
+        self.model.pins = self.pins
+        self.model.circuit = Circuit(self.model)
+
+        self.model.freq_range = (
+            182800279268292.0,
+            205337300000000.0,
+        )  #: The valid frequency range for this model.
+
+        self.model.s_parameters = self.s_parameters
+        self.model.monte_carlo_s_parameters = self.monte_carlo_s_parameters
+        self.model.regenerate_monte_carlo_parameters = self.regenerate_monte_carlo_parameters
 
         # save actual parameters for switching back from monte_carlo
         self.og_params = self.model.__dict__.copy()
