@@ -2,7 +2,6 @@ import ctypes
 import os
 
 import matplotlib.pyplot as plt
-import nlopt
 import numpy as np
 from numba import njit
 from numba import vectorize
@@ -45,7 +44,7 @@ def bernstein_quick(n, j, t):
     test : float
         Result of computing the jth berstein polynomial at t
     """
-    return binom_fn(n, j) * t ** j * (1 - t) ** (n - j)
+    return binom_fn(n, j) * t**j * (1 - t) ** (n - j)
 
 
 def bezier_quick(g, length):
@@ -105,7 +104,7 @@ def bezier_quick(g, length):
             ),
             axis=0,
         )
-        / length ** 2,
+        / length**2,
     }
 
 
@@ -188,6 +187,8 @@ def make_coupler(
     length : ndarray
         The length of the coupler (nm)
     """
+
+    import nlopt
 
     # initial values for the optimizer to use and bounds for values
     couplingWidth = 20000
