@@ -21,8 +21,7 @@ import numpy as np
 import pkg_resources
 import skrf as rf
 from scipy.interpolate import UnivariateSpline
-from scipy.signal import find_peaks
-from scipy.signal import peak_widths
+from scipy.signal import find_peaks, peak_widths
 
 from SiPANN import import_nn
 

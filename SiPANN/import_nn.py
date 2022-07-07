@@ -131,13 +131,18 @@ class ImportNN:
         self.sess = tf.compat.v1.Session(graph=self.graph)
         with self.graph.as_default():
             # Import graph
-            imported_meta = tf.compat.v1.train.import_meta_graph(f"{directory}/model.meta")
+            imported_meta = tf.compat.v1.train.import_meta_graph(
+                f"{directory}/model.meta"
+            )
             imported_meta.restore(self.sess, f"{directory}/model")
 
             # get all tensor names
             self.output_tf = self.graph.get_tensor_by_name("OUTPUT:0")
             self.input_tf = self.graph.get_tensor_by_name("INPUT:0")
-            self.input_tf_parts = [self.graph.get_tensor_by_name(f"INPUT_{i}:0") for i in range(self.s_data[0])]
+            self.input_tf_parts = [
+                self.graph.get_tensor_by_name(f"INPUT_{i}:0")
+                for i in range(self.s_data[0])
+            ]
 
             self.keep_prob = self.graph.get_tensor_by_name("KEEP_PROB:0")
         tf.compat.v1.disable_eager_execution()

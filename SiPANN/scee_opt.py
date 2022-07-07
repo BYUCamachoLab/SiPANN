@@ -3,14 +3,10 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-from numba import njit
-from numba import vectorize
+from numba import njit, vectorize
 from numba.extending import get_cython_function_address
 from scipy import special
-from tables import ComplexCol
-from tables import Float64Col
-from tables import IsDescription
-from tables import open_file
+from tables import ComplexCol, Float64Col, IsDescription, open_file
 from tqdm import tqdm
 
 from SiPANN import scee
