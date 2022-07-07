@@ -28,7 +28,10 @@ MSE_REGRESION = mean_squared_error(model.predict(INPUT), np.real(OUTPUT))
 print("Multivariate linear regression MSE: {:e}".format(MSE_REGRESION))
 
 # Save so our ImportLR can use it
-d = {"coef_": model.named_steps["linear"].coef_, "degree_": model.named_steps["poly"].degree}
+d = {
+    "coef_": model.named_steps["linear"].coef_,
+    "degree_": model.named_steps["poly"].degree,
+}
 
 n_features = model.named_steps["poly"].n_input_features_
 n_out = 1 if len(d["coef_"].shape) == 1 else d["coef_"].shape[0]

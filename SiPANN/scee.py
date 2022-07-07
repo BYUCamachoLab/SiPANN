@@ -1,6 +1,5 @@
 import warnings
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 import gdspy
 import numpy as np
@@ -32,7 +31,7 @@ def get_neff(wavelength, width, thickness, sw_angle=90):
             wavelength (Valid for 1450nm-1650nm)
         width:    float or ndarray
             width (Valid for 400nm-600nm)
-        thickness:    float or ndarray 
+        thickness:    float or ndarray
             thickness (Valid for 180nm-240nm)
         sw_angle:    float or ndarray
             sw_angle (Valid for 80-90 degrees)
@@ -812,7 +811,13 @@ class HalfRing(DC):
         # determine z distance
         if 1 in ports and 3 in ports:
             z_dist = 2 * (radius + width / 2)
-        elif 1 in ports and 4 in ports or (2 not in ports or 4 not in ports) and 2 in ports and 3 in ports:
+        elif (
+            1 in ports
+            and 4 in ports
+            or (2 not in ports or 4 not in ports)
+            and 2 in ports
+            and 3 in ports
+        ):
             z_dist = np.pi * radius / 2 + radius + width / 2
         elif 2 in ports and 4 in ports:
             z_dist = np.pi * radius
@@ -997,7 +1002,13 @@ class HalfRacetrack(DC):
         # determine z distance
         if 1 in ports and 3 in ports:
             z_dist = 2 * (radius + width / 2) + length
-        elif 1 in ports and 4 in ports or (2 not in ports or 4 not in ports) and 2 in ports and 3 in ports:
+        elif (
+            1 in ports
+            and 4 in ports
+            or (2 not in ports or 4 not in ports)
+            and 2 in ports
+            and 3 in ports
+        ):
             z_dist = np.pi * radius / 2 + radius + width / 2 + length
         elif 2 in ports and 4 in ports:
             z_dist = np.pi * radius + length
@@ -1171,7 +1182,16 @@ class StraightCoupler(DC):
             offset = np.pi / 2
 
         # determine z distance
-        if 1 in ports and 3 in ports or 1 in ports and 4 in ports or 2 in ports and 4 in ports or 2 in ports and 3 in ports:
+        if (
+            1 in ports
+            and 3 in ports
+            or 1 in ports
+            and 4 in ports
+            or 2 in ports
+            and 4 in ports
+            or 2 in ports
+            and 3 in ports
+        ):
             z_dist = length
         else:
             return np.zeros(len(wavelength))
@@ -1363,7 +1383,16 @@ class Standard(DC):
         z_dist = length + 2 * np.sqrt(
             H ** 2 + (V * np.pi / 2) ** 2
         ) / np.pi * special.ellipeinc(np.pi, m)
-        if 1 in ports and 3 in ports or 1 in ports and 4 in ports or 2 in ports and 4 in ports or 2 in ports and 3 in ports:
+        if (
+            1 in ports
+            and 3 in ports
+            or 1 in ports
+            and 4 in ports
+            or 2 in ports
+            and 4 in ports
+            or 2 in ports
+            and 3 in ports
+        ):
             z_dist = z_dist
         else:
             return np.zeros(len(wavelength))
@@ -1555,7 +1584,16 @@ class DoubleHalfRing(DC):
             offset = np.pi / 2
 
         # determine z distance
-        if 1 in ports and 3 in ports or 1 in ports and 4 in ports or 2 in ports and 4 in ports or 2 in ports and 3 in ports:
+        if (
+            1 in ports
+            and 3 in ports
+            or 1 in ports
+            and 4 in ports
+            or 2 in ports
+            and 4 in ports
+            or 2 in ports
+            and 3 in ports
+        ):
             z_dist = np.pi * radius
         else:
             return np.zeros(len(wavelength))
@@ -1699,7 +1737,13 @@ class AngledHalfRing(DC):
         # determine z distance
         if 1 in ports and 3 in ports:
             z_dist = np.pi * (radius + width + gap)
-        elif 1 in ports and 4 in ports or (2 not in ports or 4 not in ports) and 2 in ports and 3 in ports:
+        elif (
+            1 in ports
+            and 4 in ports
+            or (2 not in ports or 4 not in ports)
+            and 2 in ports
+            and 3 in ports
+        ):
             z_dist = np.pi * (radius + width + gap) / 2 + np.pi * radius / 2
         elif 2 in ports and 4 in ports:
             z_dist = np.pi * radius

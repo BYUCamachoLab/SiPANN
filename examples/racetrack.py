@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from SiPANN import comp
-from SiPANN import dc
+from SiPANN import comp, dc
 
 # units in nanometers
 r = 12e3

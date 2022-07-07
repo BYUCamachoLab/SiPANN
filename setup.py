@@ -2,8 +2,7 @@
 from io import open
 from os import path
 
-from setuptools import find_packages
-from setuptools import setup
+from setuptools import find_packages, setup
 
 # io.open is needed for projects that support Python 2.7
 # It ensures open() defaults to text mode with universal newlines,
@@ -38,7 +37,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version="1.4.0",  # Required
+    version="2.0.0",  # Required
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#summary
@@ -91,8 +90,10 @@ setup(
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
     # This field adds keywords for your project which will appear on the
     # project page. What does your project relate to?
@@ -131,12 +132,10 @@ setup(
         "gdspy >= 1.5.2",
         "scikit-rf",
         "numba",
-        "numpy<1.22",
+        "numpy>=1.22;python_version>='3.8'",
+        "numpy<1.22;python_version=='3.7'",
         "simphony",
-        "nlopt<=2.7.1;python_version=='3.7'",
-        "nlopt<=2.7.0;python_version=='3.8'",
-        "nlopt==2.7.0;python_version=='3.9'",
-        "nlopt<2.7.0;python_version=='3.10'",
+        "nlopt==2.7.1",
         "matplotlib",
         "tables",
         "tqdm",

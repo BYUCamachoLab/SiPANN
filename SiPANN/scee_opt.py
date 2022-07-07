@@ -3,14 +3,10 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-from numba import njit
-from numba import vectorize
+from numba import njit, vectorize
 from numba.extending import get_cython_function_address
 from scipy import special
-from tables import ComplexCol
-from tables import Float64Col
-from tables import IsDescription
-from tables import open_file
+from tables import ComplexCol, Float64Col, IsDescription, open_file
 from tqdm import tqdm
 
 from SiPANN import scee
@@ -44,7 +40,7 @@ def bernstein_quick(n, j, t):
     test : float
         Result of computing the jth berstein polynomial at t
     """
-    return binom_fn(n, j) * t**j * (1 - t) ** (n - j)
+    return binom_fn(n, j) * t ** j * (1 - t) ** (n - j)
 
 
 def bezier_quick(g, length):
@@ -104,7 +100,7 @@ def bezier_quick(g, length):
             ),
             axis=0,
         )
-        / length**2,
+        / length ** 2,
     }
 
 

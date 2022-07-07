@@ -16,7 +16,7 @@ def convert_jupyter(file):
 
     # remove previous and move data to static
     filename = file.split(".")[0]
-    files = fr"{filename}_files"
+    files = rf"{filename}_files"
     os.system(f"rm -rf ../../docs/source/tutorials/{files}")
     os.system(f"cp -r {files} ../../docs/source/tutorials")
     os.system(f"rm {files}/**_**_**.png")

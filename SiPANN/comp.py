@@ -1,6 +1,5 @@
 import warnings
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 import gdspy
 import numpy as np
@@ -9,12 +8,8 @@ import scipy.integrate as integrate
 import scipy.special as special
 
 from SiPANN.import_nn import ImportLR
-from SiPANN.nn import bentWaveguide
-from SiPANN.nn import straightWaveguide
-from SiPANN.scee import clean_inputs
-from SiPANN.scee import get_coeffs
-from SiPANN.scee import HalfRacetrack
-
+from SiPANN.nn import bentWaveguide, straightWaveguide
+from SiPANN.scee import HalfRacetrack, clean_inputs, get_coeffs
 
 """
 Similarly to before, we initialize all ANN's and regressions as global objects to speed things up.
