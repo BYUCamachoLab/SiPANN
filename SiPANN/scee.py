@@ -517,7 +517,7 @@ class GapFuncSymmetric(DC):
         if units == "nms":
             scale = 1
         elif units == "microns":
-            scale = 10**-3
+            scale = 10 ** -3
         else:
             raise ValueError("Invalid units")
 
@@ -861,7 +861,7 @@ class HalfRing(DC):
         if units == "nms":
             scale = 1
         elif units == "microns":
-            scale = 10**-3
+            scale = 10 ** -3
         else:
             raise ValueError("Invalid units")
 
@@ -1049,7 +1049,7 @@ class HalfRacetrack(DC):
         if units == "nms":
             scale = 1
         elif units == "microns":
-            scale = 10**-3
+            scale = 10 ** -3
         else:
             raise ValueError("Invalid units")
 
@@ -1216,7 +1216,7 @@ class StraightCoupler(DC):
         if units == "nms":
             scale = 1
         elif units == "microns":
-            scale = 10**-3
+            scale = 10 ** -3
         else:
             raise ValueError("Invalid units")
 
@@ -1379,9 +1379,9 @@ class Standard(DC):
             offset = np.pi / 2
 
         # determine z distance - length + 2*sbend length
-        m = (V * np.pi / 2) ** 2 / (H**2 + (V * np.pi / 2) ** 2)
+        m = (V * np.pi / 2) ** 2 / (H ** 2 + (V * np.pi / 2) ** 2)
         z_dist = length + 2 * np.sqrt(
-            H**2 + (V * np.pi / 2) ** 2
+            H ** 2 + (V * np.pi / 2) ** 2
         ) / np.pi * special.ellipeinc(np.pi, m)
         if (
             1 in ports
@@ -1419,7 +1419,7 @@ class Standard(DC):
         if units == "nms":
             scale = 1
         elif units == "microns":
-            scale = 10**-3
+            scale = 10 ** -3
         else:
             raise ValueError("Invalid units")
 
@@ -1986,7 +1986,7 @@ class Waveguide(ABC):
         if units == "nms":
             scale = 1
         elif units == "microns":
-            scale = 10**-3
+            scale = 10 ** -3
         else:
             raise ValueError("Invalid units")
 

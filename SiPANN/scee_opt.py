@@ -40,7 +40,7 @@ def bernstein_quick(n, j, t):
     test : float
         Result of computing the jth berstein polynomial at t
     """
-    return binom_fn(n, j) * t**j * (1 - t) ** (n - j)
+    return binom_fn(n, j) * t ** j * (1 - t) ** (n - j)
 
 
 def bezier_quick(g, length):
@@ -100,7 +100,7 @@ def bezier_quick(g, length):
             ),
             axis=0,
         )
-        / length**2,
+        / length ** 2,
     }
 
 
