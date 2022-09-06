@@ -70,6 +70,12 @@ You should then be able to run the examples and tutorials in the examples folder
 .. _PyPI: https://pypi.org/project/SiPANN/
 
 
+JAX support
+===========
+
+SiPANN provides optional support for [JAX](https://github.com/google/jax). You need to have JAX installed in order to let SiPANN use `jax.numpy`(which is faster) instead of `numpy`. For installation instructions, see the [JAX documentation](https://github.com/google/jax#installation).
+
+
 References
 ==========
 
