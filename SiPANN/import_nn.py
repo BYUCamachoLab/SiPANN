@@ -3,7 +3,6 @@ from itertools import combinations_with_replacement as comb_w_r
 
 try:
     import jax.numpy as np
-    print("JAX imported")
 except ImportError:
     import numpy as np
 import tensorflow as tf
