@@ -41,6 +41,13 @@ SiPANN is distributed on PyPI_ and can be installed with ``pip``:
 
    pip install SiPANN
 
+Note that some dependencies (``gdspy``) require building from source. You'll
+need the Python3 dev package:
+
+.. code:: console
+
+   sudo apt-get install python3-dev
+
 Developmental Build
 #####################
 
