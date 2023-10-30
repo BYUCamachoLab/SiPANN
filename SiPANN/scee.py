@@ -162,12 +162,8 @@ def clean_inputs(inputs):
         inputs : tuple
             returns all inputs as same size ndarrays
     """
-
-    inputs = list(inputs)
     # make all scalars into numpy arrays
-    for i in range(len(inputs)):
-        if np.isscalar(inputs[i]):
-            inputs[i] = np.array([inputs[i]])
+    inputs = [np.array(i).reshape(-1) for i in list(inputs)]
 
     # take largest size of numpy arrays, or set value (if it's not 0)
     n = max(len(i) for i in inputs)
