@@ -115,7 +115,7 @@ namespaces = false
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--maxfail=2 -rf"
+# addopts = "--maxfail=2 -rf"
 testpaths = ["tests"]
 norecursedirs = ["LR", "COUPLER", "ANN"]
 console_output_style = "progress"
