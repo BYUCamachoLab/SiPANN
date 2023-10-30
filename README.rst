@@ -48,6 +48,15 @@ need the Python3 dev package:
 
    sudo apt-get install python3-dev
 
+SiPANN depends on TensorFlow. This is a large package (~500 MB)! Installation 
+may take a while. Additionally, if you're on a machine with a GPU, you'll need
+to install CUDA. Alternatively, you can tell TensorFlow to ignore the GPU
+by first setting the environment variable:
+
+.. code:: console
+
+   export CUDA_VISIBLE_DEVICES=0
+
 Developmental Build
 #####################
 
