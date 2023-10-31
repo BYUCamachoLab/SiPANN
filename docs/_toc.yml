@@ -1,0 +1,29 @@
+# Table of contents
+# Learn more at https://jupyterbook.org/customize/toc.html
+
+format: jb-book
+root: index
+parts:
+- caption: Getting Started
+  chapters:
+  - file: installing
+- caption: Tutorials
+  chapters:
+  - file: tutorials/ExportToInterConnect
+  - file: tutorials/HalfRing
+  - file: tutorials/InverseDesign
+  - file: tutorials/PreMadeCouplers
+  - file: tutorials/Simphony
+- caption: Reference
+  chapters:
+  - file: api/comp
+  - file: api/nn
+  - file: api/nn_utils
+  - file: api/scee
+  - file: api/scee_int
+  - file: api/scee_opt
+# - caption: Development
+#   chapters:
+#   - file: dev/contributing
+#   - file: dev/developing
+#   - file: dev/documenting
