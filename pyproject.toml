@@ -80,12 +80,10 @@ dev = [
   "build",
   "pytest",
 ]
-# doc = [
-#   "sphinx-book-theme ~= 0.3.3",
-#   "jupyter-book ~= 0.13.2",
-#   "matplotlib",
-#   "numpydoc",
-# ]
+doc = [
+  "jupyter-book == 0.15.1",
+  "numpydoc",
+]
 test = [
   "pytest", 
   "coverage",

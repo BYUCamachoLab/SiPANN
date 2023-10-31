@@ -6,10 +6,9 @@ These are the wrappers that provide an interface to enable use of all of the SCE
 
 Interconnect Exporter
 ======================
-.. autofunction:: SiPANN.scee_int.export_interconnect
+.. autofunction:: SiPANN.interconnect.export_interconnect
 
 Simphony Wrapper
 ==================
-.. autoclass:: SiPANN.scee_int.SimphonyWrapper
-    :members:
-    :inherited-members:
+
+This has been moved into simphony. `See the docs <https://simphonyphotonics.readthedocs.io/en/latest/>`_ for simphony to learn how to use SiPANN within simphony.
