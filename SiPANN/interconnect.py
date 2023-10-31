@@ -43,7 +43,7 @@ def export_interconnect(sparams, wavelength, filename, clear=True):
         open(filename, "w").close()
     with open(filename, "ab") as file:
         # make frequencies
-        freq = wl2freq(wavelength * 1e-9)
+        freq = _wl2freq(wavelength * 1e-9)
 
         # iterate through sparams saving
         for in_ in range(d):
