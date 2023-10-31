@@ -4,6 +4,25 @@ for cascading of complex structures"""
 import numpy as np
 
 
+_SPEED_OF_LIGHT = 299792458  # m/s
+
+
+def _wl2freq(wl):
+    """Convenience function for converting from wavelength to frequency.
+
+    Parameters
+    ----------
+    wl : float
+        The wavelength in SI units (m).
+
+    Returns
+    -------
+    freq : float
+        The frequency in SI units (Hz).
+    """
+    return _SPEED_OF_LIGHT / wl
+
+
 def export_interconnect(sparams, wavelength, filename, clear=True):
     """Exports scattering parameters to a file readable by interconnect.
 
