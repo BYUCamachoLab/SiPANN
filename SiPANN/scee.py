@@ -2,7 +2,10 @@ import warnings
 from abc import ABC, abstractmethod
 
 import gdspy
-import numpy as np
+try:
+    import jax.numpy as np
+except ImportError:
+    import numpy as np
 import pkg_resources
 from scipy import special
 from scipy.integrate import quad

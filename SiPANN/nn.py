@@ -17,7 +17,10 @@ Current devices:                              (Author)(Date last modified)
 # ---------------------------------------------------------------------------- #
 # Import libraries
 # ---------------------------------------------------------------------------- #
-import numpy as np
+try:
+    import jax.numpy as np
+except ImportError:
+    import numpy as np
 import pkg_resources
 import skrf as rf
 from scipy.interpolate import UnivariateSpline
