@@ -47,6 +47,12 @@ by first setting the environment variable:
 export CUDA_VISIBLE_DEVICES=0
 ```
 
+This package also depends on ``nlopt``, which does not currently provide PyPI
+builds for M-series Macs. If you're on an M-series Mac, you'll need to install
+``nlopt`` manually.
+
+```{bash}
+
 ## Developmental Build
 
 If you want a developmental build, it can be had by executing
