@@ -1,3 +1,7 @@
+"""
+Similarly to before, we initialize all ANN's and regressions as global objects to speed things up.
+"""
+
 import warnings
 from abc import ABC, abstractmethod
 
@@ -11,9 +15,7 @@ from SiPANN.import_nn import ImportLR
 from SiPANN.nn import bentWaveguide, straightWaveguide
 from SiPANN.scee import HalfRacetrack, clean_inputs, get_coeffs
 
-"""
-Similarly to before, we initialize all ANN's and regressions as global objects to speed things up.
-"""
+
 cross_file = pkg_resources.resource_filename("SiPANN", "LR/DC_coeffs.pkl")
 DC_coeffs = ImportLR(cross_file)
 
@@ -30,18 +32,18 @@ class racetrack_sb_rr:
 
     Parameters
     ----------
-        width : float or ndarray
-            Width of the waveguide in nm
-        thickness : float or ndarray
-            Thickness of waveguide in nm
-        radius : float or ndarray
-            Distance from center of ring to middle of waveguide in nm.
-        gap : float or ndarray
-            Minimum distance from ring waveguide edge to straight waveguide edge in nm.
-        length : float or ndarray
-            Length of straight portion of ring waveguide in nm.
-        sw_angle : float or ndarray, optional
-            Sidewall angle of waveguide from horizontal in degrees. Defaults to 90.
+    width : float or ndarray
+        Width of the waveguide in nm
+    thickness : float or ndarray
+        Thickness of waveguide in nm
+    radius : float or ndarray
+        Distance from center of ring to middle of waveguide in nm.
+    gap : float or ndarray
+        Minimum distance from ring waveguide edge to straight waveguide edge in nm.
+    length : float or ndarray
+        Length of straight portion of ring waveguide in nm.
+    sw_angle : float or ndarray, optional
+        Sidewall angle of waveguide from horizontal in degrees. Defaults to 90.
     """
 
     def __init__(self, width, thickness, radius, gap, length, sw_angle=90, loss=[0.99]):
