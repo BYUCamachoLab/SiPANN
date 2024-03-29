@@ -5,7 +5,10 @@ install:
 	pre-commit install
 
 book:
-	cd docs && make html
+	jb build docs
+
+serve:
+	cd docs/_build/html/ && python -m http.server 0
 
 lint:
 	flake8
