@@ -4,3 +4,4 @@ SiPANN.egg-info/
 **/build
 **/.vscode
 dist/*
+.venv
