@@ -67,7 +67,7 @@ LR_bent = import_nn.ImportLR(bent_FILE)
 # with multiple inputs
 def cartesian_product(arrays):
     la = len(arrays)
-    dtype = np.find_common_type([a.dtype for a in arrays], [])
+    dtype = np.result_type(*[a.dtype for a in arrays])  # modern replacement
     l = [_a.astype(float) for _a in arrays]
     arr = np.empty([a.size for a in arrays] + [la], dtype=dtype)
     for i, a in enumerate(l):
