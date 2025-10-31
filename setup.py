@@ -2,7 +2,8 @@
 from io import open
 from os import path
 
-from setuptools import find_packages, setup
+from setuptools import find_packages
+from setuptools import setup
 
 # io.open is needed for projects that support Python 2.7
 # It ensures open() defaults to text mode with universal newlines,
@@ -90,10 +91,8 @@ setup(
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
     # This field adds keywords for your project which will appear on the
     # project page. What does your project relate to?
@@ -129,11 +128,10 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         "tensorflow",
-        "gdspy >= 1.5.2",
+        "gdspy>=1.5.2",
         "scikit-rf",
         "numba",
-        "numpy>=1.22;python_version>='3.8'",
-        "numpy<1.22;python_version=='3.7'",
+        "numpy>=1.22",
         "simphony",
         "nlopt==2.7.1",
         "matplotlib",
