@@ -133,7 +133,7 @@ setup(
         "numba",
         "numpy>=1.22",
         "simphony",
-        "nlopt==2.7.1",
+        "nlopt<=2.9.1",
         "matplotlib",
         "tables",
         "tqdm",
