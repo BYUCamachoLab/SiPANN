@@ -1,5 +1,5 @@
 **************************
-SiPANN 2.0.0
+SiPANN 2.0.1
 **************************
 .. image:: https://img.shields.io/pypi/v/SiPANN.svg
    :target: https://pypi.python.org/pypi/SiPANN
@@ -95,8 +95,8 @@ Bibtex citation
 Releasing
 =========
 
-Make sure you have committed a changelog file titled 
-"[major].[minor].[patch]-changelog.md" before bumping version. 
+Make sure you have committed a changelog file titled
+"[major].[minor].[patch]-changelog.md" before bumping version.
 
 To bump version prior to a release, run one of the following commands:
 
@@ -106,11 +106,11 @@ To bump version prior to a release, run one of the following commands:
    bumpversion minor
    bumpversion patch
 
-This will automatically create a git tag in the repository with the 
+This will automatically create a git tag in the repository with the
 corrresponding version number and commit the modified files (where version
-numbers were updated). Pushing the tags (a manual process) to the remote will 
-automatically create a new release. Releases are automatically published to 
-PyPI and GitHub when git tags matching the "v*" pattern are created 
+numbers were updated). Pushing the tags (a manual process) to the remote will
+automatically create a new release. Releases are automatically published to
+PyPI and GitHub when git tags matching the "v*" pattern are created
 (e.g. "v0.2.1"), as bumpversion does.
 
 To view the tags on the local machine, run :code:`git tag`. To push the tags to
