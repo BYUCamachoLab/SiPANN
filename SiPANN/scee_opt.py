@@ -1,65 +1,49 @@
-import ctypes
 import os
-
 import matplotlib.pyplot as plt
 import numpy as np
-from numba import njit, vectorize
-from numba.extending import get_cython_function_address
 from scipy import special
 from tables import ComplexCol, Float64Col, IsDescription, open_file
 from tqdm import tqdm
 
 from SiPANN import scee
 
-addr = get_cython_function_address("scipy.special.cython_special", "binom")
-functype = ctypes.CFUNCTYPE(ctypes.c_double, ctypes.c_double, ctypes.c_double)
-binom_fn = functype(addr)
-
 ##################################################
 ###              HELPER FUNCTIONS              ###
 ###  used to help quickly define gap functions ###
 ##################################################
 
+# def bernstein_quick(n, j, t):
+#     """Computes the jth bernstein polynomial.
+#     Updated to support NumPy Arrays (Vectorization).
+#     """
+#     # scipy.special.comb is fast and handles arrays natively
+#     coeff = special.comb(n, j)
+#     return coeff * (t ** j) * ((1 - t) ** (n - j))
 
-@njit
 def bernstein_quick(n, j, t):
-    """Quickly computes the jth bernstein polynomial for the basis of n+1
-    polynomials.
-
-    Parameters
-    -----------
-    n : int
-        The number of elements minus one in the basis of berstein polynomials
-    j : int
-        The index of bernstein polynomial that needs to be computed
-    t : float
-        [0-1] the value at which to compute the polynomial
-
-    Returns
-    ----------
-    test : float
-        Result of computing the jth berstein polynomial at t
+    """Computes the jth bernstein polynomial.
+    Updated to support NumPy Arrays and handle edge cases (j<0 or j>n).
     """
-    return binom_fn(n, j) * t ** j * (1 - t) ** (n - j)
+    # Safety Check: The polynomial is 0 if j is out of bounds [0, n]
+    if j < 0 or j > n:
+        # If t is an array, return an array of zeros. If scalar, return 0.
+        if np.ndim(t) > 0:
+            return np.zeros_like(t)
+        return 0.0
 
+    # scipy.special.comb is fast and handles arrays natively
+    coeff = special.comb(n, j)
+    return coeff * (t ** j) * ((1 - t) ** (n - j))
 
 def bezier_quick(g, length):
-    """Computes the bezier curve for the evenly spaced control points with gaps
-    g.
-
-    Parameters
-    ----------
-    g :  ndarray
-        Numpy array of size (n,) of gap values at each of the control points
-    length :  float
-        length of the coupler
-
-    Returns
-    ----------
-    result : dict
-        {'g': original control points, 'w': length of coupler, 'f': bezier curve function defining gap function, 'df': derivative of gap function, 'd2f': 2nd derivative of gap functions}
+    """Computes the bezier curve for the evenly spaced control points with gaps g.
+    Optimized to handle vector inputs (t can be an array of 1000+ points).
     """
     n = len(g) - 1
+    
+    # We explicitly define the functions to handle array inputs correctly
+    # axis=0 sums across the control points, preserving the spatial grid (axis 1)
+    
     return {
         "g": g,
         "w": length,
@@ -142,47 +126,7 @@ def make_coupler(
     maxiter=None,
     verbose=0,
 ):
-    """Optimizes output from a directional coupler defined by a bezier curve to
-    a specified output magnitude.
-
-    Parameters
-    ----------
-    goalK :  float
-        [0-1] mandatory, unless using arrayK. Desired \|kappa\|^2 magnitude
-    arrayK :  ndarray, optional
-        Has to have size (2,). [0-1] can specify a \|kappa\|^2 magnitude at start and end of wavelength sweep. Defaults to None
-    waveSweep :  ndarray, optional
-        Sweep of wavelengths to evaluate objective function at. Defaults to ``np.linspace(1500,1600,4)``
-    gapN :  int, optional
-        Number of control points that can vary. Defaults to 16.
-    algo :  int, optional
-        Optimization algorithm that nlopt uses. Defaults to 35
-    edgeN :  int, optional
-        Number of control points on each edge that are fixed at gap of 1500 nm. Defaults to 8.
-    plot :  bool, optional
-        If True then optimization will plot the current coupler at each iteration with the control points. Defaults to False.
-    collectData :  bool, optional
-        Whether to collect data for couplers of each iteration (could be useful for machine learning and even faster design). Defaults to False.
-    width :  float, optional
-        Width of waveguides in nm. Defaults to 500.
-    thickness :  float, optional
-        Thickness of waveguides in nm. Defaults to 220.
-    radius :  float, optional
-        Radius of allowable curve in directional coupler in nm. Defaults to 5000.
-    maxiter : int, optional
-        The number of max iterations to run each of the gloabl and local optimization for. If None, doesn't apply. Defaults to None.
-    verbose :  int, optional
-        Amount of logging to output. If 0, none. If 1, tqdm bar. If 2, prints all information (can be cumbersome). Defaults to 0.
-
-    Returns
-    ----------
-    coupler : GapFuncSymmetric
-        The final coupler object from SCEE
-    control_pts : ndarray
-        The control points defining bezier curve for gap function (nm)
-    length : ndarray
-        The length of the coupler (nm)
-    """
+    """Optimizes output from a directional coupler defined by a bezier curve."""
 
     import nlopt
 
@@ -215,10 +159,6 @@ def make_coupler(
         goalK = np.array(
             [arrayK[0] if k < waveN / 2 else arrayK[1] for k in range(waveN)]
         )
-
-    # sweep of wavelength to optimize over
-    # waveSweep = np.linspace(waveStart, waveStop, waveN)
-    # dataPoints = {str(wave):{'g': [], 'k': [], 't': []} for wave in range(waveStart,waveStop+1)}
 
     # define plot for debugging and final result
     if plot:
@@ -259,21 +199,6 @@ def make_coupler(
         point = table.row
 
     def f(g, grad):
-        """Optimization function.
-
-        Parameters
-        -----------
-        x :  ndarray
-            Numpy array of size ((gapN + 1,) of control points, first element is length
-        grad : ndarray
-            gradient of the optimization (not used)
-
-        Returns
-        ----------
-        result: float
-            MSE of power equation (-10 log (|kappa|^2/goalK))
-        """
-
         iter[0] += 1
 
         # define optimization points and distance between them
@@ -327,7 +252,7 @@ def make_coupler(
         mse = np.sum((np.log10((np.abs(currK) ** 2) / goalK)) ** 2) / waveN
         mseVals.append(mse)
 
-        # add penalty if gap function has value < 100 nm (SCEE doesn't perform well for coupling closer than this)
+        # add penalty if gap function has value < 100 nm
         mse += np.sum(gap["f"](np.linspace(0, g[0], 100)) < 100)
 
         # # print iteration progress
@@ -335,7 +260,6 @@ def make_coupler(
             print(f"MSE: {mse}")
             print(f"currK: {np.abs(currK)**2}")
             print(f"g: {g}")
-            # if the optimization changed from global constrained to local optimization
             print("local optimization:", localOpt, "\n")
         elif verbose == 1:
             o = "LOCAL" if localOpt else "GLOBAL"
@@ -347,34 +271,10 @@ def make_coupler(
         return mse
 
     def constraint(x, grad, radius=5000):
-        """Constraint function on waveguide curvature to make sure coupler
-        reduces bending loss.
-
-        Parameters
-        ----------
-        x :   ndarray
-            Numpy array of size ((gapN + 1,) of control points, first element is length
-        grad : ndarray
-            gradient of optimization (not used)
-        radius : float
-            radius of allowable curve
-
-        Returns
-        ----------
-        result : (bool)
-            whether iteration satisfies curvature
-        """
-
-        # The derivative of the waveguide is half the derivative of the gap function
         deriv = lambda x: coupler.dgap(x) / 2
-
-        # domain doesn't include 0 or full length because of division by zero
         domain = np.linspace(0.002, x[0] - 0.002, 500)
-        # curvature at each point in the domain
         curve = np.abs(curvatureFunc(domain) / ((1 + (deriv(domain) ** 2)) ** 1.5))
 
-        # save data if constraints are satisfied and collectData=True
-        # collects gap points, length, width, thickness, integer wavelengths in range, and outputs from coupler
         if collectData and not np.any(curve > 1 / radius):
             waves = range(waveStart, waveStop + 1)
             currK = coupler.predict((1, 4), waves)
@@ -417,23 +317,16 @@ def make_coupler(
     gap_final = opt.optimize(x0)
 
     ###### local optimize after global ########
-    # set color to black so in debug mode we can see when the local optimization starts
     line1.set_color("k")
     scatter1.set_color("k")
     line2.set_color("k")
     localOpt = True
 
     opt = nlopt.opt(40, gapN + 1)
-
-    # add constraint only on local optimization
     opt.add_equality_constraint(lambda x, grad: constraint(x, grad), 1e-8)
-
-    # initialize and perform local optimization
     opt.set_lower_bounds(np.append(couplingMin, np.full((gapN), gapMin)))
     opt.set_upper_bounds(np.append(couplingMax, np.full((gapN), gapMax)))
-
     opt.set_min_objective(f)
-
     opt.set_xtol_rel(1e-5)
     opt.set_ftol_abs(1e-7)
     opt.set_ftol_rel(1e-6)
@@ -442,11 +335,9 @@ def make_coupler(
 
     gap_final = opt.optimize(gap_final)
 
-    # close data collection file (h5 used so data is still collected if interrupted)
     if collectData:
         h5file.close()
 
-    # make sure final coupler is defined properly
     gap_total = np.append(
         np.append(np.append(np.full(edgeN, gapMax), gap_final[1:]), gap_final[-1:0:-1]),
         np.full(edgeN, gapMax),
@@ -454,14 +345,12 @@ def make_coupler(
     gap = bezier_quick(gap_total, gap_final[0])
     coupler.update(gap=gap["f"], dgap=gap["df"], zmax=gap["w"])
 
-    # setup for final coupler plot
     if plot:
         dom = np.linspace(0, gap_final[0], 500)
         axes[0].set_xlim(0, gap_final[0])
         scatter1.set_visible(False)
     K_final = coupler.predict((1, 4), waveSweep)
 
-    # plot optimized waveguide geometry and power
     if plot:
         line1.set_visible(False)
         line2.set_ydata(-np.abs(np.log10(np.abs(K_final) ** 2 / goalK)))
@@ -479,10 +368,8 @@ def make_coupler(
         print(np.abs(K_final) ** 2)
         fig.canvas.draw()
         fig.canvas.flush_events()
-        # don't press a keyboard key once plot shows. If save or resize use mouse
         plt.waitforbuttonpress()
 
-    # plot MSE over iterations
     if plot:
         fig, axes = plt.subplots(1, 1)
         axes.semilogy(mseVals)
@@ -492,10 +379,6 @@ def make_coupler(
         fig.canvas.flush_events()
         plt.waitforbuttonpress()
 
-    # if collectData:
-    #     for wave in range(waveStart,waveStop+1):
-    #         np.savez('./data/' + ('%.2f'%goalK).split('.')[1] + '/' + str(wave),GAP=dataPoints[str(wave)]['g'],K=dataPoints[str(wave)]['k'],T=dataPoints[str(wave)]['t'])
-
     return coupler, gap_total, gap_final[0]
 
 
@@ -504,24 +387,7 @@ def make_coupler(
 ###        useful for caching and reusing later       ###
 #########################################################
 def save_coupler(width, thickness, control_pts, length, filename):
-    """Used to save optimized couplers efficiently.
-
-    When used only saves gap points and coupling length into a .npz file. This allows for easy reloading
-    via the functions below.
-
-    Parameters
-    ----------
-    width :  float
-        Width of the waveguide in nm
-    thickness :  float
-        Thickness of the waveguide in nm
-    control_pts :  ndarray
-        Gap points defining gap function via bernstein polynomials. Second parameter returned by ``make_coupler``.
-    length :  float
-        Length of corresponding coupler. Third parameter returned by ``make_coupler``
-    filename :  string
-        Name of file to write to.
-    """
+    """Used to save optimized couplers efficiently."""
     np.savez(
         filename,
         WIDTH=np.array([width]),
@@ -532,31 +398,13 @@ def save_coupler(width, thickness, control_pts, length, filename):
 
 
 def load_coupler(filename):
-    """Used to load optimized couplers efficiently.
-
-    Any coupler saved using the ``save_coupler`` function can be reloaded using this one. It will return
-    an instance of ``SiPANN.scee.GapFuncSymmetric``.
-
-    Parameters
-    ----------
-    filename :  string
-        Location where file is stored.
-
-    Returns
-    ----------
-    coupler : GapFuncSymmetric
-        Saved coupler
-    length : float
-        Length of coupler
-    """
-    # load all the data
+    """Used to load optimized couplers efficiently."""
     data = np.load(filename)
     g = data["GAP"]
     length = data["LENGTH"][0]
     width = data["WIDTH"][0]
     thickness = data["THICKNESS"][0]
 
-    # make curve and return object
     bez = bezier_quick(g, length)
     return (
         scee.GapFuncSymmetric(width, thickness, bez["f"], bez["df"], 0, bez["w"]),
@@ -565,28 +413,10 @@ def load_coupler(filename):
 
 
 def premade_coupler(split):
-    """Loads premade couplers.
-
-    Various splitting ratio couplers have been made and saved. This function reloads them. Note that each of their
-    lengths are different and are also returned for the users info. These have all been designed with waveguide
-    geometry 500nm x 220nm.
-
-    Parameters
-    ----------
-    split :  int
-        Percent of light coming out cross port. Valid numbers are 10, 20, 30, 40, 50, 100. 100 is a full crossover.
-
-    Returns
-    ----------
-    coupler : GapFuncSymmetric
-        Designed Coupler
-    length : float
-        Length of coupler
-    """
+    """Loads premade couplers."""
     if split not in [10, 20, 30, 40, 50, 100]:
         raise ValueError("That splitting ratio hasn't been made")
 
-    # load all the data
     filename = f"split_{split}_{100-split}.npz"
     data = np.load(
         os.path.join(os.path.dirname(os.path.realpath(__file__)), "COUPLER", filename)
@@ -596,7 +426,6 @@ def premade_coupler(split):
     width = data["WIDTH"][0]
     thickness = data["THICKNESS"][0]
 
-    # make curve and return object
     bez = bezier_quick(g, length)
     return (
         scee.GapFuncSymmetric(width, thickness, bez["f"], bez["df"], 0, bez["w"]),
