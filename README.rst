@@ -1,5 +1,5 @@
 **************************
-SiPANN 2.0.1
+SiPANN 2.0.2
 **************************
 .. image:: https://img.shields.io/pypi/v/SiPANN.svg
    :target: https://pypi.python.org/pypi/SiPANN
