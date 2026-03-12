@@ -1,4 +1,7 @@
-import numpy as np
+try:
+    import jax.numpy as np
+except ImportError:
+    import numpy as np
 from simphony import Model
 from simphony.layout import Circuit
 from simphony.pins import Pin, PinList

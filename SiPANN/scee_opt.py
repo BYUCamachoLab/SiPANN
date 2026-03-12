@@ -2,7 +2,10 @@ import ctypes
 import os
 
 import matplotlib.pyplot as plt
-import numpy as np
+try:
+    import jax.numpy as np
+except ImportError:
+    import numpy as np
 from numba import njit, vectorize
 from numba.extending import get_cython_function_address
 from scipy import special
